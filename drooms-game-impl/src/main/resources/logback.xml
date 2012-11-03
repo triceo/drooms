@@ -20,6 +20,7 @@
       <level>DEBUG</level>
     </filter>
     <file>game-complete.log</file>
+    <append>false</append>
     <encoder>
       <pattern>%d %-5p [%c] - %m%n</pattern>
     </encoder>
@@ -34,6 +35,7 @@
       <level>INFO</level>
     </filter>
     <file>game-brief.log</file>
+    <append>false</append>
     <encoder>
       <pattern>%d %-5p [%c] - %m%n</pattern>
     </encoder>
