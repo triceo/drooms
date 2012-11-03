@@ -236,8 +236,10 @@ public class FirstGame implements
                 }
             }
             // make the move
+            // FIXME kill the worm when it stays at the same place for a long time
             currentSituation = currentSituation.move();
             // resolve worms colliding
+            // FIXME doesn't handle collisions with itself (cycle or return in the same direction)
             final Set<Player> oneCollidedWorms = new HashSet<Player>();
             final Set<Pair<Player, Player>> bothCollidedWorms = new HashSet<Pair<Player, Player>>();
             for (final Player p1 : currentPlayers) {
