@@ -1,6 +1,6 @@
 package org.drooms.api;
 
-import java.util.Deque;
+import java.util.Collection;
 
 /**
  * A situation is a point in time before any of the worms have made their moves.
@@ -103,7 +103,7 @@ public interface Situation<P extends Playground<N, E>, N extends Node, E extends
      * @return First element is the head as retrieved by (
      *         {@link Situation#getHeadPosition(Player)}, last is the tail.
      */
-    public Deque<N> getPositions(Player p);
+    public Collection<N> getPositions(Player p);
 
     /**
      * Return the number of the current turn.

@@ -1,5 +1,6 @@
 package org.drooms.impl;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
@@ -171,9 +172,9 @@ public class DefaultSituation implements
     }
 
     @Override
-    public Deque<DefaultNode> getPositions(final Player p) {
+    public Collection<DefaultNode> getPositions(final Player p) {
         this.validatePlayer(p);
-        return (Deque<DefaultNode>) Collections
+        return Collections
                 .unmodifiableCollection(this.positions.get(p));
     }
 
