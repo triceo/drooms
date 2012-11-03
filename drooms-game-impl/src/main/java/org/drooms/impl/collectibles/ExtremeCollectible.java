@@ -35,4 +35,13 @@ public class ExtremeCollectible implements Collectible {
         return '*';
     }
 
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("ExtremeCollectible [expiresInTurn=")
+				.append(expiresInTurn).append(", points=").append(points)
+				.append("]");
+		return builder.toString();
+	}
+
 }

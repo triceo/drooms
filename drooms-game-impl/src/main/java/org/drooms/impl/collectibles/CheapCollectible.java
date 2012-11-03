@@ -4,7 +4,16 @@ import org.drooms.api.Collectible;
 
 public class CheapCollectible implements Collectible {
 
-    private final int expiresInTurn, points;
+    @Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("CheapCollectible [expiresInTurn=")
+				.append(expiresInTurn).append(", points=").append(points)
+				.append("]");
+		return builder.toString();
+	}
+
+	private final int expiresInTurn, points;
 
     public CheapCollectible(final int points, final int expiresInTurn) {
         if (expiresInTurn < 0) {
