@@ -2,6 +2,7 @@ package org.drooms.impl;
 
 import java.util.concurrent.TimeUnit;
 
+import org.drools.runtime.rule.FactHandle;
 import org.drools.KnowledgeBaseFactory;
 import org.drools.runtime.Channel;
 import org.drools.runtime.Environment;
@@ -38,6 +39,23 @@ public class PlayerDecisionLogic implements Channel {
 
     }
 
+    public class CurrentTurn {
+
+        private int number;
+
+        public CurrentTurn(final int number) {
+            this.number = number;
+        }
+
+        public int getNumber() {
+            return this.number;
+        }
+        
+        public void setNumber(int number) {
+        	this.number = number;
+        }
+
+    }
     private static final Logger LOGGER = LoggerFactory
             .getLogger(PlayerDecisionLogic.class);
 
@@ -57,6 +75,7 @@ public class PlayerDecisionLogic implements Channel {
     private final boolean isDisposed = false;
     private final WorkingMemoryEntryPoint gameEvents, playerEvents;
     private Move latestDecision = null;
+    private final FactHandle currentTurn; 
 
     public PlayerDecisionLogic(final Player p) {
         this.player = p;
@@ -78,6 +97,7 @@ public class PlayerDecisionLogic implements Channel {
         // FIXME somehow insert playing field into WM
         this.session.insert(new CurrentPlayer(p)); // make sure everyone knows
                                                    // the current player
+        this.currentTurn = this.session.insert(new CurrentTurn(0));
     }
 
     public Move decideNextMove() {
@@ -86,9 +106,16 @@ public class PlayerDecisionLogic implements Channel {
                 new Object[] { this.player.getName() });
         final SessionPseudoClock clock = this.session.getSessionClock();
         clock.advanceTime(1, TimeUnit.MINUTES);
+        // decide
         PlayerDecisionLogic.LOGGER.trace("Player {} deciding. ",
                 new Object[] { this.player.getName() });
+        this.latestDecision = null;
         this.session.fireAllRules();
+        // increase turn number
+        CurrentTurn turn = (CurrentTurn) this.session.getObject(currentTurn);
+        turn.setNumber(turn.getNumber() + 1);
+        this.session.update(currentTurn, turn);
+        // store the decision
         final Move decision = (this.latestDecision == null ? Move.STAY
                 : this.latestDecision);
         PlayerDecisionLogic.LOGGER.info("Player {} final decision is {}. ",
