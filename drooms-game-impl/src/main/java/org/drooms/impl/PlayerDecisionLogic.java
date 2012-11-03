@@ -51,7 +51,7 @@ public class PlayerDecisionLogic implements Channel {
     // initialize the shared environment
     private static final Environment environment = KnowledgeBaseFactory
             .newEnvironment();
-
+    
     private final Player player;
     private final StatefulKnowledgeSession session;
     private final boolean isDisposed = false;
@@ -66,8 +66,14 @@ public class PlayerDecisionLogic implements Channel {
         this.session.registerChannel("decision", this);
         // this is where we will send events from the game
         this.gameEvents = this.session.getWorkingMemoryEntryPoint("gameEvents");
+        if (gameEvents == null) {
+            throw new IllegalStateException("Problem in your rule file: 'gameEvents' entry point not declared.");
+        }
         this.playerEvents = this.session
                 .getWorkingMemoryEntryPoint("playerEvents");
+        if (gameEvents == null) {
+            throw new IllegalStateException("Problem in your rule file: 'playerEvents' entry point not declared.");
+        }
         // FIXME insert players into WM
         // FIXME somehow insert playing field into WM
         this.session.insert(new CurrentPlayer(p)); // make sure everyone knows

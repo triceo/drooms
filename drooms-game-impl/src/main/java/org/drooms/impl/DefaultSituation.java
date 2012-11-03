@@ -57,6 +57,7 @@ public class DefaultSituation implements
     public DefaultSituation(final DefaultPlayground playground,
             final List<Player> players, final int defaultLength) {
         this.turnNo = 0;
+        this.playground = playground;
         final int playersSupported = this.playground.getStartingPositions()
                 .size();
         final int playersAvailable = players.size();
@@ -65,7 +66,6 @@ public class DefaultSituation implements
                     "The playground doesn't support " + playersAvailable
                             + " players, only " + playersSupported + "! ");
         }
-        this.playground = playground;
         final List<DefaultNode> startingPositions = this.playground
                 .getStartingPositions();
         int i = 0;
