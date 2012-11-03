@@ -52,6 +52,7 @@ public class DefaultPlayground implements Playground<DefaultNode, DefaultEdge> {
     private final UnweightedShortestPath<DefaultNode, DefaultEdge> shortestPath;
     private final SortedMap<Character, DefaultNode> startingNodes = new TreeMap<Character, DefaultNode>();
     private final int width;
+
     private DefaultPlayground(final List<String> lines) {
         // assemble nodes
         int maxX = Integer.MIN_VALUE;
@@ -62,16 +63,16 @@ public class DefaultPlayground implements Playground<DefaultNode, DefaultEdge> {
                 final char nodeLabel = line.charAt(x);
                 DefaultNode n;
                 switch (nodeLabel) {
-                case WALL_SIGN: // wall node
-                    n = DefaultPlayground.WALL_NODE;
-                    break;
-                case ' ': // regular node
-                    n = new DefaultNode(x, y);
-                    break;
-                default: // starting point for a worm
-                    n = new DefaultNode(x, y);
-                    this.startingNodes.put(nodeLabel, n);
-                    break;
+                    case WALL_SIGN: // wall node
+                        n = DefaultPlayground.WALL_NODE;
+                        break;
+                    case ' ': // regular node
+                        n = new DefaultNode(x, y);
+                        break;
+                    default: // starting point for a worm
+                        n = new DefaultNode(x, y);
+                        this.startingNodes.put(nodeLabel, n);
+                        break;
                 }
                 this.nodes.add(n);
                 locations[x] = n;

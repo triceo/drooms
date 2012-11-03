@@ -62,6 +62,15 @@ public interface Situation<P extends Playground<N, E>, N extends Node, E extends
     public boolean crash(Player p1);
 
     /**
+     * Kill a worm because it has been inactive for far too long.
+     * 
+     * @param p
+     *            Player in question.
+     * @return True if removed, false if there was nothing to remove.
+     */
+    public boolean deactivate(Player p);
+
+    /**
      * A collectible found on the given position.
      * 
      * @param node
@@ -69,6 +78,16 @@ public interface Situation<P extends Playground<N, E>, N extends Node, E extends
      * @return A collectible specified, or null if none.
      */
     public Collectible getCollectible(N node);
+
+    /**
+     * Retrieve all the decision ever made by a worm, in the order of
+     * appearance.
+     * 
+     * @param p
+     *            Player in question.
+     * @return Ordered list of decisions.
+     */
+    public Collection<Move> getDecisionRecord(Player p);
 
     /**
      * Get a player's head position in the situation.
@@ -148,19 +167,5 @@ public interface Situation<P extends Playground<N, E>, N extends Node, E extends
      *            .
      */
     public void setPlayerLength(Player p, int length);
-    
-    /**
-     * Kill a worm because it has been inactive for far too long.
-     * @param p Player in question.
-     * @return True if removed, false if there was nothing to remove.
-     */
-    public boolean deactivate(Player p);
-    
-    /**
-     * Retrieve all the decision ever made by a worm, in the order of appearance.
-     * @param p Player in question.
-     * @return Ordered list of decisions.
-     */
-    public Collection<Move> getDecisionRecord(Player p);
 
 }

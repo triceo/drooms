@@ -9,23 +9,25 @@ import org.drooms.api.Strategy;
 
 /**
  * Hello world!
- *
+ * 
  */
 public class RandomSuicidalStrategy implements Strategy {
-    
+
     public RandomSuicidalStrategy() {
         // do nothing
     }
 
     @Override
-    public String getName() {
-        return "Random Suicidal";
+    public KnowledgeBase getKnowledgeBase(final ClassLoader cls) {
+        final KnowledgeBuilder kb = KnowledgeBuilderFactory
+                .newKnowledgeBuilder();
+        kb.add(ResourceFactory.newClassPathResource("random-suicidal.drl", cls),
+                ResourceType.DRL);
+        return kb.newKnowledgeBase();
     }
 
     @Override
-    public KnowledgeBase getKnowledgeBase(ClassLoader cls) {
-        KnowledgeBuilder kb = KnowledgeBuilderFactory.newKnowledgeBuilder();
-        kb.add(ResourceFactory.newClassPathResource("random-suicidal.drl", cls), ResourceType.DRL);
-        return kb.newKnowledgeBase();
+    public String getName() {
+        return "Random Suicidal";
     }
 }

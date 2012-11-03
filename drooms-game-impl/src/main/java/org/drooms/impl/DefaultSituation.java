@@ -9,12 +9,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.drooms.api.Collectible;
 import org.drooms.api.Move;
 import org.drooms.api.Player;
 import org.drooms.api.Situation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DefaultSituation implements
         Situation<DefaultPlayground, DefaultNode, DefaultEdge> {
@@ -34,7 +34,8 @@ public class DefaultSituation implements
             final int turnNo,
             final Map<PlayerDecisionLogic, Deque<DefaultNode>> players,
             final Map<Player, Integer> lengths,
-            final Map<Collectible, DefaultNode> collectibles, final Map<Player, List<Move>> decisionRecord) {
+            final Map<Collectible, DefaultNode> collectibles,
+            final Map<Player, List<Move>> decisionRecord) {
         this.turnNo = turnNo;
         this.playground = playground;
         for (final Map.Entry<PlayerDecisionLogic, Deque<DefaultNode>> entry : players
@@ -51,7 +52,8 @@ public class DefaultSituation implements
             }
             this.lengths.put(entry.getKey(), entry.getValue());
         }
-        for (final Map.Entry<Player, List<Move>> entry : decisionRecord.entrySet()) {
+        for (final Map.Entry<Player, List<Move>> entry : decisionRecord
+                .entrySet()) {
             if (!this.players.containsKey(entry.getKey())) {
                 // forget information about dead players
                 continue;
@@ -153,6 +155,22 @@ public class DefaultSituation implements
     }
 
     @Override
+    public boolean deactivate(final Player p) {
+        if (this.hasPlayer(p)) {
+            for (final PlayerDecisionLogic logic : this.players.values()) {
+                logic.notifyOfDeath(p);
+            }
+            DefaultSituation.LOGGER.info(
+                    "Player {} was removed from the game due to inactivity.",
+                    new Object[] { p.getName() });
+            this.players.remove(p);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
     public Collectible getCollectible(final DefaultNode node) {
         for (final Map.Entry<Collectible, DefaultNode> entry : this.collectibles
                 .entrySet()) {
@@ -161,6 +179,12 @@ public class DefaultSituation implements
             }
         }
         return null;
+    }
+
+    @Override
+    public Collection<Move> getDecisionRecord(final Player p) {
+        this.validatePlayer(p);
+        return Collections.unmodifiableList(this.decisionRecord.get(p));
     }
 
     @Override
@@ -183,8 +207,7 @@ public class DefaultSituation implements
     @Override
     public Collection<DefaultNode> getPositions(final Player p) {
         this.validatePlayer(p);
-        return Collections
-                .unmodifiableCollection(this.positions.get(p));
+        return Collections.unmodifiableCollection(this.positions.get(p));
     }
 
     @Override
@@ -195,17 +218,10 @@ public class DefaultSituation implements
     private boolean hasPlayer(final Player p) {
         return this.players.containsKey(p);
     }
-    
-    private void recordDecision(Player p, Move decision) {
-        if (!this.decisionRecord.containsKey(p)) {
-            this.decisionRecord.put(p, new LinkedList<Move>());
-        }
-        this.decisionRecord.get(p).add(decision);
-    }
 
     @Override
     public DefaultSituation move() {
-    	DefaultSituation.LOGGER.info("---------------------------------------");
+        DefaultSituation.LOGGER.info("---------------------------------------");
         DefaultSituation.LOGGER.info("Playground {} starting turn #{}.",
                 new Object[] { this, this.turnNo });
         final Map<PlayerDecisionLogic, Deque<DefaultNode>> positions = new LinkedHashMap<PlayerDecisionLogic, Deque<DefaultNode>>();
@@ -219,27 +235,27 @@ public class DefaultSituation implements
             final DefaultNode currentHeadPos = this.getHeadPosition(player);
             DefaultNode newHeadPos;
             switch (decision) {
-            case UP:
-                newHeadPos = new DefaultNode(currentHeadPos.getX(),
-                        currentHeadPos.getY() + 1);
-                break;
-            case DOWN:
-                newHeadPos = new DefaultNode(currentHeadPos.getX(),
-                        currentHeadPos.getY() - 1);
-                break;
-            case LEFT:
-                newHeadPos = new DefaultNode(currentHeadPos.getX() - 1,
-                        currentHeadPos.getY());
-                break;
-            case RIGHT:
-                newHeadPos = new DefaultNode(currentHeadPos.getX() + 1,
-                        currentHeadPos.getY());
-                break;
-            case STAY:
-                newHeadPos = currentHeadPos;
-                break;
-            default:
-                throw new IllegalStateException("Unknown move!");
+                case UP:
+                    newHeadPos = new DefaultNode(currentHeadPos.getX(),
+                            currentHeadPos.getY() + 1);
+                    break;
+                case DOWN:
+                    newHeadPos = new DefaultNode(currentHeadPos.getX(),
+                            currentHeadPos.getY() - 1);
+                    break;
+                case LEFT:
+                    newHeadPos = new DefaultNode(currentHeadPos.getX() - 1,
+                            currentHeadPos.getY());
+                    break;
+                case RIGHT:
+                    newHeadPos = new DefaultNode(currentHeadPos.getX() + 1,
+                            currentHeadPos.getY());
+                    break;
+                case STAY:
+                    newHeadPos = currentHeadPos;
+                    break;
+                default:
+                    throw new IllegalStateException("Unknown move!");
             }
             // make sure the snake is as long as it should be
             final Deque<DefaultNode> newPosition = new LinkedList<DefaultNode>(
@@ -250,7 +266,7 @@ public class DefaultSituation implements
             }
             positions.put(entry.getValue(), newPosition);
             // notify
-            recordDecision(player, decision);
+            this.recordDecision(player, decision);
             for (final PlayerDecisionLogic logic : this.players.values()) {
                 logic.notifyOfPlayerMove(player, decision, newHeadPos);
             }
@@ -258,6 +274,13 @@ public class DefaultSituation implements
         return new DefaultSituation(this.getPlayground(),
                 this.getTurnNumber() + 1, positions, this.lengths,
                 this.collectibles, this.decisionRecord);
+    }
+
+    private void recordDecision(final Player p, final Move decision) {
+        if (!this.decisionRecord.containsKey(p)) {
+            this.decisionRecord.put(p, new LinkedList<Move>());
+        }
+        this.decisionRecord.get(p).add(decision);
     }
 
     @Override
@@ -306,28 +329,6 @@ public class DefaultSituation implements
         if (!this.hasPlayer(p)) {
             throw new IllegalArgumentException("Player not in the game: "
                     + p.getName());
-        }
-    }
-
-    @Override
-    public Collection<Move> getDecisionRecord(Player p) {
-        this.validatePlayer(p);
-        return Collections.unmodifiableList(this.decisionRecord.get(p));
-    }
-
-    @Override
-    public boolean deactivate(Player p) {
-        if (this.hasPlayer(p)) {
-            for (final PlayerDecisionLogic logic : this.players.values()) {
-                logic.notifyOfDeath(p);
-            }
-            DefaultSituation.LOGGER.info(
-                    "Player {} was removed from the game due to inactivity.",
-                    new Object[] { p.getName() });
-            this.players.remove(p);
-            return true;
-        } else {
-            return false;
         }
     }
 

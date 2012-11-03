@@ -2,17 +2,15 @@ package org.drooms.impl;
 
 import java.util.concurrent.TimeUnit;
 
-import org.drools.runtime.rule.FactHandle;
 import org.drools.KnowledgeBaseFactory;
 import org.drools.runtime.Channel;
 import org.drools.runtime.Environment;
 import org.drools.runtime.KnowledgeSessionConfiguration;
 import org.drools.runtime.StatefulKnowledgeSession;
 import org.drools.runtime.conf.ClockTypeOption;
+import org.drools.runtime.rule.FactHandle;
 import org.drools.runtime.rule.WorkingMemoryEntryPoint;
 import org.drools.time.SessionPseudoClock;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.drooms.api.Collectible;
 import org.drooms.api.Move;
 import org.drooms.api.Player;
@@ -23,6 +21,8 @@ import org.drooms.impl.events.PlayerDeathEvent;
 import org.drooms.impl.events.PlayerLengthChangeEvent;
 import org.drooms.impl.events.PlayerMoveEvent;
 import org.drooms.impl.events.SurvivalRewardEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PlayerDecisionLogic implements Channel {
 
@@ -51,12 +51,13 @@ public class PlayerDecisionLogic implements Channel {
         public int getNumber() {
             return this.number;
         }
-        
-        public void setNumber(int number) {
-        	this.number = number;
+
+        public void setNumber(final int number) {
+            this.number = number;
         }
 
     }
+
     private static final Logger LOGGER = LoggerFactory
             .getLogger(PlayerDecisionLogic.class);
 
@@ -70,13 +71,13 @@ public class PlayerDecisionLogic implements Channel {
     // initialize the shared environment
     private static final Environment environment = KnowledgeBaseFactory
             .newEnvironment();
-    
+
     private final Player player;
     private final StatefulKnowledgeSession session;
     private final boolean isDisposed = false;
     private final WorkingMemoryEntryPoint gameEvents, playerEvents;
     private Move latestDecision = null;
-    private final FactHandle currentTurn; 
+    private final FactHandle currentTurn;
 
     public PlayerDecisionLogic(final Player p) {
         this.player = p;
@@ -86,13 +87,15 @@ public class PlayerDecisionLogic implements Channel {
         this.session.registerChannel("decision", this);
         // this is where we will send events from the game
         this.gameEvents = this.session.getWorkingMemoryEntryPoint("gameEvents");
-        if (gameEvents == null) {
-            throw new IllegalStateException("Problem in your rule file: 'gameEvents' entry point not declared.");
+        if (this.gameEvents == null) {
+            throw new IllegalStateException(
+                    "Problem in your rule file: 'gameEvents' entry point not declared.");
         }
         this.playerEvents = this.session
                 .getWorkingMemoryEntryPoint("playerEvents");
-        if (gameEvents == null) {
-            throw new IllegalStateException("Problem in your rule file: 'playerEvents' entry point not declared.");
+        if (this.gameEvents == null) {
+            throw new IllegalStateException(
+                    "Problem in your rule file: 'playerEvents' entry point not declared.");
         }
         // FIXME insert players into WM
         // FIXME somehow insert playing field into WM
@@ -113,9 +116,10 @@ public class PlayerDecisionLogic implements Channel {
         this.latestDecision = null;
         this.session.fireAllRules();
         // increase turn number
-        CurrentTurn turn = (CurrentTurn) this.session.getObject(currentTurn);
+        final CurrentTurn turn = (CurrentTurn) this.session
+                .getObject(this.currentTurn);
         turn.setNumber(turn.getNumber() + 1);
-        this.session.update(currentTurn, turn);
+        this.session.update(this.currentTurn, turn);
         // store the decision
         final Move decision = (this.latestDecision == null ? Move.STAY
                 : this.latestDecision);

@@ -73,65 +73,91 @@ public class FirstGame implements
 
     private static final SecureRandom RANDOM = new SecureRandom();
 
+    public static void main(final String[] args) {
+        try (Reader gameConfigFile = new FileReader(args[0]);
+                Reader playerConfigFile = new FileReader(args[1])) {
+            final Properties gameConfig = new Properties();
+            gameConfig.load(gameConfigFile);
+            final Properties playerConfig = new Properties();
+            playerConfig.load(playerConfigFile);
+            new FirstGame().play(gameConfig, playerConfig);
+        } catch (final IOException e) {
+            System.out.println(e);
+            System.exit(1);
+        }
+
+    }
+
     private final Set<Collectible> collectibles = new HashSet<Collectible>();
 
     private final Map<Player, Integer> playerPoints = new HashMap<Player, Integer>();
-    
     private final Map<URL, ClassLoader> strategyClassloaders = new HashMap<URL, ClassLoader>();
+
     private final Map<String, Strategy> strategyInstances = new HashMap<String, Strategy>();
-    
-    private ClassLoader loadJar(URL strategyJar) {
-        if (!strategyClassloaders.containsKey(strategyJar)) {
-            ClassLoader loader = URLClassLoader.newInstance(new URL[] { strategyJar }, getClass().getClassLoader());
-            strategyClassloaders.put(strategyJar, loader);
-        }
-        return strategyClassloaders.get(strategyJar);
-    }
-    
-    private Strategy loadStrategy(String strategyClass, URL strategyJar) throws Exception {
-        if (!strategyInstances.containsKey(strategyClass)) {
-            Class<?> clz = Class.forName(strategyClass, true, loadJar(strategyJar));
-            Strategy strategy = (Strategy)clz.newInstance();
-            strategyInstances.put(strategyClass, strategy);
-        }
-        return strategyInstances.get(strategyClass);
-    }
-    
-    private List<Player> constructPlayers(final Properties config, final Properties playerConfig) {
+
+    private List<Player> constructPlayers(final Properties config,
+            final Properties playerConfig) {
         // parse a list of players
-        Map<String, String> playerStrategies = new HashMap<String, String>();
-        Map<String, URL> strategyJars = new HashMap<String, URL>();
-        for (String playerName: playerConfig.stringPropertyNames()) {
-            String strategyDescr = playerConfig.getProperty(playerName);
-            String[] parts = strategyDescr.split("\\Q@\\E");
+        final Map<String, String> playerStrategies = new HashMap<String, String>();
+        final Map<String, URL> strategyJars = new HashMap<String, URL>();
+        for (final String playerName : playerConfig.stringPropertyNames()) {
+            final String strategyDescr = playerConfig.getProperty(playerName);
+            final String[] parts = strategyDescr.split("\\Q@\\E");
             if (parts.length != 2) {
-                throw new IllegalArgumentException("Invalid strategy descriptor: " + strategyDescr);
+                throw new IllegalArgumentException(
+                        "Invalid strategy descriptor: " + strategyDescr);
             }
-            String strategyClass = parts[0];
+            final String strategyClass = parts[0];
             URL strategyJar;
             try {
                 strategyJar = new URL(parts[1]);
-            } catch (MalformedURLException e) {
-                throw new IllegalArgumentException("Invalid URL in the strategy descriptor: " + strategyDescr, e);
+            } catch (final MalformedURLException e) {
+                throw new IllegalArgumentException(
+                        "Invalid URL in the strategy descriptor: "
+                                + strategyDescr, e);
             }
             playerStrategies.put(playerName, strategyClass);
             strategyJars.put(strategyClass, strategyJar);
         }
         // load strategies for players
-        List<Player> players = new ArrayList<Player>();
-        for(Map.Entry<String, String> entry: playerStrategies.entrySet()) {
-            String playerName = entry.getKey();
-            String strategyClass = entry.getValue();
-            URL strategyJar = strategyJars.get(strategyClass);
+        final List<Player> players = new ArrayList<Player>();
+        for (final Map.Entry<String, String> entry : playerStrategies
+                .entrySet()) {
+            final String playerName = entry.getKey();
+            final String strategyClass = entry.getValue();
+            final URL strategyJar = strategyJars.get(strategyClass);
             Strategy strategy;
             try {
-                strategy = loadStrategy(strategyClass, strategyJar);
-            } catch (Exception e) {
-                throw new IllegalArgumentException("Failed loading: " + strategyClass, e);
+                strategy = this.loadStrategy(strategyClass, strategyJar);
+            } catch (final Exception e) {
+                throw new IllegalArgumentException("Failed loading: "
+                        + strategyClass, e);
             }
-            players.add(new DefaultPlayer(playerName, strategy.getKnowledgeBase(loadJar(strategyJar))));
+            players.add(new DefaultPlayer(playerName, strategy
+                    .getKnowledgeBase(this.loadJar(strategyJar))));
         }
         return players;
+    }
+
+    private ClassLoader loadJar(final URL strategyJar) {
+        if (!this.strategyClassloaders.containsKey(strategyJar)) {
+            final ClassLoader loader = URLClassLoader
+                    .newInstance(new URL[] { strategyJar }, this.getClass()
+                            .getClassLoader());
+            this.strategyClassloaders.put(strategyJar, loader);
+        }
+        return this.strategyClassloaders.get(strategyJar);
+    }
+
+    private Strategy loadStrategy(final String strategyClass,
+            final URL strategyJar) throws Exception {
+        if (!this.strategyInstances.containsKey(strategyClass)) {
+            final Class<?> clz = Class.forName(strategyClass, true,
+                    this.loadJar(strategyJar));
+            final Strategy strategy = (Strategy) clz.newInstance();
+            this.strategyInstances.put(strategyClass, strategy);
+        }
+        return this.strategyInstances.get(strategyClass);
     }
 
     private DefaultNode pickRandomUnusedNode(final DefaultSituation situation,
@@ -167,7 +193,8 @@ public class FirstGame implements
     @Override
     public GameReport<DefaultSituation, DefaultPlayground, DefaultNode, DefaultEdge> play(
             final Properties gameConfig, final Properties playerConfig) {
-        final List<Player> players = this.constructPlayers(gameConfig, playerConfig);
+        final List<Player> players = this.constructPlayers(gameConfig,
+                playerConfig);
         DefaultPlayground playground;
         try {
             playground = DefaultPlayground.read(new File(gameConfig
@@ -217,18 +244,18 @@ public class FirstGame implements
                     final int points = ct.getPoints(gameConfig);
                     Collectible c = null;
                     switch (ct) {
-                    case CHEAP:
-                        c = new CheapCollectible(points, expiration);
-                        break;
-                    case GOOD:
-                        c = new GoodCollectible(points, expiration);
-                        break;
-                    case EXTREME:
-                        c = new ExtremeCollectible(points, expiration);
-                        break;
-                    default:
-                        throw new IllegalStateException(
-                                "Unknown collectible type!");
+                        case CHEAP:
+                            c = new CheapCollectible(points, expiration);
+                            break;
+                        case GOOD:
+                            c = new GoodCollectible(points, expiration);
+                            break;
+                        case EXTREME:
+                            c = new ExtremeCollectible(points, expiration);
+                            break;
+                        default:
+                            throw new IllegalStateException(
+                                    "Unknown collectible type!");
                     }
                     this.collectibles.add(c);
                     currentSituation.addCollectible(c, this
@@ -239,11 +266,13 @@ public class FirstGame implements
             // make the move
             currentSituation = currentSituation.move();
             // remove inactive worms
-            int allowedInactiveTurns = Integer.valueOf(gameConfig.getProperty("worm.max.inactive.turns", "3"));
+            final int allowedInactiveTurns = Integer.valueOf(gameConfig
+                    .getProperty("worm.max.inactive.turns", "3"));
             final Set<Player> inactiveWorms = new HashSet<Player>();
             if (currentSituation.getTurnNumber() > allowedInactiveTurns) {
-                for (Player p: currentPlayers) {
-                    Move[] moves = currentSituation.getDecisionRecord(p).toArray(new Move[] {});
+                for (final Player p : currentPlayers) {
+                    final Move[] moves = currentSituation.getDecisionRecord(p)
+                            .toArray(new Move[] {});
                     boolean active = false;
                     for (int i = moves.length - allowedInactiveTurns - 1; i < moves.length; i++) {
                         if (moves[i] != Move.STAY) {
@@ -313,8 +342,10 @@ public class FirstGame implements
                         .getProperty("worm.survival.bonus", "1")));
             }
         } while (currentPlayers.size() > 1);
-        for (Map.Entry<Player, Integer> entry: this.playerPoints.entrySet()) {
-            System.out.println(entry.getKey() + " ::: " + entry.getValue() + " points ");
+        for (final Map.Entry<Player, Integer> entry : this.playerPoints
+                .entrySet()) {
+            System.out.println(entry.getKey() + " ::: " + entry.getValue()
+                    + " points ");
         }
         return null;
     }
@@ -324,21 +355,6 @@ public class FirstGame implements
             this.playerPoints.put(p, 0);
         }
         this.playerPoints.put(p, this.playerPoints.get(p) + points);
-    }
-
-    public static void main(final String[] args) {
-        try (Reader gameConfigFile = new FileReader(args[0]);
-                Reader playerConfigFile = new FileReader(args[1])) {
-            final Properties gameConfig = new Properties();
-            gameConfig.load(gameConfigFile);
-            final Properties playerConfig = new Properties();
-            playerConfig.load(playerConfigFile);
-            new FirstGame().play(gameConfig, playerConfig);
-        } catch (final IOException e) {
-            System.out.println(e);
-            System.exit(1);
-        }
-
     }
 
 }
