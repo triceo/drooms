@@ -113,7 +113,7 @@ public interface Situation<P extends Playground<N, E>, N extends Node, E extends
     public int getTurnNumber();
 
     /**
-     * Make all players make their more. Will increse turn number (see
+     * Make all players make their move. Will increse turn number (see
      * {@link #getTurnNumber()}.
      * 
      * @return The situation created by that move.
