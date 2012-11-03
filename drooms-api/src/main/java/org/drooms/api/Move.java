@@ -1,4 +1,4 @@
-package org.drooms.impl;
+package org.drooms.api;
 
 /**
  * The various possibilities for the worm to move in.

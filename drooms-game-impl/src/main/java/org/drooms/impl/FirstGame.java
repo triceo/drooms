@@ -23,6 +23,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.drooms.api.Collectible;
 import org.drooms.api.Game;
 import org.drooms.api.GameReport;
+import org.drooms.api.Move;
 import org.drooms.api.Player;
 import org.drooms.api.Strategy;
 import org.drooms.impl.collectibles.CheapCollectible;
@@ -236,8 +237,26 @@ public class FirstGame implements
                 }
             }
             // make the move
-            // FIXME kill the worm when it stays at the same place for a long time
             currentSituation = currentSituation.move();
+            // remove inactive worms
+            int allowedInactiveTurns = Integer.valueOf(gameConfig.getProperty("worm.max.inactive.turns", "3"));
+            final Set<Player> inactiveWorms = new HashSet<Player>();
+            if (currentSituation.getTurnNumber() > allowedInactiveTurns) {
+                for (Player p: currentPlayers) {
+                    Move[] moves = currentSituation.getDecisionRecord(p).toArray(new Move[] {});
+                    boolean active = false;
+                    for (int i = moves.length - allowedInactiveTurns - 1; i < moves.length; i++) {
+                        if (moves[i] != Move.STAY) {
+                            // the worm has been active
+                            active = true;
+                            break;
+                        }
+                    }
+                    if (!active) {
+                        inactiveWorms.add(p);
+                    }
+                }
+            }
             // resolve worms colliding
             final Set<Player> oneCollidedWorms = new HashSet<Player>();
             final Set<Pair<Player, Player>> bothCollidedWorms = new HashSet<Pair<Player, Player>>();
@@ -265,6 +284,10 @@ public class FirstGame implements
                     }
                 }
             }
+            for (final Player player : inactiveWorms) {
+                currentSituation.deactivate(player);
+                currentPlayers.remove(player);
+            }
             for (final Pair<Player, Player> pair : bothCollidedWorms) {
                 if (!currentPlayers.contains(pair.getLeft())
                         && !currentPlayers.contains(pair.getRight())) {
@@ -276,6 +299,10 @@ public class FirstGame implements
                 currentPlayers.remove(pair.getRight());
             }
             for (final Player player : oneCollidedWorms) {
+                if (!currentPlayers.contains(player)) {
+                    // prevent double removal in case worm is already removed
+                    continue;
+                }
                 currentSituation.crash(player);
                 currentPlayers.remove(player);
             }

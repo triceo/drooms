@@ -12,6 +12,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.drooms.api.Collectible;
+import org.drooms.api.Move;
 import org.drooms.api.Player;
 import org.drooms.api.Situation;
 
@@ -27,12 +28,13 @@ public class DefaultSituation implements
     private final Map<Player, Integer> lengths = new LinkedHashMap<Player, Integer>();
     private final Map<Player, Deque<DefaultNode>> positions = new LinkedHashMap<Player, Deque<DefaultNode>>();
     private final Map<Collectible, DefaultNode> collectibles = new HashMap<Collectible, DefaultNode>();
+    private final Map<Player, List<Move>> decisionRecord = new HashMap<Player, List<Move>>();
 
     private DefaultSituation(final DefaultPlayground playground,
             final int turnNo,
             final Map<PlayerDecisionLogic, Deque<DefaultNode>> players,
             final Map<Player, Integer> lengths,
-            final Map<Collectible, DefaultNode> collectibles) {
+            final Map<Collectible, DefaultNode> collectibles, final Map<Player, List<Move>> decisionRecord) {
         this.turnNo = turnNo;
         this.playground = playground;
         for (final Map.Entry<PlayerDecisionLogic, Deque<DefaultNode>> entry : players
@@ -48,6 +50,13 @@ public class DefaultSituation implements
                 continue;
             }
             this.lengths.put(entry.getKey(), entry.getValue());
+        }
+        for (final Map.Entry<Player, List<Move>> entry : decisionRecord.entrySet()) {
+            if (!this.players.containsKey(entry.getKey())) {
+                // forget information about dead players
+                continue;
+            }
+            this.decisionRecord.put(entry.getKey(), entry.getValue());
         }
         for (final Map.Entry<Collectible, DefaultNode> entry : collectibles
                 .entrySet()) {
@@ -186,6 +195,13 @@ public class DefaultSituation implements
     private boolean hasPlayer(final Player p) {
         return this.players.containsKey(p);
     }
+    
+    private void recordDecision(Player p, Move decision) {
+        if (!this.decisionRecord.containsKey(p)) {
+            this.decisionRecord.put(p, new LinkedList<Move>());
+        }
+        this.decisionRecord.get(p).add(decision);
+    }
 
     @Override
     public DefaultSituation move() {
@@ -234,13 +250,14 @@ public class DefaultSituation implements
             }
             positions.put(entry.getValue(), newPosition);
             // notify
+            recordDecision(player, decision);
             for (final PlayerDecisionLogic logic : this.players.values()) {
                 logic.notifyOfPlayerMove(player, decision, newHeadPos);
             }
         }
         return new DefaultSituation(this.getPlayground(),
                 this.getTurnNumber() + 1, positions, this.lengths,
-                this.collectibles);
+                this.collectibles, this.decisionRecord);
     }
 
     @Override
@@ -289,6 +306,28 @@ public class DefaultSituation implements
         if (!this.hasPlayer(p)) {
             throw new IllegalArgumentException("Player not in the game: "
                     + p.getName());
+        }
+    }
+
+    @Override
+    public Collection<Move> getDecisionRecord(Player p) {
+        this.validatePlayer(p);
+        return Collections.unmodifiableList(this.decisionRecord.get(p));
+    }
+
+    @Override
+    public boolean deactivate(Player p) {
+        if (this.hasPlayer(p)) {
+            for (final PlayerDecisionLogic logic : this.players.values()) {
+                logic.notifyOfDeath(p);
+            }
+            DefaultSituation.LOGGER.info(
+                    "Player {} was removed from the game due to inactivity.",
+                    new Object[] { p.getName() });
+            this.players.remove(p);
+            return true;
+        } else {
+            return false;
         }
     }
 

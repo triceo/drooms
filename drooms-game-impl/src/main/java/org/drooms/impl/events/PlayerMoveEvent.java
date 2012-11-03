@@ -1,8 +1,8 @@
 package org.drooms.impl.events;
 
+import org.drooms.api.Move;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
-import org.drooms.impl.Move;
 
 public class PlayerMoveEvent<N extends Node> implements PlayerEvent {
 

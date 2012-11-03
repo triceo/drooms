@@ -14,6 +14,7 @@ import org.drools.time.SessionPseudoClock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.drooms.api.Collectible;
+import org.drooms.api.Move;
 import org.drooms.api.Player;
 import org.drooms.impl.events.CollectibleAdditionEvent;
 import org.drooms.impl.events.CollectibleRemovalEvent;
