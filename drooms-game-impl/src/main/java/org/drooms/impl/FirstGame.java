@@ -239,7 +239,6 @@ public class FirstGame implements
             // FIXME kill the worm when it stays at the same place for a long time
             currentSituation = currentSituation.move();
             // resolve worms colliding
-            // FIXME doesn't handle collisions with itself (cycle or return in the same direction)
             final Set<Player> oneCollidedWorms = new HashSet<Player>();
             final Set<Pair<Player, Player>> bothCollidedWorms = new HashSet<Pair<Player, Player>>();
             for (final Player p1 : currentPlayers) {
@@ -250,18 +249,18 @@ public class FirstGame implements
                     continue;
                 }
                 for (final Player p2 : currentPlayers) {
-                    if (p1 == p2) {
-                        // the same worm
-                        continue;
-                    }
                     final DefaultNode secondPosition = currentSituation
                             .getHeadPosition(p2);
                     if (firstPosition.equals(secondPosition)) {
                         // head-on-head collision
+                        if (p1 == p2) {
+                            // the same worm
+                            continue;
+                        }
                         bothCollidedWorms.add(Pair.of(p1, p2));
                     } else if (currentSituation.getPositions(p1).contains(
                             secondPosition)) {
-                        // head-on-body collision
+                        // head-on-body collision; valid even with itself
                         oneCollidedWorms.add(p2);
                     }
                 }
