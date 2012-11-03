@@ -189,6 +189,7 @@ public class DefaultSituation implements
 
     @Override
     public DefaultSituation move() {
+    	DefaultSituation.LOGGER.info("---------------------------------------");
         DefaultSituation.LOGGER.info("Playground {} starting turn #{}.",
                 new Object[] { this, this.turnNo });
         final Map<PlayerDecisionLogic, Deque<DefaultNode>> positions = new LinkedHashMap<PlayerDecisionLogic, Deque<DefaultNode>>();
