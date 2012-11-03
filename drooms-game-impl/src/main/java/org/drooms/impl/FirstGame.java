@@ -240,14 +240,14 @@ public class FirstGame implements
             // resolve worms colliding
             final Set<Player> oneCollidedWorms = new HashSet<Player>();
             final Set<Pair<Player, Player>> bothCollidedWorms = new HashSet<Pair<Player, Player>>();
-            for (final Player p1 : players) {
+            for (final Player p1 : currentPlayers) {
                 final DefaultNode firstPosition = currentSituation
                         .getHeadPosition(p1);
                 if (!playground.isAvailable(firstPosition)) {
                     oneCollidedWorms.add(p1);
                     continue;
                 }
-                for (final Player p2 : players) {
+                for (final Player p2 : currentPlayers) {
                     if (p1 == p2) {
                         // the same worm
                         continue;
