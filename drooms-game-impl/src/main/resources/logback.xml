@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <!-- APPENDERS LIST -->
+  <!-- show log entries on console -->
+  <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>WARN</level>
+    </filter>
+    <encoder>
+      <pattern>[%d] %-5p- %m%n</pattern>
+    </encoder>
+  </appender>
+  <appender name="asyncConsoleAppender" class="ch.qos.logback.classic.AsyncAppender">
+    <queueSize>300</queueSize>
+    <appender-ref ref="consoleAppender" />
+  </appender>
+
+  <appender name="completeFileAppender" class="ch.qos.logback.core.FileAppender">
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>DEBUG</level>
+    </filter>
+    <file>game-complete.log</file>
+    <encoder>
+      <pattern>%d %-5p [%c] - %m%n</pattern>
+    </encoder>
+  </appender>
+  <appender name="asyncCompleteFileAppender" class="ch.qos.logback.classic.AsyncAppender">
+    <queueSize>300</queueSize>
+    <appender-ref ref="completeFileAppender" />
+  </appender>
+
+  <appender name="fileAppender" class="ch.qos.logback.core.FileAppender">
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>INFO</level>
+    </filter>
+    <file>game-brief.log</file>
+    <encoder>
+      <pattern>%d %-5p [%c] - %m%n</pattern>
+    </encoder>
+  </appender>
+  <appender name="asyncFileAppender" class="ch.qos.logback.classic.AsyncAppender">
+    <queueSize>300</queueSize>
+    <appender-ref ref="fileAppender" />
+  </appender>
+
+  <logger name="org.drooms">
+    <level value="TRACE" />
+    <appender-ref ref="asyncCompleteFileAppender" />
+    <appender-ref ref="asyncFileAppender" />
+    <appender-ref ref="asyncConsoleAppender" />
+  </logger>
+</configuration>
