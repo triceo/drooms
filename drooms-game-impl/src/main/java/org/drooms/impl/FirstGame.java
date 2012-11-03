@@ -313,6 +313,9 @@ public class FirstGame implements
                         .getProperty("worm.survival.bonus", "1")));
             }
         } while (currentPlayers.size() > 1);
+        for (Map.Entry<Player, Integer> entry: this.playerPoints.entrySet()) {
+            System.out.println(entry.getKey() + " ::: " + entry.getValue() + " points ");
+        }
         return null;
     }
 
