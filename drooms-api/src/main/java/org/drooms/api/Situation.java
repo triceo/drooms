@@ -1,6 +1,7 @@
 package org.drooms.api;
 
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * A situation is a point in time before any of the worms have made their moves.
@@ -167,5 +168,20 @@ public interface Situation<P extends Playground<N, E>, N extends Node, E extends
      *            .
      */
     public void setPlayerLength(Player p, int length);
+
+    /**
+     * Whether or not a given worm is in the game.
+     * 
+     * @param p Player in question.
+     * @return True if there is such a player.
+     */
+    public boolean hasPlayer(Player p);
+
+    /**
+     * Retrieve all currently available collectibles.
+     * 
+     * @return Map where key is the collectible and the value is its location.
+     */
+    public Map<Collectible, N> getCollectibles();
 
 }

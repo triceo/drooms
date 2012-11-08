@@ -5,12 +5,14 @@ import org.drooms.api.Player;
 
 public class DefaultPlayer implements Player {
 
+    private final char sign;
     private final String name;
     private final KnowledgeBase kbase;
 
-    public DefaultPlayer(final String name, final KnowledgeBase knowledgeBase) {
+    public DefaultPlayer(final String name, final char sign, final KnowledgeBase knowledgeBase) {
         this.name = name;
         this.kbase = knowledgeBase;
+        this.sign = sign;
     }
 
     @Override
@@ -59,6 +61,11 @@ public class DefaultPlayer implements Player {
         final StringBuilder builder = new StringBuilder();
         builder.append("DefaultPlayer [name=").append(this.name).append("]");
         return builder.toString();
+    }
+
+    @Override
+    public char getSign() {
+        return this.sign;
     }
 
 }

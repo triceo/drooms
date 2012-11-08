@@ -1,6 +1,7 @@
 package org.drooms.impl;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -75,12 +76,15 @@ public class FirstGame implements
 
     public static void main(final String[] args) {
         try (Reader gameConfigFile = new FileReader(args[0]);
-                Reader playerConfigFile = new FileReader(args[1])) {
+                Reader playerConfigFile = new FileReader(args[1]); FileOutputStream fos = new FileOutputStream(new File(args[2]))) {
+            // prepare configs
             final Properties gameConfig = new Properties();
             gameConfig.load(gameConfigFile);
             final Properties playerConfig = new Properties();
             playerConfig.load(playerConfigFile);
-            new FirstGame().play(gameConfig, playerConfig);
+            // play and report
+            GameReport<DefaultSituation, DefaultPlayground, DefaultNode, DefaultEdge> report = new FirstGame().play(gameConfig, playerConfig);
+            report.write(fos);
         } catch (final IOException e) {
             System.out.println(e);
             System.exit(1);
@@ -94,7 +98,19 @@ public class FirstGame implements
     private final Map<URL, ClassLoader> strategyClassloaders = new HashMap<URL, ClassLoader>();
 
     private final Map<String, Strategy> strategyInstances = new HashMap<String, Strategy>();
-
+    
+    private char getCharPerNumber(int number) {
+        if (number >= 0 && number < 10) {
+            // for first 10 players, we have numbers 0 - 9
+            return (char)(48 + number);
+        } else if (number > 9 && number < 36){
+            // for next 25 players, we have capital letters
+            return (char)(55 + number);
+        } else {
+            throw new IllegalArgumentException("Invalid number of a player: " + number);
+        }
+    }
+    
     private List<Player> constructPlayers(final Properties config,
             final Properties playerConfig) {
         // parse a list of players
@@ -121,6 +137,7 @@ public class FirstGame implements
         }
         // load strategies for players
         final List<Player> players = new ArrayList<Player>();
+        int playerNum = 0;
         for (final Map.Entry<String, String> entry : playerStrategies
                 .entrySet()) {
             final String playerName = entry.getKey();
@@ -133,8 +150,9 @@ public class FirstGame implements
                 throw new IllegalArgumentException("Failed loading: "
                         + strategyClass, e);
             }
-            players.add(new DefaultPlayer(playerName, strategy
+            players.add(new DefaultPlayer(playerName, getCharPerNumber(playerNum), strategy
                     .getKnowledgeBase(this.loadJar(strategyJar))));
+            playerNum++;
         }
         return players;
     }
@@ -193,6 +211,7 @@ public class FirstGame implements
     @Override
     public GameReport<DefaultSituation, DefaultPlayground, DefaultNode, DefaultEdge> play(
             final Properties gameConfig, final Properties playerConfig) {
+        Reporter reporter = new Reporter();
         final List<Player> players = this.constructPlayers(gameConfig,
                 playerConfig);
         DefaultPlayground playground;
@@ -204,10 +223,14 @@ public class FirstGame implements
                     "Playground file cannot be read!", e);
         }
         final int wormLength = Integer.valueOf(gameConfig.getProperty(
-                "worm.length", "1"));
+                "worm.length.start", "1"));
+        // prepare situation
         DefaultSituation currentSituation = new DefaultSituation(playground,
                 players, wormLength);
         final Set<Player> currentPlayers = new HashSet<Player>(players);
+        for (Player p: currentPlayers) { // initialize player points
+            reward(p, 0);
+        }
         do {
             // expire uncollected collectibles
             final Set<Collectible> removeCollectibles = new HashSet<Collectible>();
@@ -264,6 +287,7 @@ public class FirstGame implements
                 }
             }
             // make the move
+            reporter.addTurn(currentSituation, playerPoints);
             currentSituation = currentSituation.move();
             // remove inactive worms
             final int allowedInactiveTurns = Integer.valueOf(gameConfig
@@ -295,20 +319,28 @@ public class FirstGame implements
                 if (!playground.isAvailable(firstPosition)) {
                     oneCollidedWorms.add(p1);
                     continue;
+                } else {
+                    // make sure the worm didn't crash into itself
+                    Collection<DefaultNode> positions = currentSituation.getPositions(p1);
+                    Set<DefaultNode> nodes = new HashSet<DefaultNode>(positions);
+                    if (nodes.size() < positions.size()) {
+                        // a worm occupies one node twice = a crash into itself
+                        oneCollidedWorms.add(p1);
+                    }
                 }
                 for (final Player p2 : currentPlayers) {
+                    if (p1 == p2) {
+                        // the same worm
+                        continue;
+                    }
                     final DefaultNode secondPosition = currentSituation
                             .getHeadPosition(p2);
                     if (firstPosition.equals(secondPosition)) {
                         // head-on-head collision
-                        if (p1 == p2) {
-                            // the same worm
-                            continue;
-                        }
                         bothCollidedWorms.add(Pair.of(p1, p2));
                     } else if (currentSituation.getPositions(p1).contains(
                             secondPosition)) {
-                        // head-on-body collision; valid even with itself
+                        // head-on-body collision
                         oneCollidedWorms.add(p2);
                     }
                 }
@@ -342,12 +374,7 @@ public class FirstGame implements
                         .getProperty("worm.survival.bonus", "1")));
             }
         } while (currentPlayers.size() > 1);
-        for (final Map.Entry<Player, Integer> entry : this.playerPoints
-                .entrySet()) {
-            System.out.println(entry.getKey() + " ::: " + entry.getValue()
-                    + " points ");
-        }
-        return null;
+        return reporter;
     }
 
     private void reward(final Player p, final int points) {

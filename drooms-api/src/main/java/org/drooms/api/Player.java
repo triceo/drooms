@@ -7,5 +7,7 @@ public interface Player {
     public KnowledgeBase getKnowledgeBase();
 
     public String getName();
+    
+    public char getSign();
 
 }

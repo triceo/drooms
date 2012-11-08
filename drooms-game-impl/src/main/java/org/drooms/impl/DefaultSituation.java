@@ -215,7 +215,8 @@ public class DefaultSituation implements
         return this.turnNo;
     }
 
-    private boolean hasPlayer(final Player p) {
+    @Override
+    public boolean hasPlayer(final Player p) {
         return this.players.containsKey(p);
     }
 
@@ -257,15 +258,18 @@ public class DefaultSituation implements
                 default:
                     throw new IllegalStateException("Unknown move!");
             }
-            // make sure the snake is as long as it should be
+            // move the head of the snake
             final Deque<DefaultNode> newPosition = new LinkedList<DefaultNode>(
                     this.positions.get(player));
-            newPosition.push(newHeadPos);
+            if (decision != Move.STAY) {
+                newPosition.push(newHeadPos);
+            }
+            // make sure the snake is as long as it should be
             while (newPosition.size() > this.getPlayerLength(player)) {
                 newPosition.removeLast();
             }
-            positions.put(entry.getValue(), newPosition);
             // notify
+            positions.put(entry.getValue(), newPosition);
             this.recordDecision(player, decision);
             for (final PlayerDecisionLogic logic : this.players.values()) {
                 logic.notifyOfPlayerMove(player, decision, newHeadPos);
@@ -330,6 +334,11 @@ public class DefaultSituation implements
             throw new IllegalArgumentException("Player not in the game: "
                     + p.getName());
         }
+    }
+
+    @Override
+    public Map<Collectible, DefaultNode> getCollectibles() {
+        return Collections.unmodifiableMap(this.collectibles);
     }
 
 }
