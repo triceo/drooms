@@ -82,7 +82,7 @@ public class DefaultSituation implements
                 .getStartingPositions();
         int i = 0;
         for (final Player player : players) {
-            this.players.put(player, new PlayerDecisionLogic(player));
+            this.players.put(player, new PlayerDecisionLogic(player, playground));
             this.lengths.put(player, defaultLength);
             // determine starting position
             this.positions.put(player, new LinkedList<DefaultNode>());

@@ -87,6 +87,25 @@ public class PlayerDecisionLogic implements Channel {
 
     }
 
+    public class Wall {
+
+        private final int x, y;
+
+        public Wall(final int x, final int y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        public int getX() {
+            return this.x;
+        }
+
+        public int getY() {
+            return this.y;
+        }
+
+    }
+
     private static final Logger LOGGER = LoggerFactory
             .getLogger(PlayerDecisionLogic.class);
 
@@ -110,7 +129,8 @@ public class PlayerDecisionLogic implements Channel {
 
     private final Map<Player, FactHandle> playerPositions = new HashMap<Player, FactHandle>();
 
-    public PlayerDecisionLogic(final Player p) {
+    public PlayerDecisionLogic(final Player p,
+            final DefaultPlayground playground) {
         this.player = p;
         this.session = p.getKnowledgeBase().newStatefulKnowledgeSession(
                 PlayerDecisionLogic.config, PlayerDecisionLogic.environment);
@@ -136,9 +156,16 @@ public class PlayerDecisionLogic implements Channel {
             throw new IllegalStateException(
                     "Problem in your rule file: 'playerEvents' entry point not declared.");
         }
-        // FIXME somehow insert playing field into WM
-        this.session.insert(new CurrentPlayer(p)); // make sure everyone knows
-                                                   // the current player
+        // insert playground walls
+        for (int x = 0; x < playground.getWidth(); x++) {
+            for (int y = 0; y < playground.getHeight(); y++) {
+                if (!playground.isAvailable(x, y)) {
+                    this.session.insert(new Wall(x, y));
+                }
+            }
+        }
+        // insert info about the game status
+        this.session.insert(new CurrentPlayer(p));
         this.currentTurn = this.session.insert(new CurrentTurn(0));
     }
 

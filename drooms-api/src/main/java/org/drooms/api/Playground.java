@@ -17,6 +17,7 @@ public interface Playground<N extends Node, E extends Edge<N>> {
     public int getWidth();
 
     public boolean isAvailable(int x, int y);
+    
+    public N getNode(int x, int y);
 
-    public boolean isAvailable(N node);
 }

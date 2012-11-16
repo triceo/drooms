@@ -186,7 +186,7 @@ public class FirstGame implements
         for (int x = 0; x < p.getWidth(); x++) {
             for (int y = 0; y < p.getHeight(); y++) {
                 if (p.isAvailable(x, y)) {
-                    nodes.add(new DefaultNode(x, y));
+                    nodes.add(p.getNode(x, y));
                 }
             }
         }
@@ -316,7 +316,7 @@ public class FirstGame implements
             for (final Player p1 : currentPlayers) {
                 final DefaultNode firstPosition = currentSituation
                         .getHeadPosition(p1);
-                if (!playground.isAvailable(firstPosition)) {
+                if (!playground.isAvailable(firstPosition.getX(), firstPosition.getY())) {
                     oneCollidedWorms.add(p1);
                     continue;
                 } else {
