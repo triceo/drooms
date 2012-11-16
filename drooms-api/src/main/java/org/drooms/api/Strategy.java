@@ -1,10 +1,10 @@
 package org.drooms.api;
 
-import org.drools.KnowledgeBase;
+import org.drools.builder.KnowledgeBuilder;
 
 public interface Strategy {
 
-    public KnowledgeBase getKnowledgeBase(ClassLoader cls);
+    public KnowledgeBuilder getKnowledgeBuilder(ClassLoader cls);
 
     public String getName();
 

@@ -1,6 +1,5 @@
 package org.drooms.strategy.random;
 
-import org.drools.KnowledgeBase;
 import org.drools.builder.KnowledgeBuilder;
 import org.drools.builder.KnowledgeBuilderFactory;
 import org.drools.builder.ResourceType;
@@ -18,12 +17,12 @@ public class RandomNonSuicidalStrategy implements Strategy {
     }
 
     @Override
-    public KnowledgeBase getKnowledgeBase(final ClassLoader cls) {
+    public KnowledgeBuilder getKnowledgeBuilder(final ClassLoader cls) {
         final KnowledgeBuilder kb = KnowledgeBuilderFactory
                 .newKnowledgeBuilder();
         kb.add(ResourceFactory.newClassPathResource("random-nonsuicidal.drl",
                 cls), ResourceType.DRL);
-        return kb.newKnowledgeBase();
+        return kb;
     }
 
     @Override

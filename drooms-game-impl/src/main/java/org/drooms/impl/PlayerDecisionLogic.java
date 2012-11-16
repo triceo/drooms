@@ -30,18 +30,39 @@ import org.slf4j.LoggerFactory;
 
 public class PlayerDecisionLogic implements Channel {
 
-    public class CurrentPlayer {
+    public class CurrentPlayer implements Positioned {
 
         private final Player player;
 
-        public CurrentPlayer(final Player p) {
+        private int x, y;
+
+        public CurrentPlayer(final Player p, final int x, final int y) {
             this.player = p;
+            this.x = x;
+            this.y = y;
         }
 
         public Player get() {
             return this.player;
         }
 
+        @Override
+        public int getX() {
+            return this.x;
+        }
+
+        @Override
+        public int getY() {
+            return this.y;
+        }
+
+        public void setX(final int x) {
+            this.x = x;
+        }
+
+        public void setY(final int y) {
+            this.y = y;
+        }
     }
 
     public class CurrentTurn {
@@ -140,6 +161,7 @@ public class PlayerDecisionLogic implements Channel {
     private final WorkingMemoryEntryPoint gameEvents, playerEvents;
     private Move latestDecision = null;
     private final FactHandle currentTurn;
+    private final FactHandle currentPlayer;
 
     private final Map<Player, FactHandle[][]> playerPositions = new HashMap<Player, FactHandle[][]>();
 
@@ -180,7 +202,7 @@ public class PlayerDecisionLogic implements Channel {
             }
         }
         // insert info about the game status
-        this.session.insert(new CurrentPlayer(p));
+        this.currentPlayer = this.session.insert(new CurrentPlayer(p, 0, 0));
         this.currentTurn = this.session.insert(new CurrentTurn(0));
     }
 
@@ -238,8 +260,8 @@ public class PlayerDecisionLogic implements Channel {
 
     public void notifyOfDeath(final Player p) {
         this.playerEvents.insert(new PlayerDeathEvent(p));
-        for (FactHandle[] handles: this.playerPositions.remove(p)) {
-            for (FactHandle handle: handles) {
+        for (final FactHandle[] handles : this.playerPositions.remove(p)) {
+            for (final FactHandle handle : handles) {
                 if (handle == null) {
                     continue;
                 }
@@ -256,6 +278,14 @@ public class PlayerDecisionLogic implements Channel {
             final DefaultNode newHead) {
         this.playerEvents
                 .insert(new PlayerMoveEvent<DefaultNode>(p, m, newHead));
+        if (p == this.getPlayer()) {
+            // update player head
+            final CurrentPlayer cp = (CurrentPlayer) this.session
+                    .getObject(this.currentPlayer);
+            cp.setX(newHead.getX());
+            cp.setY(newHead.getY());
+            this.session.update(this.currentPlayer, cp);
+        }
     }
 
     public void notifyOfSurvivalReward(final Player p, final int points) {
@@ -298,10 +328,11 @@ public class PlayerDecisionLogic implements Channel {
         if (!positions.contains(p)) {
             PlayerDecisionLogic.LOGGER.debug("Adding positions for player {}.",
                     p.getName());
-            FactHandle[][] handles = new FactHandle[playground.getWidth()][playground.getHeight()];
-            for (DefaultNode n: positions) {
-                int x = n.getX();
-                int y = n.getY();
+            final FactHandle[][] handles = new FactHandle[this.playground
+                    .getWidth()][this.playground.getHeight()];
+            for (final DefaultNode n : positions) {
+                final int x = n.getX();
+                final int y = n.getY();
                 handles[x][y] = this.session.insert(new Worm(p, x, y));
             }
             this.playerPositions.put(p, handles);
@@ -309,24 +340,24 @@ public class PlayerDecisionLogic implements Channel {
         } else {
             PlayerDecisionLogic.LOGGER.debug(
                     "Updating position for player {}.", p.getName());
-            FactHandle[][] handles = this.playerPositions.get(p);
-            Collection<FactHandle> touchedHandles = new HashSet<FactHandle>();
+            final FactHandle[][] handles = this.playerPositions.get(p);
+            final Collection<FactHandle> touchedHandles = new HashSet<FactHandle>();
             // add new nodes
-            for (DefaultNode n: positions) {
-                int x = n.getX();
-                int y = n.getY();
+            for (final DefaultNode n : positions) {
+                final int x = n.getX();
+                final int y = n.getY();
                 if (handles[x][y] == null) {
                     handles[x][y] = this.session.insert(new Worm(p, x, y));
                 }
                 touchedHandles.add(handles[x][y]);
             }
             // remove old nodes
-            for (FactHandle[] handles2: handles) {
-                for (FactHandle handle: handles2) {
+            for (final FactHandle[] handles2 : handles) {
+                for (final FactHandle handle : handles2) {
                     if (touchedHandles.contains(handle)) {
                         continue;
                     }
-                    Worm w = (Worm)this.session.getObject(handle);
+                    final Worm w = (Worm) this.session.getObject(handle);
                     this.session.retract(handle);
                     handles[w.getX()][w.getY()] = null;
                 }

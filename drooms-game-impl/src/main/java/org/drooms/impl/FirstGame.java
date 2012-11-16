@@ -21,6 +21,9 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.drools.KnowledgeBase;
+import org.drools.builder.KnowledgeBuilder;
+import org.drools.builder.KnowledgeBuilderError;
 import org.drooms.api.Collectible;
 import org.drooms.api.Game;
 import org.drooms.api.GameReport;
@@ -30,9 +33,13 @@ import org.drooms.api.Strategy;
 import org.drooms.impl.collectibles.CheapCollectible;
 import org.drooms.impl.collectibles.ExtremeCollectible;
 import org.drooms.impl.collectibles.GoodCollectible;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FirstGame implements
         Game<DefaultSituation, DefaultPlayground, DefaultNode, DefaultEdge> {
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(FirstGame.class);
 
     private enum CollectibleType {
 
@@ -150,9 +157,17 @@ public class FirstGame implements
                 throw new IllegalArgumentException("Failed loading: "
                         + strategyClass, e);
             }
-            players.add(new DefaultPlayer(playerName, getCharPerNumber(playerNum), strategy
-                    .getKnowledgeBase(this.loadJar(strategyJar))));
-            playerNum++;
+            KnowledgeBuilder kb = strategy.getKnowledgeBuilder(this.loadJar(strategyJar));
+            try {
+                KnowledgeBase kbase = kb.newKnowledgeBase();
+                players.add(new DefaultPlayer(playerName, getCharPerNumber(playerNum), kbase));
+                playerNum++;
+            } catch (Exception ex) {
+                for (KnowledgeBuilderError error: kb.getErrors()) {
+                    LOGGER.error(error.toString());
+                }
+                throw new IllegalStateException("Cannot create knowledge base for strategy: " + strategy.getName(), ex);
+            }
         }
         return players;
     }
