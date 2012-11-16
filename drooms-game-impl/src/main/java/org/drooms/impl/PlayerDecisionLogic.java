@@ -99,7 +99,7 @@ public class PlayerDecisionLogic implements Channel {
         }
         this.playerEvents = this.session
                 .getWorkingMemoryEntryPoint("playerEvents");
-        if (this.gameEvents == null) {
+        if (this.playerEvents == null) {
             throw new IllegalStateException(
                     "Problem in your rule file: 'playerEvents' entry point not declared.");
         }
