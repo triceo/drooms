@@ -22,7 +22,7 @@ when
     CurrentPlayer($x: x, $y: y)
     not Positioned(x == ($x - 1), y == $y)
 then
-    logger.info("LEFT move is available.");
+    logger.debug("LEFT move is available.");
     insertLogical (
         Move.LEFT
     );
@@ -33,7 +33,7 @@ when
     CurrentPlayer($x: x, $y: y)
     not Positioned(x == ($x + 1), y == $y)
 then
-    logger.info("RIGHT move is available.");
+    logger.debug("RIGHT move is available.");
     insertLogical (
         Move.RIGHT
     );
@@ -44,7 +44,7 @@ when
     CurrentPlayer($x: x, $y: y)
     not Positioned(x == $x, y == ($y + 1))
 then
-    logger.info("UP move is available.");
+    logger.debug("UP move is available.");
     insertLogical (
         Move.UP
     );
@@ -55,13 +55,14 @@ when
     CurrentPlayer($x: x, $y: y)
     not Positioned(x == $x, y == ($y - 1))
 then
-    logger.info("DOWN move is available.");
+    logger.debug("DOWN move is available.");
     insertLogical (
         Move.DOWN
     );
 end
 
 rule "Pick one of the available moves at random"
+salience -10
 when
     $moves : ArrayList( size > 0 ) from collect( Move() )
 then
