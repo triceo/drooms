@@ -23,7 +23,6 @@ import org.drooms.impl.events.CollectibleAdditionEvent;
 import org.drooms.impl.events.CollectibleRemovalEvent;
 import org.drooms.impl.events.CollectibleRewardEvent;
 import org.drooms.impl.events.PlayerDeathEvent;
-import org.drooms.impl.events.PlayerLengthChangeEvent;
 import org.drooms.impl.events.PlayerMoveEvent;
 import org.drooms.impl.events.SurvivalRewardEvent;
 import org.slf4j.Logger;
@@ -163,6 +162,8 @@ public class PlayerDecisionLogic implements Channel {
     private final FactHandle currentTurn;
     private final FactHandle currentPlayer;
 
+    private final Map<Player, Map<DefaultNode, FactHandle>> handles = new HashMap<Player, Map<DefaultNode, FactHandle>>();
+
     public PlayerDecisionLogic(final Player p,
             final DefaultPlayground playground) {
         this.player = p;
@@ -172,8 +173,10 @@ public class PlayerDecisionLogic implements Channel {
         this.session.registerChannel("decision", this);
         // this is where the logger comes in
         try {
-            this.session.setGlobal("logger",
-                    LoggerFactory.getLogger("org.drooms.players." + this.player.getName()));
+            this.session.setGlobal(
+                    "logger",
+                    LoggerFactory.getLogger("org.drooms.players."
+                            + this.player.getName()));
         } catch (final RuntimeException ex) {
             PlayerDecisionLogic.LOGGER.info("Player {} doesn't use a logger.",
                     this.player.getName());
@@ -190,7 +193,8 @@ public class PlayerDecisionLogic implements Channel {
             throw new IllegalStateException(
                     "Problem in your rule file: 'playerEvents' entry point not declared.");
         }
-        // insert playground walls; make sure the playground is always surrounded with walls
+        // insert playground walls; make sure the playground is always
+        // surrounded with walls
         for (int x = -1; x <= playground.getWidth(); x++) {
             for (int y = -1; y <= playground.getHeight(); y++) {
                 if (!playground.isAvailable(x, y)) {
@@ -221,10 +225,13 @@ public class PlayerDecisionLogic implements Channel {
         this.session.update(this.currentTurn, turn);
         // store the decision
         if (this.latestDecision == null) {
-            PlayerDecisionLogic.LOGGER.warn("Player {} didn't make a decision. STAY forced.", this.player.getName());
+            PlayerDecisionLogic.LOGGER.warn(
+                    "Player {} didn't make a decision. STAY forced.",
+                    this.player.getName());
             return Move.STAY;
         } else {
-            PlayerDecisionLogic.LOGGER.info("Player {} final decision is {}. ", this.player.getName(), this.latestDecision);
+            PlayerDecisionLogic.LOGGER.info("Player {} final decision is {}. ",
+                    this.player.getName(), this.latestDecision);
             return this.latestDecision;
         }
     }
@@ -260,36 +267,35 @@ public class PlayerDecisionLogic implements Channel {
     public void notifyOfDeath(final Player p) {
         this.playerEvents.insert(new PlayerDeathEvent(p));
         // remove player from the WM
-        for (Map.Entry<DefaultNode, FactHandle> entry: handles.remove(p).entrySet()) {
+        for (final Map.Entry<DefaultNode, FactHandle> entry : this.handles
+                .remove(p).entrySet()) {
             this.session.retract(entry.getValue());
         }
     }
 
-    public void notifyOfPlayerLengthChange(final Player p, final int length) {
-        this.playerEvents.insert(new PlayerLengthChangeEvent(p, length));
-    }
-    
-    private final Map<Player, Map<DefaultNode, FactHandle>> handles = new HashMap<Player, Map<DefaultNode, FactHandle>>();
-
     public void notifyOfPlayerMove(final Player p, final Move m,
-            final DefaultNode newHead, final Collection<DefaultNode> newPositions) {
+            final DefaultNode newHead,
+            final Collection<DefaultNode> newPositions) {
         this.playerEvents
                 .insert(new PlayerMoveEvent<DefaultNode>(p, m, newHead));
         // update player positions
-        if (!handles.containsKey(p)) {
-            handles.put(p, new HashMap<DefaultNode, FactHandle>());
+        if (!this.handles.containsKey(p)) {
+            this.handles.put(p, new HashMap<DefaultNode, FactHandle>());
         }
-        Map<DefaultNode, FactHandle> playerHandles = handles.get(p);
-        Set<DefaultNode> untraversedNodes = new HashSet<DefaultNode>(playerHandles.keySet());
-        for (DefaultNode n: newPositions) {
+        final Map<DefaultNode, FactHandle> playerHandles = this.handles.get(p);
+        final Set<DefaultNode> untraversedNodes = new HashSet<DefaultNode>(
+                playerHandles.keySet());
+        for (final DefaultNode n : newPositions) {
             if (!playerHandles.containsKey(n)) { // worm occupies a new node
-                FactHandle fh = this.session.insert(new Worm(p, n.getX(), n.getY()));
+                final FactHandle fh = this.session.insert(new Worm(p, n.getX(),
+                        n.getY()));
                 playerHandles.put(n, fh);
             }
             untraversedNodes.remove(n);
         }
-        for (DefaultNode n: untraversedNodes) { // worm no longer occupies a node
-            FactHandle fh = playerHandles.remove(n);
+        for (final DefaultNode n : untraversedNodes) { // worm no longer
+                                                       // occupies a node
+            final FactHandle fh = playerHandles.remove(n);
             this.session.retract(fh);
         }
         // update current player's head
