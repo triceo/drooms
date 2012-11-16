@@ -1,5 +1,8 @@
 package org.drooms.impl;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.drools.KnowledgeBaseFactory;
@@ -58,6 +61,32 @@ public class PlayerDecisionLogic implements Channel {
 
     }
 
+    public class PlayerPosition {
+
+        private final Player player;
+
+        private Collection<DefaultNode> position;
+
+        public PlayerPosition(final Player p,
+                final Collection<DefaultNode> position) {
+            this.player = p;
+            this.position = position;
+        }
+
+        public Player getPlayer() {
+            return this.player;
+        }
+
+        public Collection<DefaultNode> getPosition() {
+            return this.position;
+        }
+
+        public void setPosition(final Collection<DefaultNode> position) {
+            this.position = position;
+        }
+
+    }
+
     private static final Logger LOGGER = LoggerFactory
             .getLogger(PlayerDecisionLogic.class);
 
@@ -79,6 +108,8 @@ public class PlayerDecisionLogic implements Channel {
     private Move latestDecision = null;
     private final FactHandle currentTurn;
 
+    private final Map<Player, FactHandle> playerPositions = new HashMap<Player, FactHandle>();
+
     public PlayerDecisionLogic(final Player p) {
         this.player = p;
         this.session = p.getKnowledgeBase().newStatefulKnowledgeSession(
@@ -87,9 +118,11 @@ public class PlayerDecisionLogic implements Channel {
         this.session.registerChannel("decision", this);
         // this is where the logger comes in
         try {
-            this.session.setGlobal("logger", LoggerFactory.getLogger(player.getName() + "Player"));
-        } catch (RuntimeException ex) {
-            LOGGER.info("Player {} doesn't use a logger.", player.getName());
+            this.session.setGlobal("logger",
+                    LoggerFactory.getLogger(this.player.getName() + "Player"));
+        } catch (final RuntimeException ex) {
+            PlayerDecisionLogic.LOGGER.info("Player {} doesn't use a logger.",
+                    this.player.getName());
         }
         // this is where we will send events from the game
         this.gameEvents = this.session.getWorkingMemoryEntryPoint("gameEvents");
@@ -103,7 +136,6 @@ public class PlayerDecisionLogic implements Channel {
             throw new IllegalStateException(
                     "Problem in your rule file: 'playerEvents' entry point not declared.");
         }
-        // FIXME insert players into WM
         // FIXME somehow insert playing field into WM
         this.session.insert(new CurrentPlayer(p)); // make sure everyone knows
                                                    // the current player
@@ -164,7 +196,8 @@ public class PlayerDecisionLogic implements Channel {
 
     public void notifyOfDeath(final Player p) {
         this.playerEvents.insert(new PlayerDeathEvent(p));
-        // FIXME remove player from WM; incl. any dependent stuff
+        final FactHandle fh = this.playerPositions.remove(p);
+        this.session.retract(fh);
     }
 
     public void notifyOfPlayerLengthChange(final Player p, final int length) {
@@ -208,6 +241,27 @@ public class PlayerDecisionLogic implements Channel {
             PlayerDecisionLogic.LOGGER.info("Terminating player {}.",
                     new Object[] { this.player.getName() });
             this.session.dispose();
+            return true;
+        }
+    }
+
+    public boolean updatePlayerPosition(final Player p,
+            final Collection<DefaultNode> positions) {
+        if (!positions.contains(p)) {
+            PlayerDecisionLogic.LOGGER.debug("Adding position for player {}.",
+                    p.getName());
+            final PlayerPosition pos = new PlayerPosition(p, positions);
+            final FactHandle fh = this.session.insert(pos);
+            this.playerPositions.put(p, fh);
+            return false;
+        } else {
+            PlayerDecisionLogic.LOGGER.debug(
+                    "Updating position for player {}.", p.getName());
+            final FactHandle fh = this.playerPositions.get(p);
+            final PlayerPosition pos = (PlayerPosition) this.session
+                    .getObject(fh);
+            pos.setPosition(positions);
+            this.session.update(fh, pos);
             return true;
         }
     }

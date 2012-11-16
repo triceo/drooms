@@ -225,11 +225,14 @@ public class DefaultSituation implements
         DefaultSituation.LOGGER.info("---------------------------------------");
         DefaultSituation.LOGGER.info("Playground {} starting turn #{}.",
                 new Object[] { this, this.turnNo });
-        final Map<PlayerDecisionLogic, Deque<DefaultNode>> newPositions = new LinkedHashMap<PlayerDecisionLogic, Deque<DefaultNode>>();
         // determine the movements of players
+        final Map<PlayerDecisionLogic, Deque<DefaultNode>> newPositions = new LinkedHashMap<PlayerDecisionLogic, Deque<DefaultNode>>();
         for (final Map.Entry<Player, PlayerDecisionLogic> entry : this.players
                 .entrySet()) {
             // make the decision
+            for (Player p: this.players.keySet()) {
+                entry.getValue().updatePlayerPosition(p, this.getPositions(p));
+            }
             final Move decision = entry.getValue().decideNextMove();
             final Player player = entry.getKey();
             // move the head of the worm
