@@ -176,7 +176,7 @@ public class PlayerDecisionLogic implements Channel {
         // this is where the logger comes in
         try {
             this.session.setGlobal("logger",
-                    LoggerFactory.getLogger(this.player.getName() + "Player"));
+                    LoggerFactory.getLogger("org.drooms.players." + this.player.getName()));
         } catch (final RuntimeException ex) {
             PlayerDecisionLogic.LOGGER.info("Player {} doesn't use a logger.",
                     this.player.getName());
