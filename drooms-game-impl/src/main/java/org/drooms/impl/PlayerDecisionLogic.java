@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.drools.KnowledgeBaseFactory;
@@ -154,7 +155,6 @@ public class PlayerDecisionLogic implements Channel {
     private static final Environment environment = KnowledgeBaseFactory
             .newEnvironment();
 
-    private final DefaultPlayground playground;
     private final Player player;
     private final StatefulKnowledgeSession session;
     private final boolean isDisposed = false;
@@ -163,11 +163,8 @@ public class PlayerDecisionLogic implements Channel {
     private final FactHandle currentTurn;
     private final FactHandle currentPlayer;
 
-    private final Map<Player, FactHandle[][]> playerPositions = new HashMap<Player, FactHandle[][]>();
-
     public PlayerDecisionLogic(final Player p,
             final DefaultPlayground playground) {
-        this.playground = playground;
         this.player = p;
         this.session = p.getKnowledgeBase().newStatefulKnowledgeSession(
                 PlayerDecisionLogic.config, PlayerDecisionLogic.environment);
@@ -262,26 +259,41 @@ public class PlayerDecisionLogic implements Channel {
 
     public void notifyOfDeath(final Player p) {
         this.playerEvents.insert(new PlayerDeathEvent(p));
-        for (final FactHandle[] handles : this.playerPositions.remove(p)) {
-            for (final FactHandle handle : handles) {
-                if (handle == null) {
-                    continue;
-                }
-                this.session.retract(handle);
-            }
+        // remove player from the WM
+        for (Map.Entry<DefaultNode, FactHandle> entry: handles.remove(p).entrySet()) {
+            this.session.retract(entry.getValue());
         }
     }
 
     public void notifyOfPlayerLengthChange(final Player p, final int length) {
         this.playerEvents.insert(new PlayerLengthChangeEvent(p, length));
     }
+    
+    private final Map<Player, Map<DefaultNode, FactHandle>> handles = new HashMap<Player, Map<DefaultNode, FactHandle>>();
 
     public void notifyOfPlayerMove(final Player p, final Move m,
-            final DefaultNode newHead) {
+            final DefaultNode newHead, final Collection<DefaultNode> newPositions) {
         this.playerEvents
                 .insert(new PlayerMoveEvent<DefaultNode>(p, m, newHead));
+        // update player positions
+        if (!handles.containsKey(p)) {
+            handles.put(p, new HashMap<DefaultNode, FactHandle>());
+        }
+        Map<DefaultNode, FactHandle> playerHandles = handles.get(p);
+        Set<DefaultNode> untraversedNodes = new HashSet<DefaultNode>(playerHandles.keySet());
+        for (DefaultNode n: newPositions) {
+            if (!playerHandles.containsKey(n)) { // worm occupies a new node
+                FactHandle fh = this.session.insert(new Worm(p, n.getX(), n.getY()));
+                playerHandles.put(n, fh);
+            }
+            untraversedNodes.remove(n);
+        }
+        for (DefaultNode n: untraversedNodes) { // worm no longer occupies a node
+            FactHandle fh = playerHandles.remove(n);
+            this.session.retract(fh);
+        }
+        // update current player's head
         if (p == this.getPlayer()) {
-            // update player head
             final CurrentPlayer cp = (CurrentPlayer) this.session
                     .getObject(this.currentPlayer);
             cp.setX(newHead.getX());
@@ -321,49 +333,6 @@ public class PlayerDecisionLogic implements Channel {
             PlayerDecisionLogic.LOGGER.info("Terminating player {}.",
                     new Object[] { this.player.getName() });
             this.session.dispose();
-            return true;
-        }
-    }
-
-    public boolean updatePlayerPosition(final Player p,
-            final Collection<DefaultNode> positions) {
-        if (!positions.contains(p)) {
-            PlayerDecisionLogic.LOGGER.debug("Adding positions for player {}.",
-                    p.getName());
-            final FactHandle[][] handles = new FactHandle[this.playground
-                    .getWidth()][this.playground.getHeight()];
-            for (final DefaultNode n : positions) {
-                final int x = n.getX();
-                final int y = n.getY();
-                handles[x][y] = this.session.insert(new Worm(p, x, y));
-            }
-            this.playerPositions.put(p, handles);
-            return false;
-        } else {
-            PlayerDecisionLogic.LOGGER.debug(
-                    "Updating position for player {}.", p.getName());
-            final FactHandle[][] handles = this.playerPositions.get(p);
-            final Collection<FactHandle> touchedHandles = new HashSet<FactHandle>();
-            // add new nodes
-            for (final DefaultNode n : positions) {
-                final int x = n.getX();
-                final int y = n.getY();
-                if (handles[x][y] == null) {
-                    handles[x][y] = this.session.insert(new Worm(p, x, y));
-                }
-                touchedHandles.add(handles[x][y]);
-            }
-            // remove old nodes
-            for (final FactHandle[] handles2 : handles) {
-                for (final FactHandle handle : handles2) {
-                    if (touchedHandles.contains(handle)) {
-                        continue;
-                    }
-                    final Worm w = (Worm) this.session.getObject(handle);
-                    this.session.retract(handle);
-                    handles[w.getX()][w.getY()] = null;
-                }
-            }
             return true;
         }
     }

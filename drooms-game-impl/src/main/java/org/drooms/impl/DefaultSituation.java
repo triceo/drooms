@@ -230,9 +230,6 @@ public class DefaultSituation implements
         for (final Map.Entry<Player, PlayerDecisionLogic> entry : this.players
                 .entrySet()) {
             // make the decision
-            for (Player p: this.players.keySet()) {
-                entry.getValue().updatePlayerPosition(p, this.getPositions(p));
-            }
             final Move decision = entry.getValue().decideNextMove();
             final Player player = entry.getKey();
             // move the head of the worm
@@ -275,7 +272,7 @@ public class DefaultSituation implements
             newPositions.put(entry.getValue(), newPosition);
             this.recordDecision(player, decision);
             for (final PlayerDecisionLogic logic : this.players.values()) {
-                logic.notifyOfPlayerMove(player, decision, newHeadPos);
+                logic.notifyOfPlayerMove(player, decision, newHeadPos, newPosition);
             }
         }
         return new DefaultSituation(this.getPlayground(),
