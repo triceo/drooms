@@ -193,9 +193,9 @@ public class PlayerDecisionLogic implements Channel {
             throw new IllegalStateException(
                     "Problem in your rule file: 'playerEvents' entry point not declared.");
         }
-        // insert playground walls
-        for (int x = 0; x < playground.getWidth(); x++) {
-            for (int y = 0; y < playground.getHeight(); y++) {
+        // insert playground walls; make sure the playground is always surrounded with walls
+        for (int x = -1; x <= playground.getWidth(); x++) {
+            for (int y = -1; y <= playground.getHeight(); y++) {
                 if (!playground.isAvailable(x, y)) {
                     this.session.insert(new Wall(x, y));
                 }
@@ -223,11 +223,13 @@ public class PlayerDecisionLogic implements Channel {
         turn.setNumber(turn.getNumber() + 1);
         this.session.update(this.currentTurn, turn);
         // store the decision
-        final Move decision = (this.latestDecision == null ? Move.STAY
-                : this.latestDecision);
-        PlayerDecisionLogic.LOGGER.info("Player {} final decision is {}. ",
-                new Object[] { this.player.getName(), decision });
-        return decision;
+        if (this.latestDecision == null) {
+            PlayerDecisionLogic.LOGGER.warn("Player {} didn't make a decision. STAY forced.", this.player.getName());
+            return Move.STAY;
+        } else {
+            PlayerDecisionLogic.LOGGER.info("Player {} final decision is {}. ", this.player.getName(), this.latestDecision);
+            return this.latestDecision;
+        }
     }
 
     public Player getPlayer() {
