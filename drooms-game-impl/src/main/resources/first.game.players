@@ -1,9 +1,9 @@
-justStupid1=org.drooms.strategy.random.RandomNonSuicidalStrategy@file:///home/lpetrovi/Workspaces/Stuff/drooms/drooms-strategy-random/target/drooms-strategy-random-0.0.1-SNAPSHOT.jar
-justStupid2=org.drooms.strategy.random.RandomNonSuicidalStrategy@file:///home/lpetrovi/Workspaces/Stuff/drooms/drooms-strategy-random/target/drooms-strategy-random-0.0.1-SNAPSHOT.jar
-justStupid3=org.drooms.strategy.random.RandomNonSuicidalStrategy@file:///home/lpetrovi/Workspaces/Stuff/drooms/drooms-strategy-random/target/drooms-strategy-random-0.0.1-SNAPSHOT.jar
-justStupid4=org.drooms.strategy.random.RandomNonSuicidalStrategy@file:///home/lpetrovi/Workspaces/Stuff/drooms/drooms-strategy-random/target/drooms-strategy-random-0.0.1-SNAPSHOT.jar
-justStupid5=org.drooms.strategy.random.RandomNonSuicidalStrategy@file:///home/lpetrovi/Workspaces/Stuff/drooms/drooms-strategy-random/target/drooms-strategy-random-0.0.1-SNAPSHOT.jar
-justStupid6=org.drooms.strategy.random.RandomNonSuicidalStrategy@file:///home/lpetrovi/Workspaces/Stuff/drooms/drooms-strategy-random/target/drooms-strategy-random-0.0.1-SNAPSHOT.jar
-justStupid7=org.drooms.strategy.random.RandomNonSuicidalStrategy@file:///home/lpetrovi/Workspaces/Stuff/drooms/drooms-strategy-random/target/drooms-strategy-random-0.0.1-SNAPSHOT.jar
-justStupid8=org.drooms.strategy.random.RandomNonSuicidalStrategy@file:///home/lpetrovi/Workspaces/Stuff/drooms/drooms-strategy-random/target/drooms-strategy-random-0.0.1-SNAPSHOT.jar
 suicidal1=org.drooms.strategy.random.RandomSuicidalStrategy@file:///home/lpetrovi/Workspaces/Stuff/drooms/drooms-strategy-random/target/drooms-strategy-random-0.0.1-SNAPSHOT.jar
+suicidal2=org.drooms.strategy.random.RandomSuicidalStrategy@file:///home/lpetrovi/Workspaces/Stuff/drooms/drooms-strategy-random/target/drooms-strategy-random-0.0.1-SNAPSHOT.jar
+suicidal3=org.drooms.strategy.random.RandomSuicidalStrategy@file:///home/lpetrovi/Workspaces/Stuff/drooms/drooms-strategy-random/target/drooms-strategy-random-0.0.1-SNAPSHOT.jar
+suicidal4=org.drooms.strategy.random.RandomSuicidalStrategy@file:///home/lpetrovi/Workspaces/Stuff/drooms/drooms-strategy-random/target/drooms-strategy-random-0.0.1-SNAPSHOT.jar
+suicidal5=org.drooms.strategy.random.RandomSuicidalStrategy@file:///home/lpetrovi/Workspaces/Stuff/drooms/drooms-strategy-random/target/drooms-strategy-random-0.0.1-SNAPSHOT.jar
+suicidal6=org.drooms.strategy.random.RandomSuicidalStrategy@file:///home/lpetrovi/Workspaces/Stuff/drooms/drooms-strategy-random/target/drooms-strategy-random-0.0.1-SNAPSHOT.jar
+suicidal7=org.drooms.strategy.random.RandomSuicidalStrategy@file:///home/lpetrovi/Workspaces/Stuff/drooms/drooms-strategy-random/target/drooms-strategy-random-0.0.1-SNAPSHOT.jar
+suicidal8=org.drooms.strategy.random.RandomSuicidalStrategy@file:///home/lpetrovi/Workspaces/Stuff/drooms/drooms-strategy-random/target/drooms-strategy-random-0.0.1-SNAPSHOT.jar
+nonsuicidal=org.drooms.strategy.random.RandomNonSuicidalStrategy@file:///home/lpetrovi/Workspaces/Stuff/drooms/drooms-strategy-random/target/drooms-strategy-random-0.0.1-SNAPSHOT.jar
