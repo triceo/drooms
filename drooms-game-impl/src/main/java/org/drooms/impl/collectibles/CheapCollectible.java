@@ -32,7 +32,7 @@ public class CheapCollectible implements Collectible {
 
     @Override
     public char getSign() {
-        return '!';
+        return '%';
     }
 
     @Override

@@ -225,7 +225,7 @@ public class DefaultSituation implements
         DefaultSituation.LOGGER.info("---------------------------------------");
         DefaultSituation.LOGGER.info("Playground {} starting turn #{}.",
                 new Object[] { this, this.turnNo });
-        final Map<PlayerDecisionLogic, Deque<DefaultNode>> positions = new LinkedHashMap<PlayerDecisionLogic, Deque<DefaultNode>>();
+        final Map<PlayerDecisionLogic, Deque<DefaultNode>> newPositions = new LinkedHashMap<PlayerDecisionLogic, Deque<DefaultNode>>();
         // determine the movements of players
         for (final Map.Entry<Player, PlayerDecisionLogic> entry : this.players
                 .entrySet()) {
@@ -260,7 +260,7 @@ public class DefaultSituation implements
             }
             // move the head of the snake
             final Deque<DefaultNode> newPosition = new LinkedList<DefaultNode>(
-                    this.positions.get(player));
+                    this.getPositions(player));
             if (decision != Move.STAY) {
                 newPosition.push(newHeadPos);
             }
@@ -269,14 +269,14 @@ public class DefaultSituation implements
                 newPosition.removeLast();
             }
             // notify
-            positions.put(entry.getValue(), newPosition);
+            newPositions.put(entry.getValue(), newPosition);
             this.recordDecision(player, decision);
             for (final PlayerDecisionLogic logic : this.players.values()) {
                 logic.notifyOfPlayerMove(player, decision, newHeadPos);
             }
         }
         return new DefaultSituation(this.getPlayground(),
-                this.getTurnNumber() + 1, positions, this.lengths,
+                this.getTurnNumber() + 1, newPositions, this.lengths,
                 this.collectibles, this.decisionRecord);
     }
 
