@@ -85,6 +85,12 @@ public class PlayerDecisionLogic implements Channel {
                 PlayerDecisionLogic.config, PlayerDecisionLogic.environment);
         // this is where we listen for decisions
         this.session.registerChannel("decision", this);
+        // this is where the logger comes in
+        try {
+            this.session.setGlobal("logger", LoggerFactory.getLogger(player.getName() + "Player"));
+        } catch (RuntimeException ex) {
+            LOGGER.info("Player {} doesn't use a logger.", player.getName());
+        }
         // this is where we will send events from the game
         this.gameEvents = this.session.getWorkingMemoryEntryPoint("gameEvents");
         if (this.gameEvents == null) {
