@@ -1,10 +1,7 @@
 package org.drooms.impl;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
 import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -12,7 +9,6 @@ import java.net.URLClassLoader;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,16 +29,13 @@ import org.drooms.api.GameReport;
 import org.drooms.api.Move;
 import org.drooms.api.Player;
 import org.drooms.api.Strategy;
-import org.drooms.impl.collectibles.CheapCollectible;
-import org.drooms.impl.collectibles.ExtremeCollectible;
-import org.drooms.impl.collectibles.GoodCollectible;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class GameController implements
+public abstract class GameController implements
         Game<DefaultPlayground, DefaultNode, DefaultEdge> {
 
-    private enum CollectibleType {
+    protected enum CollectibleType {
 
         CHEAP("cheap"), GOOD("good"), EXTREME("extreme");
 
@@ -83,25 +76,7 @@ public class GameController implements
     private static final Logger LOGGER = LoggerFactory
             .getLogger(GameController.class);
 
-    private static final SecureRandom RANDOM = new SecureRandom();
-
-    public static void main(final String[] args) {
-        try (Reader gameConfigFile = new FileReader(args[0]);
-                Reader playerConfigFile = new FileReader(args[1]);
-                FileOutputStream fos = new FileOutputStream(new File(args[2]))) {
-            // prepare configs
-            final Properties gameConfig = new Properties();
-            gameConfig.load(gameConfigFile);
-            final Properties playerConfig = new Properties();
-            playerConfig.load(playerConfigFile);
-            // play and report
-            new GameController().play(gameConfig, playerConfig);
-        } catch (final IOException e) {
-            System.out.println(e);
-            System.exit(1);
-        }
-
-    }
+    protected static final SecureRandom RANDOM = new SecureRandom();
 
     private final Set<Collectible> collectibles = new HashSet<Collectible>();
 
@@ -190,11 +165,11 @@ public class GameController implements
         return players;
     }
 
-    private Collectible getCollectible(final DefaultNode n) {
+    protected Collectible getCollectible(final DefaultNode n) {
         return this.collectiblesByNode.get(n);
     }
 
-    private Deque<Move> getDecisionRecord(final Player p) {
+    protected Deque<Move> getDecisionRecord(final Player p) {
         final LinkedList<Move> moves = new LinkedList<Move>();
         for (final SortedMap.Entry<Integer, Move> entry : this.decisionRecord
                 .get(p).entrySet()) {
@@ -216,7 +191,7 @@ public class GameController implements
         }
     }
 
-    private int getPlayerLength(final Player p) {
+    protected int getPlayerLength(final Player p) {
         if (!this.lengths.containsKey(p)) {
             throw new IllegalStateException(
                     "Player doesn't have any length assigned: " + p);
@@ -224,7 +199,7 @@ public class GameController implements
         return this.lengths.get(p);
     }
 
-    private Deque<DefaultNode> getPlayerPosition(final Player p) {
+    protected Deque<DefaultNode> getPlayerPosition(final Player p) {
         if (!this.positions.containsKey(p)) {
             throw new IllegalStateException(
                     "Player doesn't have any position assigned: " + p);
@@ -253,191 +228,23 @@ public class GameController implements
         return this.strategyInstances.get(strategyClass);
     }
 
-    private Map<Collectible, Player> performCollectibleCollection(
-            final Collection<Player> players) {
-        final Map<Collectible, Player> collections = new HashMap<Collectible, Player>();
-        for (final Player p : players) {
-            final DefaultNode headPosition = this.getPlayerPosition(p)
-                    .getFirst();
-            final Collectible c = this.getCollectible(headPosition);
-            if (c != null) { // successfully collected
-                collections.put(c, p);
-                this.setPlayerLength(p, this.getPlayerLength(p) + 1);
-            }
-        }
-        return Collections.unmodifiableMap(collections);
-    }
+    protected abstract Map<Collectible, Player> performCollectibleCollection(
+            final Collection<Player> players);
 
-    private Map<Collectible, DefaultNode> performCollectibleDistribution(
+    protected abstract Map<Collectible, DefaultNode> performCollectibleDistribution(
             final Properties gameConfig, final DefaultPlayground playground,
-            final Collection<Player> players, final int currentTurnNumber) {
-        final Map<Collectible, DefaultNode> collectibles = new HashMap<Collectible, DefaultNode>();
-        for (final CollectibleType ct : CollectibleType.values()) {
-            final BigDecimal probability = ct
-                    .getProbabilityOfAppearance(gameConfig);
-            final BigDecimal chosen = BigDecimal.valueOf(GameController.RANDOM
-                    .nextDouble());
-            if (probability.compareTo(chosen) > 0) {
-                final int expiration = currentTurnNumber
-                        + ct.getExpiration(gameConfig);
-                final int points = ct.getPoints(gameConfig);
-                Collectible c = null;
-                switch (ct) {
-                    case CHEAP:
-                        c = new CheapCollectible(points, expiration);
-                        break;
-                    case GOOD:
-                        c = new GoodCollectible(points, expiration);
-                        break;
-                    case EXTREME:
-                        c = new ExtremeCollectible(points, expiration);
-                        break;
-                    default:
-                        throw new IllegalStateException(
-                                "Unknown collectible type!");
-                }
-                collectibles.put(c,
-                        this.pickRandomUnusedNode(playground, players));
-            }
-        }
-        return Collections.unmodifiableMap(collectibles);
-    }
+            final Collection<Player> players, final int currentTurnNumber);
 
-    private Set<Player> performCollisionDetection(
+    protected abstract Set<Player> performCollisionDetection(
             final DefaultPlayground playground,
-            final Collection<Player> currentPlayers) {
-        final Set<Player> collisions = new HashSet<Player>();
-        for (final Player p1 : currentPlayers) {
-            final Deque<DefaultNode> position = this.getPlayerPosition(p1);
-            final DefaultNode firstPosition = position.getFirst();
-            if (!playground.isAvailable(firstPosition.getX(),
-                    firstPosition.getY())) {
-                collisions.add(p1);
-                continue;
-            } else {
-                // make sure the worm didn't crash into itself
-                final Set<DefaultNode> nodes = new HashSet<DefaultNode>(
-                        position);
-                if (nodes.size() < position.size()) {
-                    // a worm occupies one node twice = a crash into itself
-                    collisions.add(p1);
-                }
-            }
-            for (final Player p2 : currentPlayers) {
-                if (p1 == p2) {
-                    // the same worm
-                    continue;
-                }
-                final DefaultNode secondPosition = this.getPlayerPosition(p2)
-                        .getFirst();
-                if (firstPosition.equals(secondPosition)) {
-                    // head-on-head collision
-                    collisions.add(p1);
-                    collisions.add(p2);
-                } else if (position.contains(secondPosition)) {
-                    // head-on-body collision
-                    collisions.add(p2);
-                }
-            }
-        }
-        return Collections.unmodifiableSet(collisions);
-    }
+            final Collection<Player> currentPlayers);
 
-    private Set<Player> performInactivityDetection(
+    protected abstract Set<Player> performInactivityDetection(
             final Collection<Player> currentPlayers,
-            final int currentTurnNumber, final int allowedInactiveTurns) {
-        final Set<Player> inactiveWorms = new HashSet<Player>();
-        if (currentTurnNumber > allowedInactiveTurns) {
-            for (final Player p : currentPlayers) {
-                final Move[] moves = this.getDecisionRecord(p).toArray(
-                        new Move[] {});
-                boolean active = false;
-                for (int i = moves.length - allowedInactiveTurns - 1; i < moves.length; i++) {
-                    if (moves[i] != Move.STAY) {
-                        // the worm has been active
-                        active = true;
-                        break;
-                    }
-                }
-                if (!active) {
-                    inactiveWorms.add(p);
-                }
-            }
-        }
-        return Collections.unmodifiableSet(inactiveWorms);
-    }
+            final int currentTurnNumber, final int allowedInactiveTurns);
 
-    private Deque<DefaultNode> performPlayerMove(final Player player,
-            final Move decision) {
-        // move the head of the worm
-        final Deque<DefaultNode> currentPos = this.getPlayerPosition(player);
-        final DefaultNode currentHeadPos = currentPos.getFirst();
-        DefaultNode newHeadPos;
-        switch (decision) {
-            case UP:
-                newHeadPos = new DefaultNode(currentHeadPos.getX(),
-                        currentHeadPos.getY() + 1);
-                break;
-            case DOWN:
-                newHeadPos = new DefaultNode(currentHeadPos.getX(),
-                        currentHeadPos.getY() - 1);
-                break;
-            case LEFT:
-                newHeadPos = new DefaultNode(currentHeadPos.getX() - 1,
-                        currentHeadPos.getY());
-                break;
-            case RIGHT:
-                newHeadPos = new DefaultNode(currentHeadPos.getX() + 1,
-                        currentHeadPos.getY());
-                break;
-            case STAY:
-                newHeadPos = currentHeadPos;
-                break;
-            default:
-                throw new IllegalStateException("Unknown move!");
-        }
-        // move the head of the snake
-        final Deque<DefaultNode> newPosition = new LinkedList<DefaultNode>(
-                currentPos);
-        if (decision != Move.STAY) {
-            newPosition.push(newHeadPos);
-        }
-        // make sure the snake is as long as it should be
-        while (newPosition.size() > this.getPlayerLength(player)) {
-            newPosition.removeLast();
-        }
-        // notify
-        return newPosition;
-    }
-
-    private DefaultNode pickRandomUnusedNode(final DefaultPlayground p,
-            final Collection<Player> players) {
-        final List<DefaultNode> nodes = new LinkedList<DefaultNode>();
-        // locate available nodes
-        for (int x = 0; x < p.getWidth(); x++) {
-            for (int y = 0; y < p.getHeight(); y++) {
-                if (p.isAvailable(x, y)) {
-                    nodes.add(p.getNode(x, y));
-                }
-            }
-        }
-        // exclude nodes where worms are
-        for (final Player player : players) {
-            nodes.removeAll(this.getPlayerPosition(player));
-        }
-        // exclude nodes where collectibles are
-        final List<DefaultNode> nodesCopy = new LinkedList<DefaultNode>(nodes);
-        for (final DefaultNode n : nodesCopy) {
-            if (this.getCollectible(n) != null) {
-                nodes.remove(n);
-            }
-        }
-        if (nodes.size() == 0) {
-            return null;
-        } else {
-            return nodes.get(GameController.RANDOM.nextInt(nodes.size()));
-        }
-    }
+    protected abstract Deque<DefaultNode> performPlayerMove(
+            final Player player, final Move decision);
 
     @Override
     public GameReport<DefaultPlayground, DefaultNode, DefaultEdge> play(
@@ -487,7 +294,6 @@ public class GameController implements
         Map<Player, Move> decisions = new HashMap<Player, Move>();
         for (final Player p : currentPlayers) { // initialize players
             decisions.put(p, Move.STAY);
-            this.reward(p, 0);
         }
         // start the game
         int turnNumber = 0;
@@ -538,6 +344,7 @@ public class GameController implements
                 final Player p = entry.getValue();
                 this.reward(p, c.getPoints());
                 this.removeCollectible(c);
+                this.setPlayerLength(p, this.getPlayerLength(p) + 1);
                 playerControl.collectCollectible(c, p);
             }
             if (currentPlayers.size() < 2) {
