@@ -298,7 +298,7 @@ public abstract class GameController implements
         // start the game
         int turnNumber = 0;
         do {
-            GameController.LOGGER.info("Starting turn no. {}.", turnNumber);
+            GameController.LOGGER.info("--- Starting turn no. {}.", turnNumber);
             // remove inactive worms
             for (final Player player : this.performInactivityDetection(
                     currentPlayers, turnNumber, allowedInactiveTurns)) {
@@ -363,6 +363,11 @@ public abstract class GameController implements
             decisions = playerControl.execute();
             turnNumber++;
         } while (currentPlayers.size() > 1);
+        // output player status
+        LOGGER.info("--- Game over.");
+        for (Map.Entry<Player, Integer> entry: this.playerPoints.entrySet()) {
+            LOGGER.info("Player {} earned {} points.", entry.getKey().getName(), entry.getValue());
+        }
         return null;
     }
 
