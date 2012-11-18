@@ -1,8 +1,10 @@
-package org.drooms.impl.events;
+package org.drooms.impl.logic.events;
 
 import org.drooms.api.Player;
+import org.drooms.impl.logic.PlayerRelated;
+import org.drooms.impl.logic.RewardRelated;
 
-public class SurvivalRewardEvent implements RewardEvent, PlayerEvent {
+public class SurvivalRewardEvent implements RewardRelated, PlayerRelated {
 
     private final Player player;
     private final int points;

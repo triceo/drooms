@@ -1,10 +1,11 @@
-package org.drooms.impl.events;
+package org.drooms.impl.logic.events;
 
 import org.drooms.api.Collectible;
 import org.drooms.api.Node;
+import org.drooms.impl.logic.CollectibleRelated;
 
 public class CollectibleAdditionEvent<N extends Node> implements
-        CollectibleEvent {
+        CollectibleRelated {
 
     private final N node;
     private final Collectible collectible;

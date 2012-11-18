@@ -1,8 +1,9 @@
-package org.drooms.impl.events;
+package org.drooms.impl.logic.events;
 
 import org.drooms.api.Player;
+import org.drooms.impl.logic.PlayerRelated;
 
-public class PlayerDeathEvent implements PlayerEvent {
+public class PlayerDeathEvent implements PlayerRelated {
 
     private final Player player;
 

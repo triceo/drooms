@@ -1,10 +1,13 @@
-package org.drooms.impl.events;
+package org.drooms.impl.logic.events;
 
 import org.drooms.api.Collectible;
 import org.drooms.api.Player;
+import org.drooms.impl.logic.CollectibleRelated;
+import org.drooms.impl.logic.PlayerRelated;
+import org.drooms.impl.logic.RewardRelated;
 
-public class CollectibleRewardEvent implements RewardEvent, PlayerEvent,
-        CollectibleEvent {
+public class CollectibleRewardEvent implements RewardRelated, PlayerRelated,
+        CollectibleRelated {
 
     private final Player player;
     private final Collectible collectible;

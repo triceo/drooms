@@ -2,7 +2,7 @@ package org.drooms.strategy.random;
 
 import java.util.Random;
 import org.drooms.api.Move;
-import org.drooms.impl.PlayerDecisionLogic.CurrentTurn;
+import org.drooms.impl.logic.DecisionMaker.CurrentTurn;
 import org.slf4j.Logger;
 
 declare entry-point gameEvents

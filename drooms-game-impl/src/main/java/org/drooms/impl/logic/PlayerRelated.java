@@ -1,8 +1,8 @@
-package org.drooms.impl.events;
+package org.drooms.impl.logic;
 
 import org.drooms.api.Player;
 
-public interface PlayerEvent {
+public interface PlayerRelated {
 
     public Player getPlayer();
 

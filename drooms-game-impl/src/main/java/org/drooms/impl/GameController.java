@@ -29,6 +29,15 @@ import org.drooms.api.GameReport;
 import org.drooms.api.Move;
 import org.drooms.api.Player;
 import org.drooms.api.Strategy;
+import org.drooms.impl.logic.CommandDistributor;
+import org.drooms.impl.logic.commands.AddCollectibleCommand;
+import org.drooms.impl.logic.commands.CollectCollectibleCommand;
+import org.drooms.impl.logic.commands.Command;
+import org.drooms.impl.logic.commands.CrashPlayerCommand;
+import org.drooms.impl.logic.commands.DeactivatePlayerCommand;
+import org.drooms.impl.logic.commands.MovePlayerCommand;
+import org.drooms.impl.logic.commands.RemoveCollectibleCommand;
+import org.drooms.impl.logic.commands.RewardSurvivalCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -288,7 +297,7 @@ public abstract class GameController implements
             i++;
         }
         // prepare situation
-        final PlayerController playerControl = new PlayerController(playground,
+        final CommandDistributor playerControl = new CommandDistributor(playground,
                 players);
         final Set<Player> currentPlayers = new HashSet<Player>(players);
         Map<Player, Move> decisions = new HashMap<Player, Move>();
@@ -299,11 +308,12 @@ public abstract class GameController implements
         int turnNumber = 0;
         do {
             GameController.LOGGER.info("--- Starting turn no. {}.", turnNumber);
+            final List<Command<DefaultPlayground, DefaultNode, DefaultEdge>> commands = new LinkedList<Command<DefaultPlayground, DefaultNode, DefaultEdge>>();
             // remove inactive worms
             for (final Player player : this.performInactivityDetection(
                     currentPlayers, turnNumber, allowedInactiveTurns)) {
                 currentPlayers.remove(player);
-                playerControl.deactivate(player);
+                commands.add(new DeactivatePlayerCommand(player));
             }
             // move the worms
             for (final Player p : currentPlayers) {
@@ -312,30 +322,29 @@ public abstract class GameController implements
                 final Deque<DefaultNode> newPosition = this.performPlayerMove(
                         p, m);
                 this.setPlayerPosition(p, newPosition);
-                playerControl.movePlayer(p, m, newPosition);
+                commands.add(new MovePlayerCommand(p, m, newPosition));
             }
             // resolve worms colliding
             for (final Player player : this.performCollisionDetection(
                     playground, currentPlayers)) {
-                playerControl.crash(player);
                 currentPlayers.remove(player);
+                commands.add(new CrashPlayerCommand(player));
             }
             // reward surviving worms
             for (final Player p : currentPlayers) {
                 this.reward(p, 1);
-                playerControl.rewardSurvival(p, wormSurvivalBonus);
+                commands.add(new RewardSurvivalCommand(p, wormSurvivalBonus));
             }
             // expire uncollected collectibles
             final Set<Collectible> removeCollectibles = new HashSet<Collectible>();
             for (final Collectible c : this.collectibles) {
                 if (c.expiresInTurn() >= 0 && turnNumber >= c.expiresInTurn()) {
-                    playerControl.removeCollectible(c);
                     removeCollectibles.add(c);
                 }
             }
             for (final Collectible c : removeCollectibles) {
                 this.removeCollectible(c);
-                playerControl.removeCollectible(c);
+                commands.add(new RemoveCollectibleCommand(c));
             }
             // add points for collected collectibles
             for (final Map.Entry<Collectible, Player> entry : this
@@ -345,7 +354,7 @@ public abstract class GameController implements
                 this.reward(p, c.getPoints());
                 this.removeCollectible(c);
                 this.setPlayerLength(p, this.getPlayerLength(p) + 1);
-                playerControl.collectCollectible(c, p);
+                commands.add(new CollectCollectibleCommand(c, p));
             }
             if (currentPlayers.size() < 2) {
                 continue;
@@ -357,16 +366,18 @@ public abstract class GameController implements
                 final Collectible c = entry.getKey();
                 final DefaultNode n = entry.getValue();
                 this.addCollectible(c, n);
-                playerControl.addCollectible(c, n);
+                commands.add(new AddCollectibleCommand(c, n));
             }
             // make the move decision
-            decisions = playerControl.execute();
+            decisions = playerControl.execute(commands);
             turnNumber++;
         } while (currentPlayers.size() > 1);
         // output player status
-        LOGGER.info("--- Game over.");
-        for (Map.Entry<Player, Integer> entry: this.playerPoints.entrySet()) {
-            LOGGER.info("Player {} earned {} points.", entry.getKey().getName(), entry.getValue());
+        GameController.LOGGER.info("--- Game over.");
+        for (final Map.Entry<Player, Integer> entry : this.playerPoints
+                .entrySet()) {
+            GameController.LOGGER.info("Player {} earned {} points.", entry
+                    .getKey().getName(), entry.getValue());
         }
         return null;
     }

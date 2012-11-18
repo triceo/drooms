@@ -1,6 +1,5 @@
-package org.drooms.impl;
+package org.drooms.impl.logic;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -16,19 +15,20 @@ import org.drools.runtime.conf.ClockTypeOption;
 import org.drools.runtime.rule.FactHandle;
 import org.drools.runtime.rule.WorkingMemoryEntryPoint;
 import org.drools.time.SessionPseudoClock;
-import org.drooms.api.Collectible;
 import org.drooms.api.Move;
 import org.drooms.api.Player;
-import org.drooms.impl.events.CollectibleAdditionEvent;
-import org.drooms.impl.events.CollectibleRemovalEvent;
-import org.drooms.impl.events.CollectibleRewardEvent;
-import org.drooms.impl.events.PlayerDeathEvent;
-import org.drooms.impl.events.PlayerMoveEvent;
-import org.drooms.impl.events.SurvivalRewardEvent;
+import org.drooms.impl.DefaultNode;
+import org.drooms.impl.DefaultPlayground;
+import org.drooms.impl.logic.events.CollectibleAdditionEvent;
+import org.drooms.impl.logic.events.CollectibleRemovalEvent;
+import org.drooms.impl.logic.events.CollectibleRewardEvent;
+import org.drooms.impl.logic.events.PlayerDeathEvent;
+import org.drooms.impl.logic.events.PlayerMoveEvent;
+import org.drooms.impl.logic.events.SurvivalRewardEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PlayerDecisionLogic implements Channel {
+public class DecisionMaker implements Channel {
 
     public class CurrentPlayer implements Positioned {
 
@@ -141,13 +141,13 @@ public class PlayerDecisionLogic implements Channel {
     }
 
     private static final Logger LOGGER = LoggerFactory
-            .getLogger(PlayerDecisionLogic.class);
+            .getLogger(DecisionMaker.class);
 
     // initialize the shared knowledge session config
     private static final KnowledgeSessionConfiguration config;
     static {
         config = KnowledgeBaseFactory.newKnowledgeSessionConfiguration();
-        PlayerDecisionLogic.config.setOption(ClockTypeOption.get("pseudo"));
+        DecisionMaker.config.setOption(ClockTypeOption.get("pseudo"));
     }
 
     // initialize the shared environment
@@ -164,11 +164,11 @@ public class PlayerDecisionLogic implements Channel {
 
     private final Map<Player, Map<DefaultNode, FactHandle>> handles = new HashMap<Player, Map<DefaultNode, FactHandle>>();
 
-    public PlayerDecisionLogic(final Player p,
+    public DecisionMaker(final Player p,
             final DefaultPlayground playground) {
         this.player = p;
         this.session = p.getKnowledgeBase().newStatefulKnowledgeSession(
-                PlayerDecisionLogic.config, PlayerDecisionLogic.environment);
+                DecisionMaker.config, DecisionMaker.environment);
         // this is where we listen for decisions
         this.session.registerChannel("decision", this);
         // this is where the logger comes in
@@ -178,7 +178,7 @@ public class PlayerDecisionLogic implements Channel {
                     LoggerFactory.getLogger("org.drooms.players."
                             + this.player.getName()));
         } catch (final RuntimeException ex) {
-            PlayerDecisionLogic.LOGGER.info("Player {} doesn't use a logger.",
+            DecisionMaker.LOGGER.info("Player {} doesn't use a logger.",
                     this.player.getName());
         }
         // this is where we will send events from the game
@@ -209,12 +209,12 @@ public class PlayerDecisionLogic implements Channel {
 
     public Move decideNextMove() {
         this.validate();
-        PlayerDecisionLogic.LOGGER.trace("Player {} advancing time. ",
+        DecisionMaker.LOGGER.trace("Player {} advancing time. ",
                 new Object[] { this.player.getName() });
         final SessionPseudoClock clock = this.session.getSessionClock();
         clock.advanceTime(1, TimeUnit.MINUTES);
         // decide
-        PlayerDecisionLogic.LOGGER.trace("Player {} deciding. ",
+        DecisionMaker.LOGGER.trace("Player {} deciding. ",
                 new Object[] { this.player.getName() });
         this.latestDecision = null;
         this.session.fireAllRules();
@@ -225,12 +225,12 @@ public class PlayerDecisionLogic implements Channel {
         this.session.update(this.currentTurn, turn);
         // store the decision
         if (this.latestDecision == null) {
-            PlayerDecisionLogic.LOGGER.warn(
+            DecisionMaker.LOGGER.warn(
                     "Player {} didn't make a decision. STAY forced.",
                     this.player.getName());
             return Move.STAY;
         } else {
-            PlayerDecisionLogic.LOGGER.info("Player {} final decision is {}. ",
+            DecisionMaker.LOGGER.info("Player {} final decision is {}. ",
                     this.player.getName(), this.latestDecision);
             return this.latestDecision;
         }
@@ -244,28 +244,22 @@ public class PlayerDecisionLogic implements Channel {
         return this.isDisposed;
     }
 
-    public void notifyOfCollectibleAddition(final Collectible c,
-            final DefaultNode node) {
-        this.gameEvents.insert(new CollectibleAdditionEvent<DefaultNode>(c,
-                node));
+    public void notifyOfCollectibleAddition(
+            final CollectibleAdditionEvent<DefaultNode> evt) {
+        this.gameEvents.insert(evt);
     }
 
-    public void notifyOfCollectibleRemoval(final Collectible c) {
-        this.gameEvents.insert(new CollectibleRemovalEvent(c));
+    public void notifyOfCollectibleRemoval(final CollectibleRemovalEvent evt) {
+        this.gameEvents.insert(evt);
     }
 
-    public void notifyOfCollectibleReward(final Collectible c, final Player p,
-            final int points) {
-        this.gameEvents.insert(new CollectibleRewardEvent(p, c));
+    public void notifyOfCollectibleReward(final CollectibleRewardEvent evt) {
+        this.gameEvents.insert(evt);
     }
 
-    public void notifyOfCollision(final Player p1, final Player p2) {
-        this.notifyOfDeath(p1);
-        this.notifyOfDeath(p2);
-    }
-
-    public void notifyOfDeath(final Player p) {
-        this.playerEvents.insert(new PlayerDeathEvent(p));
+    public void notifyOfDeath(final PlayerDeathEvent evt) {
+        this.playerEvents.insert(evt);
+        final Player p = evt.getPlayer();
         // remove player from the WM
         for (final Map.Entry<DefaultNode, FactHandle> entry : this.handles
                 .remove(p).entrySet()) {
@@ -273,11 +267,10 @@ public class PlayerDecisionLogic implements Channel {
         }
     }
 
-    public void notifyOfPlayerMove(final Player p, final Move m,
-            final DefaultNode newHead,
-            final Collection<DefaultNode> newPositions) {
-        this.playerEvents
-                .insert(new PlayerMoveEvent<DefaultNode>(p, m, newHead));
+    public void notifyOfPlayerMove(final PlayerMoveEvent<DefaultNode> evt) {
+        final DefaultNode newHead = evt.getNodes().getFirst();
+        final Player p = evt.getPlayer();
+        this.playerEvents.insert(evt);
         // update player positions
         if (!this.handles.containsKey(p)) {
             this.handles.put(p, new HashMap<DefaultNode, FactHandle>());
@@ -285,7 +278,7 @@ public class PlayerDecisionLogic implements Channel {
         final Map<DefaultNode, FactHandle> playerHandles = this.handles.get(p);
         final Set<DefaultNode> untraversedNodes = new HashSet<DefaultNode>(
                 playerHandles.keySet());
-        for (final DefaultNode n : newPositions) {
+        for (final DefaultNode n : evt.getNodes()) {
             if (!playerHandles.containsKey(n)) { // worm occupies a new node
                 final FactHandle fh = this.session.insert(new Worm(p, n.getX(),
                         n.getY()));
@@ -308,8 +301,8 @@ public class PlayerDecisionLogic implements Channel {
         }
     }
 
-    public void notifyOfSurvivalReward(final Player p, final int points) {
-        this.gameEvents.insert(new SurvivalRewardEvent(p, points));
+    public void notifyOfSurvivalReward(final SurvivalRewardEvent evt) {
+        this.gameEvents.insert(evt);
     }
 
     @Override
@@ -317,14 +310,14 @@ public class PlayerDecisionLogic implements Channel {
         this.validate();
         if (object instanceof Move) {
             if (this.latestDecision != null) {
-                PlayerDecisionLogic.LOGGER.debug(
+                DecisionMaker.LOGGER.debug(
                         "Player {} has changed the decision from {} to {}.",
                         new Object[] { this.player.getName(),
                                 this.latestDecision, object });
             }
             this.latestDecision = (Move) object;
         } else {
-            PlayerDecisionLogic.LOGGER.warn(
+            DecisionMaker.LOGGER.warn(
                     "Player {} indicated an invalid move {}.", new Object[] {
                             this.player.getName(), this.latestDecision });
         }
@@ -332,11 +325,11 @@ public class PlayerDecisionLogic implements Channel {
 
     public boolean terminate() {
         if (this.isDisposed) {
-            PlayerDecisionLogic.LOGGER.warn("Player {} already terminated.",
+            DecisionMaker.LOGGER.warn("Player {} already terminated.",
                     new Object[] { this.player.getName() });
             return false;
         } else {
-            PlayerDecisionLogic.LOGGER.info("Terminating player {}.",
+            DecisionMaker.LOGGER.info("Terminating player {}.",
                     new Object[] { this.player.getName() });
             this.session.dispose();
             return true;

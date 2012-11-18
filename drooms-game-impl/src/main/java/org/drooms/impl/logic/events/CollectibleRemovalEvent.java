@@ -1,8 +1,9 @@
-package org.drooms.impl.events;
+package org.drooms.impl.logic.events;
 
 import org.drooms.api.Collectible;
+import org.drooms.impl.logic.CollectibleRelated;
 
-public class CollectibleRemovalEvent implements CollectibleEvent {
+public class CollectibleRemovalEvent implements CollectibleRelated {
 
     private final Collectible collectible;
 
