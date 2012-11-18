@@ -7,12 +7,13 @@ import org.drooms.impl.DefaultNode;
 import org.drooms.impl.DefaultPlayground;
 import org.drooms.impl.logic.CommandDistributor;
 import org.drooms.impl.logic.DecisionMaker;
+import org.drooms.impl.logic.PlayerRelated;
 import org.drooms.impl.logic.events.PlayerDeathEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DeactivatePlayerCommand implements
-        Command<DefaultPlayground, DefaultNode, DefaultEdge> {
+        Command<DefaultPlayground, DefaultNode, DefaultEdge>, PlayerRelated {
 
     private static final Logger LOGGER = LoggerFactory
             .getLogger(DeactivatePlayerCommand.class);
@@ -23,6 +24,11 @@ public class DeactivatePlayerCommand implements
     public DeactivatePlayerCommand(final Player p) {
         this.toDie = p;
         this.event = new PlayerDeathEvent(p);
+    }
+
+    @Override
+    public Player getPlayer() {
+        return this.toDie;
     }
 
     @Override

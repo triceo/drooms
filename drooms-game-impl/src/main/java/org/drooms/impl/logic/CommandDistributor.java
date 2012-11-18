@@ -55,8 +55,7 @@ public class CommandDistributor {
     public CommandDistributor(final DefaultPlayground playground,
             final List<Player> players) {
         for (final Player player : players) {
-            this.players.put(player,
-                    new DecisionMaker(player, playground));
+            this.players.put(player, new DecisionMaker(player, playground));
         }
     }
 
@@ -81,8 +80,10 @@ public class CommandDistributor {
                 change.perform(player);
             }
             change.report(null);
-            // update internal representation of the state so that command
-            // validation remains functional
+            /*
+             * update internal representation of the state so that command
+             * validation remains functional.
+             */
             if (change instanceof PlayerRelated) {
                 // player being removed from the game
                 if (change instanceof CrashPlayerCommand

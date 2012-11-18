@@ -5,6 +5,7 @@ import org.drooms.api.GameReport;
 import org.drooms.impl.DefaultEdge;
 import org.drooms.impl.DefaultNode;
 import org.drooms.impl.DefaultPlayground;
+import org.drooms.impl.logic.CollectibleRelated;
 import org.drooms.impl.logic.CommandDistributor;
 import org.drooms.impl.logic.DecisionMaker;
 import org.drooms.impl.logic.events.CollectibleRemovalEvent;
@@ -12,7 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RemoveCollectibleCommand implements
-        Command<DefaultPlayground, DefaultNode, DefaultEdge> {
+        Command<DefaultPlayground, DefaultNode, DefaultEdge>,
+        CollectibleRelated {
 
     private static final Logger LOGGER = LoggerFactory
             .getLogger(RemoveCollectibleCommand.class);
@@ -23,6 +25,11 @@ public class RemoveCollectibleCommand implements
     public RemoveCollectibleCommand(final Collectible c) {
         this.toRemove = c;
         this.event = new CollectibleRemovalEvent(c);
+    }
+
+    @Override
+    public Collectible getCollectible() {
+        return this.getCollectible();
     }
 
     @Override

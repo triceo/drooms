@@ -5,6 +5,7 @@ import org.drooms.api.GameReport;
 import org.drooms.impl.DefaultEdge;
 import org.drooms.impl.DefaultNode;
 import org.drooms.impl.DefaultPlayground;
+import org.drooms.impl.logic.CollectibleRelated;
 import org.drooms.impl.logic.CommandDistributor;
 import org.drooms.impl.logic.DecisionMaker;
 import org.drooms.impl.logic.events.CollectibleAdditionEvent;
@@ -12,7 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class AddCollectibleCommand implements
-        Command<DefaultPlayground, DefaultNode, DefaultEdge> {
+        Command<DefaultPlayground, DefaultNode, DefaultEdge>,
+        CollectibleRelated {
 
     private final static Logger LOGGER = LoggerFactory
             .getLogger(AddCollectibleCommand.class);
@@ -25,6 +27,11 @@ public class AddCollectibleCommand implements
         this.toAdd = c;
         this.whereToAdd = n;
         this.event = new CollectibleAdditionEvent<DefaultNode>(c, n);
+    }
+
+    @Override
+    public Collectible getCollectible() {
+        return this.toAdd;
     }
 
     @Override

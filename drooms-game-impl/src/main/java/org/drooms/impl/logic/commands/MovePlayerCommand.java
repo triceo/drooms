@@ -10,12 +10,13 @@ import org.drooms.impl.DefaultNode;
 import org.drooms.impl.DefaultPlayground;
 import org.drooms.impl.logic.CommandDistributor;
 import org.drooms.impl.logic.DecisionMaker;
+import org.drooms.impl.logic.PlayerRelated;
 import org.drooms.impl.logic.events.PlayerMoveEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MovePlayerCommand implements
-        Command<DefaultPlayground, DefaultNode, DefaultEdge> {
+        Command<DefaultPlayground, DefaultNode, DefaultEdge>, PlayerRelated {
 
     private static final Logger LOGGER = LoggerFactory
             .getLogger(MovePlayerCommand.class);
@@ -31,6 +32,11 @@ public class MovePlayerCommand implements
         this.whichMove = m;
         this.nodes = nodes;
         this.event = new PlayerMoveEvent<DefaultNode>(p, m, nodes);
+    }
+
+    @Override
+    public Player getPlayer() {
+        return this.toMove;
     }
 
     @Override

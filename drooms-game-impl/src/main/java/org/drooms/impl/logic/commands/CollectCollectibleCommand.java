@@ -6,14 +6,18 @@ import org.drooms.api.Player;
 import org.drooms.impl.DefaultEdge;
 import org.drooms.impl.DefaultNode;
 import org.drooms.impl.DefaultPlayground;
+import org.drooms.impl.logic.CollectibleRelated;
 import org.drooms.impl.logic.CommandDistributor;
 import org.drooms.impl.logic.DecisionMaker;
+import org.drooms.impl.logic.PlayerRelated;
+import org.drooms.impl.logic.RewardRelated;
 import org.drooms.impl.logic.events.CollectibleRewardEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class CollectCollectibleCommand implements
-        Command<DefaultPlayground, DefaultNode, DefaultEdge> {
+        Command<DefaultPlayground, DefaultNode, DefaultEdge>, PlayerRelated,
+        CollectibleRelated, RewardRelated {
 
     private static final Logger LOGGER = LoggerFactory
             .getLogger(CollectCollectibleCommand.class);
@@ -26,6 +30,21 @@ public class CollectCollectibleCommand implements
         this.toCollect = c;
         this.toReward = p;
         this.event = new CollectibleRewardEvent(p, c);
+    }
+
+    @Override
+    public Collectible getCollectible() {
+        return this.getCollectible();
+    }
+
+    @Override
+    public Player getPlayer() {
+        return this.toReward;
+    }
+
+    @Override
+    public int getPoints() {
+        return this.toCollect.getPoints();
     }
 
     @Override

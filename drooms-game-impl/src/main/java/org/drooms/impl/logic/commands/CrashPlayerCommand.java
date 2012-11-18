@@ -7,13 +7,14 @@ import org.drooms.impl.DefaultNode;
 import org.drooms.impl.DefaultPlayground;
 import org.drooms.impl.logic.CommandDistributor;
 import org.drooms.impl.logic.DecisionMaker;
+import org.drooms.impl.logic.PlayerRelated;
 import org.drooms.impl.logic.events.PlayerDeathEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 // FIXME investigate code share between CrashPlayerCommand and DeactivatePlayerCommand
 public class CrashPlayerCommand implements
-        Command<DefaultPlayground, DefaultNode, DefaultEdge> {
+        Command<DefaultPlayground, DefaultNode, DefaultEdge>, PlayerRelated {
 
     private static final Logger LOGGER = LoggerFactory
             .getLogger(CrashPlayerCommand.class);
@@ -24,6 +25,11 @@ public class CrashPlayerCommand implements
     public CrashPlayerCommand(final Player p) {
         this.toDie = p;
         this.event = new PlayerDeathEvent(p);
+    }
+
+    @Override
+    public Player getPlayer() {
+        return this.toDie;
     }
 
     @Override
