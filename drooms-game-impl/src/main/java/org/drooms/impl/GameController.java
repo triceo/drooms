@@ -330,10 +330,12 @@ public abstract class GameController implements
                 currentPlayers.remove(player);
                 commands.add(new CrashPlayerCommand(player));
             }
-            // reward surviving worms
-            for (final Player p : currentPlayers) {
-                this.reward(p, 1);
-                commands.add(new RewardSurvivalCommand(p, wormSurvivalBonus));
+            if (turnNumber > 0) {
+                // reward surviving worms; but not in the first round
+                for (final Player p : currentPlayers) {
+                    this.reward(p, 1);
+                    commands.add(new RewardSurvivalCommand(p, wormSurvivalBonus));
+                }
             }
             // expire uncollected collectibles
             final Set<Collectible> removeCollectibles = new HashSet<Collectible>();
@@ -355,9 +357,6 @@ public abstract class GameController implements
                 this.removeCollectible(c);
                 this.setPlayerLength(p, this.getPlayerLength(p) + 1);
                 commands.add(new CollectCollectibleCommand(c, p));
-            }
-            if (currentPlayers.size() < 2) {
-                continue;
             }
             // distribute new collectibles
             for (final Map.Entry<Collectible, DefaultNode> entry : this
