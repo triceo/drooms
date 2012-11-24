@@ -19,8 +19,6 @@ import java.util.TreeMap;
 import org.apache.commons.io.IOUtils;
 import org.drooms.api.Playground;
 
-import edu.uci.ics.jung.algorithms.shortestpath.ShortestPathUtils;
-import edu.uci.ics.jung.algorithms.shortestpath.UnweightedShortestPath;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.Graphs;
@@ -49,7 +47,6 @@ public class DefaultPlayground implements Playground<DefaultNode, DefaultEdge> {
     private static final DefaultNode WALL_NODE = new DefaultNode(-1, -1);
 
     private final Graph<DefaultNode, DefaultEdge> graph = new UndirectedSparseGraph<DefaultNode, DefaultEdge>();
-    private final UnweightedShortestPath<DefaultNode, DefaultEdge> shortestPath;
     private final SortedMap<Character, DefaultNode> startingNodes = new TreeMap<Character, DefaultNode>();
     private final int width;
 
@@ -108,7 +105,6 @@ public class DefaultPlayground implements Playground<DefaultNode, DefaultEdge> {
                 this.link(x, y, x + 1, y);
             }
         }
-        this.shortestPath = new UnweightedShortestPath<>(this.graph);
     }
 
     @Override
@@ -142,13 +138,6 @@ public class DefaultPlayground implements Playground<DefaultNode, DefaultEdge> {
                             + "]");
         }
         return this.nodeLocations.get(y)[x];
-    }
-
-    @Override
-    public List<DefaultEdge> getShortestPath(final DefaultNode start,
-            final DefaultNode end) {
-        return ShortestPathUtils.getPath(this.graph, this.shortestPath, start,
-                end);
     }
 
     @Override

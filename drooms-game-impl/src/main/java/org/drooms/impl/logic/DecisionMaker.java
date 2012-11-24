@@ -17,6 +17,7 @@ import org.drools.runtime.rule.WorkingMemoryEntryPoint;
 import org.drools.time.SessionPseudoClock;
 import org.drooms.api.Move;
 import org.drooms.api.Player;
+import org.drooms.impl.DefaultEdge;
 import org.drooms.impl.DefaultNode;
 import org.drooms.impl.DefaultPlayground;
 import org.drooms.impl.logic.events.CollectibleAdditionEvent;
@@ -164,13 +165,22 @@ public class DecisionMaker implements Channel {
 
     private final Map<Player, Map<DefaultNode, FactHandle>> handles = new HashMap<Player, Map<DefaultNode, FactHandle>>();
 
-    public DecisionMaker(final Player p,
-            final DefaultPlayground playground) {
+    public DecisionMaker(
+            final Player p,
+            final PathTracker<DefaultPlayground, DefaultNode, DefaultEdge> tracker) {
         this.player = p;
         this.session = p.getKnowledgeBase().newStatefulKnowledgeSession(
                 DecisionMaker.config, DecisionMaker.environment);
         // this is where we listen for decisions
         this.session.registerChannel("decision", this);
+        // this is where the path tracker comes in
+        try {
+            this.session.setGlobal("tracker", tracker);
+        } catch (final RuntimeException ex) {
+            DecisionMaker.LOGGER.info(
+                    "Player {} doesn't use a path tracker. Good luck! :-)",
+                    this.player.getName());
+        }
         // this is where the logger comes in
         try {
             this.session.setGlobal(
@@ -193,8 +203,11 @@ public class DecisionMaker implements Channel {
             throw new IllegalStateException(
                     "Problem in your rule file: 'playerEvents' entry point not declared.");
         }
-        // insert playground walls; make sure the playground is always
-        // surrounded with walls
+        /*
+         * insert playground walls; make sure the playground is always
+         * surrounded with walls.
+         */
+        final DefaultPlayground playground = tracker.getPlayground();
         for (int x = -1; x <= playground.getWidth(); x++) {
             for (int y = -1; y <= playground.getHeight(); y++) {
                 if (!playground.isAvailable(x, y)) {

@@ -10,8 +10,6 @@ public interface Playground<N extends Node, E extends Edge<N>> {
 
     public int getHeight();
 
-    public List<E> getShortestPath(final N start, final N end);
-
     public List<N> getStartingPositions();
 
     public int getWidth();

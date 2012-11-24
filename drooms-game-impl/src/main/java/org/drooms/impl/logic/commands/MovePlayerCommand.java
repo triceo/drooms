@@ -38,6 +38,10 @@ public class MovePlayerCommand implements
     public Player getPlayer() {
         return this.toMove;
     }
+    
+    public Deque<DefaultNode> getNodes() {
+        return this.nodes;
+    }
 
     @Override
     public boolean isValid(final CommandDistributor controller) {

@@ -1,6 +1,7 @@
 package org.drooms.impl.logic;
 
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -41,9 +42,9 @@ public class CommandDistributor {
         return false;
     }
 
-    private final Map<Player, DecisionMaker> players = new LinkedHashMap<Player, DecisionMaker>();
-
-    private final Set<Collectible> collectibles = new HashSet<Collectible>();
+    private final Map<Player, DecisionMaker> players = new LinkedHashMap<>();
+    private final Set<Collectible> collectibles = new HashSet<>();
+    private final PathTracker<DefaultPlayground, DefaultNode, DefaultEdge> pathTracker;
 
     @SuppressWarnings("rawtypes")
     private static final Class[] SUPPORTED_COMMANDS = new Class[] {
@@ -54,8 +55,10 @@ public class CommandDistributor {
 
     public CommandDistributor(final DefaultPlayground playground,
             final List<Player> players) {
+        this.pathTracker = new PathTracker<>(playground, players);
         for (final Player player : players) {
-            this.players.put(player, new DecisionMaker(player, playground));
+            this.players.put(player,
+                    new DecisionMaker(player, this.pathTracker));
         }
     }
 
@@ -63,6 +66,7 @@ public class CommandDistributor {
             final List<Command<DefaultPlayground, DefaultNode, DefaultEdge>> stateChanges) {
         CommandDistributor.LOGGER
                 .info("Changing state before the decision making can start.");
+        final Map<Player, Deque<DefaultNode>> positions = new HashMap<>();
         for (final Command<DefaultPlayground, DefaultNode, DefaultEdge> change : stateChanges) {
             if (!CommandDistributor.isCommandSupported(change)) {
                 CommandDistributor.LOGGER.warn(
@@ -100,7 +104,14 @@ public class CommandDistributor {
                             .getCollectible());
                 }
             }
+            if (change instanceof MovePlayerCommand) { // update paths in the
+                                                       // WMs
+                final MovePlayerCommand cmd = (MovePlayerCommand) change;
+                positions.put(cmd.getPlayer(), cmd.getNodes());
+            }
         }
+        // make sure that the path-querying information is up-to-date
+        this.pathTracker.movePlayers(positions);
         CommandDistributor.LOGGER.info("Asking players to decide.");
         // determine the movements of players
         final Map<Player, Move> moves = new HashMap<Player, Move>();
