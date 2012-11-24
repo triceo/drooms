@@ -34,7 +34,7 @@ public class CollectCollectibleCommand implements
 
     @Override
     public Collectible getCollectible() {
-        return this.getCollectible();
+        return this.toCollect;
     }
 
     @Override
