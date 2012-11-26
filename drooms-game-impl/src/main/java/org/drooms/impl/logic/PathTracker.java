@@ -51,7 +51,8 @@ public class PathTracker<P extends Playground<N, E>, N extends Node, E extends E
         return this.playground;
     }
 
-    public void movePlayers(final Map<Player, Deque<N>> newPositions) {
+    // FIXME Strategies should never be able to call this method.
+    protected void movePlayers(final Map<Player, Deque<N>> newPositions) {
         final Set<N> unavailable = new HashSet<N>();
         for (final Map.Entry<Player, Deque<N>> entry : newPositions.entrySet()) {
             unavailable.addAll(entry.getValue());
