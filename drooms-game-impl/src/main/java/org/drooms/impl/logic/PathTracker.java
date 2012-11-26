@@ -12,8 +12,9 @@ import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
 
+import edu.uci.ics.jung.algorithms.shortestpath.DijkstraShortestPath;
+import edu.uci.ics.jung.algorithms.shortestpath.ShortestPath;
 import edu.uci.ics.jung.algorithms.shortestpath.ShortestPathUtils;
-import edu.uci.ics.jung.algorithms.shortestpath.UnweightedShortestPath;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 
@@ -21,6 +22,7 @@ public class PathTracker<P extends Playground<N, E>, N extends Node, E extends E
 
     private final P playground;
     private Graph<N, E> currentGraph;
+    private ShortestPath<N,E> currentPath;
 
     public PathTracker(final P playground, final Collection<Player> players) {
         this.playground = playground;
@@ -43,8 +45,7 @@ public class PathTracker<P extends Playground<N, E>, N extends Node, E extends E
 
     public List<E> getPath(final N start, final N end) {
         return ShortestPathUtils
-                .getPath(this.currentGraph, new UnweightedShortestPath<N, E>(
-                        this.currentGraph), start, end);
+                .getPath(this.currentGraph, this.currentPath, start, end);
     }
 
     public P getPlayground() {
@@ -59,6 +60,7 @@ public class PathTracker<P extends Playground<N, E>, N extends Node, E extends E
         }
         final Graph<N, E> graphWithoutPlayers = this.playground.getGraph();
         this.currentGraph = this.cloneGraph(graphWithoutPlayers, unavailable);
+        this.currentPath = new DijkstraShortestPath<N, E>(this.currentGraph);
     }
 
 }
