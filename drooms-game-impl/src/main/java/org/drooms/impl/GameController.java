@@ -87,8 +87,6 @@ public abstract class GameController implements
 
     protected static final SecureRandom RANDOM = new SecureRandom();
 
-    private final Set<Collectible> collectibles = new HashSet<Collectible>();
-
     private final Map<Player, Integer> playerPoints = new HashMap<Player, Integer>();
     private final Map<URL, ClassLoader> strategyClassloaders = new HashMap<URL, ClassLoader>();
 
@@ -297,8 +295,8 @@ public abstract class GameController implements
             i++;
         }
         // prepare situation
-        final CommandDistributor playerControl = new CommandDistributor(playground,
-                players);
+        final CommandDistributor playerControl = new CommandDistributor(
+                playground, players);
         final Set<Player> currentPlayers = new HashSet<Player>(players);
         Map<Player, Move> decisions = new HashMap<Player, Move>();
         for (final Player p : currentPlayers) { // initialize players
@@ -339,8 +337,8 @@ public abstract class GameController implements
             }
             // expire uncollected collectibles
             final Set<Collectible> removeCollectibles = new HashSet<Collectible>();
-            for (final Collectible c : this.collectibles) {
-                if (c.expiresInTurn() >= 0 && turnNumber >= c.expiresInTurn()) {
+            for (final Collectible c : this.collectiblesByNode.values()) {
+                if (c.expires() && turnNumber >= c.expiresInTurn()) {
                     removeCollectibles.add(c);
                 }
             }
