@@ -29,7 +29,7 @@ public class RemoveCollectibleCommand implements
 
     @Override
     public Collectible getCollectible() {
-        return this.getCollectible();
+        return this.toRemove;
     }
 
     @Override
