@@ -1,6 +1,8 @@
 package org.drooms.impl.logic;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
@@ -22,7 +24,7 @@ public class PathTracker<P extends Playground<N, E>, N extends Node, E extends E
 
     private final P playground;
     private Graph<N, E> currentGraph;
-    private ShortestPath<N,E> currentPath;
+    private ShortestPath<N, E> currentPath;
 
     public PathTracker(final P playground, final Collection<Player> players) {
         this.playground = playground;
@@ -44,8 +46,23 @@ public class PathTracker<P extends Playground<N, E>, N extends Node, E extends E
     }
 
     public List<E> getPath(final N start, final N end) {
-        return ShortestPathUtils
-                .getPath(this.currentGraph, this.currentPath, start, end);
+        return ShortestPathUtils.getPath(this.currentGraph, this.currentPath,
+                start, end);
+    }
+
+    public List<E> getPath(final N start, final N node2, final N node3) {
+        final List<E> path2 = this.getPath(start, node2);
+        final List<E> path3 = this.getPath(start, node3);
+        final List<E> path23 = this.getPath(node2, node3);
+        final List<E> result = new ArrayList<E>();
+        if (path2.size() > path3.size()) {
+            result.addAll(path3);
+            Collections.reverse(path23);
+        } else {
+            result.addAll(path2);
+        }
+        result.addAll(path23);
+        return result;
     }
 
     public P getPlayground() {
