@@ -8,7 +8,7 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
   <artifactId>drooms-strategy-random</artifactId>
-  <name>drooms-strategy-random-suicidal</name>
+  <name>drooms-strategy-random</name>
   <url>http://maven.apache.org</url>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -17,6 +17,11 @@
     <dependency>
       <groupId>com.github.triceo.drooms</groupId>
       <artifactId>drooms-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>
