@@ -43,8 +43,8 @@ public class CommandDistributor {
     }
 
     private final Map<Player, DecisionMaker> players = new LinkedHashMap<>();
+    private final Map<Player, PathTracker<DefaultPlayground, DefaultNode, DefaultEdge>> trackers = new LinkedHashMap<>();
     private final Set<Collectible> collectibles = new HashSet<>();
-    private final PathTracker<DefaultPlayground, DefaultNode, DefaultEdge> pathTracker;
 
     @SuppressWarnings("rawtypes")
     private static final Class[] SUPPORTED_COMMANDS = new Class[] {
@@ -55,10 +55,11 @@ public class CommandDistributor {
 
     public CommandDistributor(final DefaultPlayground playground,
             final List<Player> players) {
-        this.pathTracker = new PathTracker<>(playground, players);
         for (final Player player : players) {
-            this.players.put(player,
-                    new DecisionMaker(player, this.pathTracker));
+            final PathTracker<DefaultPlayground, DefaultNode, DefaultEdge> tracker = new PathTracker<>(
+                    playground, player);
+            this.trackers.put(player, tracker);
+            this.players.put(player, new DecisionMaker(player, tracker));
         }
     }
 
@@ -111,12 +112,12 @@ public class CommandDistributor {
             }
         }
         // make sure that the path-querying information is up-to-date
-        this.pathTracker.movePlayers(positions);
         CommandDistributor.LOGGER.info("Asking players to decide.");
         // determine the movements of players
         final Map<Player, Move> moves = new HashMap<Player, Move>();
         for (final Map.Entry<Player, DecisionMaker> entry : this.players
                 .entrySet()) {
+            this.trackers.get(entry.getKey()).movePlayers(positions);
             final Move decision = entry.getValue().decideNextMove();
             final Player player = entry.getKey();
             moves.put(player, decision);

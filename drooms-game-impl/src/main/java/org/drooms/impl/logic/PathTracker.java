@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -23,11 +24,14 @@ import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 public class PathTracker<P extends Playground<N, E>, N extends Node, E extends Edge<N>> {
 
     private final P playground;
+
+    private final Player player;
     private Graph<N, E> currentGraph;
     private ShortestPath<N, E> currentPath;
 
-    public PathTracker(final P playground, final Collection<Player> players) {
+    public PathTracker(final P playground, final Player p) {
         this.playground = playground;
+        this.player = p;
     }
 
     private Graph<N, E> cloneGraph(final Graph<N, E> src,
@@ -65,6 +69,10 @@ public class PathTracker<P extends Playground<N, E>, N extends Node, E extends E
         return result;
     }
 
+    public Player getPlayer() {
+        return this.player;
+    }
+
     public P getPlayground() {
         return this.playground;
     }
@@ -73,7 +81,20 @@ public class PathTracker<P extends Playground<N, E>, N extends Node, E extends E
     protected void movePlayers(final Map<Player, Deque<N>> newPositions) {
         final Set<N> unavailable = new HashSet<N>();
         for (final Map.Entry<Player, Deque<N>> entry : newPositions.entrySet()) {
-            unavailable.addAll(entry.getValue());
+            if (entry.getKey() == this.player) {
+                /*
+                 * remove all the nodes occupied by the current player, except
+                 * for the one node with the player's head. that node needs to
+                 * remain, so that we can always calculate the path to other
+                 * nodes.
+                 */
+                final Deque<N> player = new LinkedList<N>(entry.getValue());
+                player.pop();
+                unavailable.addAll(player);
+            } else {
+                // remove all the nodes occupied by other players
+                unavailable.addAll(entry.getValue());
+            }
         }
         final Graph<N, E> graphWithoutPlayers = this.playground.getGraph();
         this.currentGraph = this.cloneGraph(graphWithoutPlayers, unavailable);
