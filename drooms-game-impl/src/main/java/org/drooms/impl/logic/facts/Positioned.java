@@ -1,6 +1,10 @@
 package org.drooms.impl.logic.facts;
 
-public interface Positioned {
+import org.drooms.api.Node;
+
+public interface Positioned<N extends Node> {
+
+    public N getNode();
 
     public int getX();
 

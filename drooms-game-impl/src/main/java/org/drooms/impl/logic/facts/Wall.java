@@ -1,22 +1,27 @@
 package org.drooms.impl.logic.facts;
 
-public class Wall implements Positioned {
+import org.drooms.impl.DefaultNode;
 
-    private final int x, y;
+public class Wall implements Positioned<DefaultNode> {
 
-    public Wall(final int x, final int y) {
-        this.x = x;
-        this.y = y;
+    private final DefaultNode node;
+
+    public Wall(final DefaultNode node) {
+        this.node = node;
+    }
+
+    @Override
+    public DefaultNode getNode() {
+        return this.node;
     }
 
     @Override
     public int getX() {
-        return this.x;
+        return this.node.getX();
     }
 
     @Override
     public int getY() {
-        return this.y;
+        return this.node.getY();
     }
-
 }

@@ -105,12 +105,13 @@ public class DecisionMaker implements Channel {
         for (int x = -1; x <= playground.getWidth(); x++) {
             for (int y = -1; y <= playground.getHeight(); y++) {
                 if (!playground.isAvailable(x, y)) {
-                    this.session.insert(new Wall(x, y));
+                    this.session.insert(new Wall(new DefaultNode(x, y)));
                 }
             }
         }
         // insert info about the game status
-        this.currentPlayer = this.session.insert(new CurrentPlayer(p, 0, 0));
+        this.currentPlayer = this.session.insert(new CurrentPlayer(p,
+                new DefaultNode(0, 0)));
         this.currentTurn = this.session.insert(new CurrentTurn(0));
     }
 
@@ -187,8 +188,7 @@ public class DecisionMaker implements Channel {
                 playerHandles.keySet());
         for (final DefaultNode n : evt.getNodes()) {
             if (!playerHandles.containsKey(n)) { // worm occupies a new node
-                final FactHandle fh = this.session.insert(new Worm(p, n.getX(),
-                        n.getY()));
+                final FactHandle fh = this.session.insert(new Worm(p, n));
                 playerHandles.put(n, fh);
             }
             untraversedNodes.remove(n);
@@ -202,8 +202,7 @@ public class DecisionMaker implements Channel {
         if (p == this.getPlayer()) {
             final CurrentPlayer cp = (CurrentPlayer) this.session
                     .getObject(this.currentPlayer);
-            cp.setX(newHead.getX());
-            cp.setY(newHead.getY());
+            cp.setNode(newHead);
             this.session.update(this.currentPlayer, cp);
         }
     }
