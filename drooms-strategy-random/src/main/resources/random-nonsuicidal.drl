@@ -1,8 +1,8 @@
 package org.drooms.strategy.random.nonsuicidal;
 
 import org.slf4j.Logger;
-import org.drooms.impl.logic.DecisionMaker.Positioned;
-import org.drooms.impl.logic.DecisionMaker.CurrentPlayer;
+import org.drooms.impl.logic.facts.Positioned;
+import org.drooms.impl.logic.facts.CurrentPlayer;
 import java.util.Random;
 import java.util.ArrayList;
 import org.drooms.api.Move;

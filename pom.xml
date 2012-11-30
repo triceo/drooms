@@ -96,5 +96,6 @@
     <module>drooms-api</module>
     <module>drooms-game-impl</module>
     <module>drooms-strategy-random</module>
+    <module>drooms-strategy-hungry</module>
   </modules>
 </project>

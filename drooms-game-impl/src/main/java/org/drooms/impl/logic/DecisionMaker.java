@@ -26,120 +26,14 @@ import org.drooms.impl.logic.events.CollectibleRewardEvent;
 import org.drooms.impl.logic.events.PlayerDeathEvent;
 import org.drooms.impl.logic.events.PlayerMoveEvent;
 import org.drooms.impl.logic.events.SurvivalRewardEvent;
+import org.drooms.impl.logic.facts.CurrentPlayer;
+import org.drooms.impl.logic.facts.CurrentTurn;
+import org.drooms.impl.logic.facts.Wall;
+import org.drooms.impl.logic.facts.Worm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DecisionMaker implements Channel {
-
-    public class CurrentPlayer implements Positioned {
-
-        private final Player player;
-
-        private int x, y;
-
-        public CurrentPlayer(final Player p, final int x, final int y) {
-            this.player = p;
-            this.x = x;
-            this.y = y;
-        }
-
-        public Player get() {
-            return this.player;
-        }
-
-        @Override
-        public int getX() {
-            return this.x;
-        }
-
-        @Override
-        public int getY() {
-            return this.y;
-        }
-
-        public void setX(final int x) {
-            this.x = x;
-        }
-
-        public void setY(final int y) {
-            this.y = y;
-        }
-    }
-
-    public class CurrentTurn {
-
-        private int number;
-
-        public CurrentTurn(final int number) {
-            this.number = number;
-        }
-
-        public int getNumber() {
-            return this.number;
-        }
-
-        public void setNumber(final int number) {
-            this.number = number;
-        }
-
-    }
-
-    public interface Positioned {
-
-        public int getX();
-
-        public int getY();
-
-    }
-
-    public class Wall implements Positioned {
-
-        private final int x, y;
-
-        public Wall(final int x, final int y) {
-            this.x = x;
-            this.y = y;
-        }
-
-        @Override
-        public int getX() {
-            return this.x;
-        }
-
-        @Override
-        public int getY() {
-            return this.y;
-        }
-
-    }
-
-    public class Worm implements Positioned {
-
-        private final Player player;
-
-        private final int x, y;
-
-        public Worm(final Player p, final int x, final int y) {
-            this.player = p;
-            this.x = x;
-            this.y = y;
-        }
-
-        public Player getPlayer() {
-            return this.player;
-        }
-
-        @Override
-        public int getX() {
-            return this.x;
-        }
-
-        @Override
-        public int getY() {
-            return this.y;
-        }
-
-    }
 
     private static final Logger LOGGER = LoggerFactory
             .getLogger(DecisionMaker.class);
