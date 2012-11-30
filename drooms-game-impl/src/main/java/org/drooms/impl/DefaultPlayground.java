@@ -44,7 +44,7 @@ public class DefaultPlayground implements Playground<DefaultNode, DefaultEdge> {
 
     private final List<DefaultNode[]> nodeLocations = new ArrayList<DefaultNode[]>();
 
-    private static final DefaultNode WALL_NODE = new DefaultNode(-1, -1);
+    private static final DefaultNode WALL_NODE = DefaultNode.getNode(-1, -1);
 
     private final Graph<DefaultNode, DefaultEdge> graph = new UndirectedSparseGraph<DefaultNode, DefaultEdge>();
     private final SortedMap<Character, DefaultNode> startingNodes = new TreeMap<Character, DefaultNode>();
@@ -64,10 +64,10 @@ public class DefaultPlayground implements Playground<DefaultNode, DefaultEdge> {
                         n = DefaultPlayground.WALL_NODE;
                         break;
                     case ' ': // regular node
-                        n = new DefaultNode(x, y);
+                        n = DefaultNode.getNode(x, y);
                         break;
                     default: // starting point for a worm
-                        n = new DefaultNode(x, y);
+                        n = DefaultNode.getNode(x, y);
                         this.startingNodes.put(nodeLabel, n);
                         break;
                 }

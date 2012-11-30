@@ -105,13 +105,13 @@ public class DecisionMaker implements Channel {
         for (int x = -1; x <= playground.getWidth(); x++) {
             for (int y = -1; y <= playground.getHeight(); y++) {
                 if (!playground.isAvailable(x, y)) {
-                    this.session.insert(new Wall(new DefaultNode(x, y)));
+                    this.session.insert(new Wall(DefaultNode.getNode(x, y)));
                 }
             }
         }
         // insert info about the game status
         this.currentPlayer = this.session.insert(new CurrentPlayer(p,
-                new DefaultNode(0, 0)));
+                DefaultNode.getNode(0, 0)));
         this.currentTurn = this.session.insert(new CurrentTurn(0));
     }
 

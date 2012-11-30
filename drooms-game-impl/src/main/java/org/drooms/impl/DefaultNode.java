@@ -1,12 +1,28 @@
 package org.drooms.impl;
 
+import java.util.SortedMap;
+import java.util.TreeMap;
+
 import org.drooms.api.Node;
 
 public class DefaultNode implements Node {
 
     private final int x, y;
 
-    public DefaultNode(final int x, final int y) {
+    private static final SortedMap<Integer, SortedMap<Integer, DefaultNode>> nodes = new TreeMap<Integer, SortedMap<Integer, DefaultNode>>();
+
+    public static synchronized DefaultNode getNode(final int x, final int y) {
+        if (!DefaultNode.nodes.containsKey(x)) {
+            DefaultNode.nodes.put(x, new TreeMap<Integer, DefaultNode>());
+        }
+        final SortedMap<Integer, DefaultNode> ys = DefaultNode.nodes.get(x);
+        if (!ys.containsKey(y)) {
+            ys.put(y, new DefaultNode(x, y));
+        }
+        return ys.get(y);
+    }
+
+    private DefaultNode(final int x, final int y) {
         this.x = x;
         this.y = y;
     }

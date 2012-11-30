@@ -170,19 +170,19 @@ public class DefaultGame extends GameController {
         DefaultNode newHeadPos;
         switch (decision) {
             case UP:
-                newHeadPos = new DefaultNode(currentHeadPos.getX(),
+                newHeadPos = DefaultNode.getNode(currentHeadPos.getX(),
                         currentHeadPos.getY() + 1);
                 break;
             case DOWN:
-                newHeadPos = new DefaultNode(currentHeadPos.getX(),
+                newHeadPos = DefaultNode.getNode(currentHeadPos.getX(),
                         currentHeadPos.getY() - 1);
                 break;
             case LEFT:
-                newHeadPos = new DefaultNode(currentHeadPos.getX() - 1,
+                newHeadPos = DefaultNode.getNode(currentHeadPos.getX() - 1,
                         currentHeadPos.getY());
                 break;
             case RIGHT:
-                newHeadPos = new DefaultNode(currentHeadPos.getX() + 1,
+                newHeadPos = DefaultNode.getNode(currentHeadPos.getX() + 1,
                         currentHeadPos.getY());
                 break;
             case STAY:
