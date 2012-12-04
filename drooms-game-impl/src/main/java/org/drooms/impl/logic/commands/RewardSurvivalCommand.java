@@ -53,6 +53,7 @@ public class RewardSurvivalCommand implements
     @Override
     public void report(
             final GameReport<DefaultPlayground, DefaultNode, DefaultEdge> report) {
+        report.playerSurvived(this.toReward, this.rewardAmount);
         RewardSurvivalCommand.LOGGER
                 .info("Player {} has been rewarded {} points for surviving another turn.",
                         this.toReward.getName(), this.rewardAmount);

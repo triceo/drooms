@@ -47,6 +47,7 @@ public class AddCollectibleCommand implements
     @Override
     public void report(
             final GameReport<DefaultPlayground, DefaultNode, DefaultEdge> report) {
+        report.addCollectible(toAdd, whereToAdd);
         AddCollectibleCommand.LOGGER.info("Collectible {} added at [{},{}].",
                 new Object[] { this.toAdd, this.whereToAdd.getX(),
                         this.whereToAdd.getY() });

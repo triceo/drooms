@@ -44,6 +44,7 @@ public class DeactivatePlayerCommand implements
     @Override
     public void report(
             final GameReport<DefaultPlayground, DefaultNode, DefaultEdge> report) {
+        report.deactivatePlayer(this.toDie);
         DeactivatePlayerCommand.LOGGER.info(
                 "Player {} has been removed from the game due to inactivity.",
                 this.toDie.getName());

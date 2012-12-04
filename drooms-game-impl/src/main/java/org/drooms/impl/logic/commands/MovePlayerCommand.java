@@ -57,6 +57,7 @@ public class MovePlayerCommand implements
     @Override
     public void report(
             final GameReport<DefaultPlayground, DefaultNode, DefaultEdge> report) {
+        report.movePlayer(this.toMove, this.whichMove, this.nodes.toArray(new DefaultNode[] {}));
         MovePlayerCommand.LOGGER.info(
                 "Player {}'s move is {}, new position is {}.", new Object[] {
                         this.toMove.getName(), this.whichMove, this.nodes });

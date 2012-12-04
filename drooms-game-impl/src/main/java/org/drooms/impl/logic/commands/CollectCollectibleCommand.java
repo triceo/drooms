@@ -61,6 +61,7 @@ public class CollectCollectibleCommand implements
     @Override
     public void report(
             final GameReport<DefaultPlayground, DefaultNode, DefaultEdge> report) {
+        report.collectCollectible(this.getCollectible(), this.getPlayer(), this.getPoints());
         CollectCollectibleCommand.LOGGER.info(
                 "Collectible {} collected by player {}.", this.toCollect,
                 this.toReward);
