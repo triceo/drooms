@@ -82,14 +82,16 @@ public abstract class GameController implements
         }
     }
 
+    private final File reportFolder;
+
     private static final Logger LOGGER = LoggerFactory
             .getLogger(GameController.class);
 
     protected static final SecureRandom RANDOM = new SecureRandom();
 
     private final Map<Player, Integer> playerPoints = new HashMap<Player, Integer>();
-    private final Map<URL, ClassLoader> strategyClassloaders = new HashMap<URL, ClassLoader>();
 
+    private final Map<URL, ClassLoader> strategyClassloaders = new HashMap<URL, ClassLoader>();
     private final Map<String, Strategy> strategyInstances = new HashMap<String, Strategy>();
 
     private final Map<Player, Integer> lengths = new HashMap<Player, Integer>();
@@ -101,6 +103,10 @@ public abstract class GameController implements
     private final Map<DefaultNode, Collectible> collectiblesByNode = new HashMap<DefaultNode, Collectible>();
 
     private final Map<Player, SortedMap<Integer, Move>> decisionRecord = new HashMap<Player, SortedMap<Integer, Move>>();
+
+    protected GameController(final File reportFolder) {
+        this.reportFolder = reportFolder;
+    }
 
     private void addCollectible(final Collectible c, final DefaultNode n) {
         this.collectiblesByNode.put(n, c);
@@ -214,6 +220,10 @@ public abstract class GameController implements
         return this.positions.get(p);
     }
 
+    public File getReportFolder() {
+        return this.reportFolder;
+    }
+
     private ClassLoader loadJar(final URL strategyJar) {
         if (!this.strategyClassloaders.containsKey(strategyJar)) {
             final ClassLoader loader = URLClassLoader
@@ -296,7 +306,7 @@ public abstract class GameController implements
         }
         // prepare situation
         final CommandDistributor playerControl = new CommandDistributor(
-                playground, players, new XmlReport());
+                playground, players, new XmlReport(), this.getReportFolder());
         final Set<Player> currentPlayers = new HashSet<Player>(players);
         Map<Player, Move> decisions = new HashMap<Player, Move>();
         for (final Player p : currentPlayers) { // initialize players

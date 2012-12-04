@@ -1,5 +1,6 @@
 package org.drooms.impl.logic;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
@@ -55,14 +56,17 @@ public class CommandDistributor {
             MovePlayerCommand.class, RemoveCollectibleCommand.class,
             RewardSurvivalCommand.class };
 
-    public CommandDistributor(final DefaultPlayground playground,
+    public CommandDistributor(
+            final DefaultPlayground playground,
             final List<Player> players,
-            final GameReport<DefaultPlayground, DefaultNode, DefaultEdge> report) {
+            final GameReport<DefaultPlayground, DefaultNode, DefaultEdge> report,
+            final File reportFolder) {
         for (final Player player : players) {
             final PathTracker<DefaultPlayground, DefaultNode, DefaultEdge> tracker = new PathTracker<>(
                     playground, player);
             this.trackers.put(player, tracker);
-            this.players.put(player, new DecisionMaker(player, tracker));
+            this.players.put(player, new DecisionMaker(player, tracker,
+                    reportFolder));
         }
         this.report = report;
     }
@@ -131,6 +135,10 @@ public class CommandDistributor {
         return Collections.unmodifiableMap(moves);
     }
 
+    public GameReport<DefaultPlayground, DefaultNode, DefaultEdge> getReport() {
+        return this.report;
+    }
+
     public boolean hasCollectible(final Collectible c) {
         return this.collectibles.contains(c);
     }
@@ -138,11 +146,7 @@ public class CommandDistributor {
     public boolean hasPlayer(final Player p) {
         return this.players.containsKey(p);
     }
-    
-    public GameReport<DefaultPlayground, DefaultNode, DefaultEdge> getReport() {
-        return this.report;
-    }
-    
+
     public void terminate() {
         for (final Map.Entry<Player, DecisionMaker> entry : this.players
                 .entrySet()) {

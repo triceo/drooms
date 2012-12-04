@@ -1,5 +1,6 @@
 package org.drooms.impl.logic;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -64,12 +65,14 @@ public class DecisionMaker implements Channel {
 
     public DecisionMaker(
             final Player p,
-            final PathTracker<DefaultPlayground, DefaultNode, DefaultEdge> tracker) {
+            final PathTracker<DefaultPlayground, DefaultNode, DefaultEdge> tracker,
+            final File reportFolder) {
         this.player = p;
         this.session = p.getKnowledgeBase().newStatefulKnowledgeSession(
                 DecisionMaker.config, DecisionMaker.environment);
         this.logger = KnowledgeRuntimeLoggerFactory.newFileLogger(this.session,
-                "player-" + this.player.getName() + "-session");
+                reportFolder.getAbsolutePath() + File.separator + "player-"
+                        + this.player.getName() + "-session");
         // this is where we listen for decisions
         this.session.registerChannel("decision", this);
         // this is where the path tracker comes in
