@@ -45,7 +45,7 @@ public class RemoveCollectibleCommand implements
     @Override
     public void report(
             final GameReport<DefaultPlayground, DefaultNode, DefaultEdge> report) {
-        report.removeCollectible(this.toRemove);
+        report.collectibleRemoved(this.toRemove);
         RemoveCollectibleCommand.LOGGER.info("Collectible {} removed.",
                 this.toRemove);
     }

@@ -1,7 +1,7 @@
 package org.drooms.api;
 
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.Writer;
 
 /**
  * Represents a report of the progress of the game.
@@ -12,17 +12,17 @@ import java.io.OutputStream;
  */
 public interface GameReport<P extends Playground<N, E>, N extends Node, E extends Edge<N>> {
     
-    public void addCollectible(Collectible c, N where);
+    public void collectibleAdded(Collectible c, N where);
     
-    public void removeCollectible(Collectible c);
+    public void collectibleRemoved(Collectible c);
 
-    public void collectCollectible(Collectible c, Player p, int points);
+    public void collectibleCollected(Collectible c, Player p, int points);
     
-    public void crashPlayer(Player p);
+    public void playerCrashed(Player p);
     
-    public void deactivatePlayer(Player p);
+    public void playerDeactivated(Player p);
     
-    public void movePlayer(Player p, Move m, @SuppressWarnings("unchecked") N... nodes);
+    public void playerMoved(Player p, Move m, @SuppressWarnings("unchecked") N... nodes);
     
     public void playerSurvived(Player p, int points);
 
@@ -31,9 +31,9 @@ public interface GameReport<P extends Playground<N, E>, N extends Node, E extend
     /**
      * Write the report in its current state.
      * 
-     * @param s Where to write.
+     * @param w Where to write.
      * @throws IOException When the stream cannot be written.
      */
-    public void write(OutputStream s) throws IOException;
+    public void write(Writer w) throws IOException;
 
 }

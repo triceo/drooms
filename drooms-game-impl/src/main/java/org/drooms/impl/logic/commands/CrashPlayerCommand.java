@@ -45,7 +45,7 @@ public class CrashPlayerCommand implements
     @Override
     public void report(
             final GameReport<DefaultPlayground, DefaultNode, DefaultEdge> report) {
-        report.crashPlayer(this.toDie);
+        report.playerCrashed(this.toDie);
         CrashPlayerCommand.LOGGER.info(
                 "Player {} crashed and has been removed from the game.",
                 this.toDie.getName());

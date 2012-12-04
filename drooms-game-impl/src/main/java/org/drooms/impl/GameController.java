@@ -296,7 +296,7 @@ public abstract class GameController implements
         }
         // prepare situation
         final CommandDistributor playerControl = new CommandDistributor(
-                playground, players, new DefaultReport());
+                playground, players, new XmlReport());
         final Set<Player> currentPlayers = new HashSet<Player>(players);
         Map<Player, Move> decisions = new HashMap<Player, Move>();
         for (final Player p : currentPlayers) { // initialize players
@@ -376,7 +376,7 @@ public abstract class GameController implements
             GameController.LOGGER.info("Player {} earned {} points.", entry
                     .getKey().getName(), entry.getValue());
         }
-        return null;
+        return playerControl.getReport();
     }
 
     private void removeCollectible(final Collectible c) {

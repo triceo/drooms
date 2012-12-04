@@ -69,6 +69,7 @@ public class CommandDistributor {
 
     public Map<Player, Move> execute(
             final List<Command<DefaultPlayground, DefaultNode, DefaultEdge>> stateChanges) {
+        this.report.nextTurn();
         CommandDistributor.LOGGER
                 .info("Changing state before the decision making can start.");
         final Map<Player, Deque<DefaultNode>> positions = new HashMap<>();
@@ -136,6 +137,10 @@ public class CommandDistributor {
 
     public boolean hasPlayer(final Player p) {
         return this.players.containsKey(p);
+    }
+    
+    public GameReport<DefaultPlayground, DefaultNode, DefaultEdge> getReport() {
+        return this.report;
     }
 
 }

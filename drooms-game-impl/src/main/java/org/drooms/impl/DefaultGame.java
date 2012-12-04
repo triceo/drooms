@@ -3,8 +3,10 @@ package org.drooms.impl;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
+import java.io.Writer;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Collections;
@@ -18,6 +20,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.drooms.api.Collectible;
+import org.drooms.api.GameReport;
 import org.drooms.api.Move;
 import org.drooms.api.Player;
 import org.drooms.impl.collectibles.CheapCollectible;
@@ -27,21 +30,32 @@ import org.drooms.impl.collectibles.GoodCollectible;
 public class DefaultGame extends GameController {
 
     public static void main(final String[] args) {
+        GameReport<DefaultPlayground, DefaultNode, DefaultEdge> report = null;
+        final Properties gameConfig = new Properties();
+        final Properties playerConfig = new Properties();
         try (Reader gameConfigFile = new FileReader(args[0]);
                 Reader playerConfigFile = new FileReader(args[1]);
                 FileOutputStream fos = new FileOutputStream(new File(args[2]))) {
             // prepare configs
-            final Properties gameConfig = new Properties();
             gameConfig.load(gameConfigFile);
-            final Properties playerConfig = new Properties();
             playerConfig.load(playerConfigFile);
             // play and report
-            new DefaultGame().play(gameConfig, playerConfig);
+            report = new DefaultGame().play(gameConfig, playerConfig);
         } catch (final IOException e) {
-            System.out.println(e);
-            System.exit(1);
+            throw new IllegalStateException("Failed reading config files.", e);
+        } finally {
+            // write the report file
+            if (report == null) {
+                return;
+            }
+            try (Writer w = new FileWriter(new File(gameConfig.getProperty(
+                    "report.file", "report.xml")))) {
+                report.write(w);
+            } catch (final IOException e) {
+                throw new IllegalStateException("Failed writing report file.",
+                        e);
+            }
         }
-
     }
 
     @Override
