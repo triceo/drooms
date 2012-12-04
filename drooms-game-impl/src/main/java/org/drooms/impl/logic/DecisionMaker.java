@@ -54,7 +54,7 @@ public class DecisionMaker implements Channel {
 
     private final Player player;
     private final StatefulKnowledgeSession session;
-    private final KnowledgeRuntimeLogger logger;
+    private final KnowledgeRuntimeLogger sessionAudit;
     private final boolean isDisposed = false;
     private final WorkingMemoryEntryPoint gameEvents, playerEvents;
     private Move latestDecision = null;
@@ -70,9 +70,9 @@ public class DecisionMaker implements Channel {
         this.player = p;
         this.session = p.getKnowledgeBase().newStatefulKnowledgeSession(
                 DecisionMaker.config, DecisionMaker.environment);
-        this.logger = KnowledgeRuntimeLoggerFactory.newFileLogger(this.session,
-                reportFolder.getAbsolutePath() + File.separator + "player-"
-                        + this.player.getName() + "-session");
+        this.sessionAudit = KnowledgeRuntimeLoggerFactory.newFileLogger(
+                this.session, reportFolder.getAbsolutePath() + File.separator
+                        + "player-" + this.player.getName() + "-session");
         // this is where we listen for decisions
         this.session.registerChannel("decision", this);
         // this is where the path tracker comes in
@@ -245,8 +245,8 @@ public class DecisionMaker implements Channel {
         } else {
             DecisionMaker.LOGGER.info("Terminating player {}.",
                     new Object[] { this.player.getName() });
+            this.sessionAudit.close();
             this.session.dispose();
-            this.logger.close();
             return true;
         }
     }
