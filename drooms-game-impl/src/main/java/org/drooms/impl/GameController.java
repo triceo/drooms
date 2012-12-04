@@ -296,7 +296,7 @@ public abstract class GameController implements
         }
         // prepare situation
         final CommandDistributor playerControl = new CommandDistributor(
-                playground, players);
+                playground, players, new DefaultReport());
         final Set<Player> currentPlayers = new HashSet<Player>(players);
         Map<Player, Move> decisions = new HashMap<Player, Move>();
         for (final Player p : currentPlayers) { // initialize players

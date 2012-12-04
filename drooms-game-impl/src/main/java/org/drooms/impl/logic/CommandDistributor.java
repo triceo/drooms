@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.drooms.api.Collectible;
+import org.drooms.api.GameReport;
 import org.drooms.api.Move;
 import org.drooms.api.Player;
 import org.drooms.impl.DefaultEdge;
@@ -44,6 +45,7 @@ public class CommandDistributor {
 
     private final Map<Player, DecisionMaker> players = new LinkedHashMap<>();
     private final Map<Player, PathTracker<DefaultPlayground, DefaultNode, DefaultEdge>> trackers = new LinkedHashMap<>();
+    private final GameReport<DefaultPlayground, DefaultNode, DefaultEdge> report;
     private final Set<Collectible> collectibles = new HashSet<>();
 
     @SuppressWarnings("rawtypes")
@@ -54,13 +56,15 @@ public class CommandDistributor {
             RewardSurvivalCommand.class };
 
     public CommandDistributor(final DefaultPlayground playground,
-            final List<Player> players) {
+            final List<Player> players,
+            final GameReport<DefaultPlayground, DefaultNode, DefaultEdge> report) {
         for (final Player player : players) {
             final PathTracker<DefaultPlayground, DefaultNode, DefaultEdge> tracker = new PathTracker<>(
                     playground, player);
             this.trackers.put(player, tracker);
             this.players.put(player, new DecisionMaker(player, tracker));
         }
+        this.report = report;
     }
 
     public Map<Player, Move> execute(
@@ -84,7 +88,7 @@ public class CommandDistributor {
             for (final DecisionMaker player : this.players.values()) {
                 change.perform(player);
             }
-            change.report(null);
+            change.report(this.report);
             /*
              * update internal representation of the state so that command
              * validation remains functional.
