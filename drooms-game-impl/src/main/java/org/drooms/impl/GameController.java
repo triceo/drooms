@@ -369,6 +369,7 @@ public abstract class GameController implements
             decisions = playerControl.execute(commands);
             turnNumber++;
         } while (currentPlayers.size() > 1);
+        playerControl.terminate(); // clean up all the sessions
         // output player status
         GameController.LOGGER.info("--- Game over.");
         for (final Map.Entry<Player, Integer> entry : this.playerPoints

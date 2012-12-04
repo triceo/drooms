@@ -7,6 +7,8 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.drools.KnowledgeBaseFactory;
+import org.drools.logger.KnowledgeRuntimeLogger;
+import org.drools.logger.KnowledgeRuntimeLoggerFactory;
 import org.drools.runtime.Channel;
 import org.drools.runtime.Environment;
 import org.drools.runtime.KnowledgeSessionConfiguration;
@@ -51,6 +53,7 @@ public class DecisionMaker implements Channel {
 
     private final Player player;
     private final StatefulKnowledgeSession session;
+    private final KnowledgeRuntimeLogger logger;
     private final boolean isDisposed = false;
     private final WorkingMemoryEntryPoint gameEvents, playerEvents;
     private Move latestDecision = null;
@@ -65,6 +68,8 @@ public class DecisionMaker implements Channel {
         this.player = p;
         this.session = p.getKnowledgeBase().newStatefulKnowledgeSession(
                 DecisionMaker.config, DecisionMaker.environment);
+        this.logger = KnowledgeRuntimeLoggerFactory.newFileLogger(this.session,
+                "player-" + this.player.getName() + "-session");
         // this is where we listen for decisions
         this.session.registerChannel("decision", this);
         // this is where the path tracker comes in
@@ -238,6 +243,7 @@ public class DecisionMaker implements Channel {
             DecisionMaker.LOGGER.info("Terminating player {}.",
                     new Object[] { this.player.getName() });
             this.session.dispose();
+            this.logger.close();
             return true;
         }
     }

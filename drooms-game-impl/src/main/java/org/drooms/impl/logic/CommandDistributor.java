@@ -142,5 +142,12 @@ public class CommandDistributor {
     public GameReport<DefaultPlayground, DefaultNode, DefaultEdge> getReport() {
         return this.report;
     }
+    
+    public void terminate() {
+        for (final Map.Entry<Player, DecisionMaker> entry : this.players
+                .entrySet()) {
+            entry.getValue().terminate();
+        }
+    }
 
 }
