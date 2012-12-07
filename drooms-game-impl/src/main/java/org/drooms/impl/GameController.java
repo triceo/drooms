@@ -27,6 +27,7 @@ import org.drooms.api.Collectible;
 import org.drooms.api.Game;
 import org.drooms.api.GameReport;
 import org.drooms.api.Move;
+import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.api.Strategy;
 import org.drooms.impl.logic.CommandDistributor;
@@ -41,8 +42,7 @@ import org.drooms.impl.logic.commands.RewardSurvivalCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class GameController implements
-        Game<DefaultPlayground, DefaultNode, DefaultEdge> {
+public abstract class GameController implements Game<DefaultPlayground> {
 
     protected enum CollectibleType {
 
@@ -96,11 +96,11 @@ public abstract class GameController implements
 
     private final Map<Player, Integer> lengths = new HashMap<Player, Integer>();
 
-    private final Map<Player, Deque<DefaultNode>> positions = new HashMap<Player, Deque<DefaultNode>>();
+    private final Map<Player, Deque<Node>> positions = new HashMap<Player, Deque<Node>>();
 
-    private final Map<Collectible, DefaultNode> nodesByCollectible = new HashMap<Collectible, DefaultNode>();
+    private final Map<Collectible, Node> nodesByCollectible = new HashMap<Collectible, Node>();
 
-    private final Map<DefaultNode, Collectible> collectiblesByNode = new HashMap<DefaultNode, Collectible>();
+    private final Map<Node, Collectible> collectiblesByNode = new HashMap<Node, Collectible>();
 
     private final Map<Player, SortedMap<Integer, Move>> decisionRecord = new HashMap<Player, SortedMap<Integer, Move>>();
 
@@ -108,7 +108,7 @@ public abstract class GameController implements
         this.reportFolder = reportFolder;
     }
 
-    private void addCollectible(final Collectible c, final DefaultNode n) {
+    private void addCollectible(final Collectible c, final Node n) {
         this.collectiblesByNode.put(n, c);
         this.nodesByCollectible.put(c, n);
     }
@@ -163,7 +163,7 @@ public abstract class GameController implements
                     .loadJar(strategyJar));
             try {
                 final KnowledgeBase kbase = kb.newKnowledgeBase();
-                players.add(new DefaultPlayer(playerName, this
+                players.add(new Player(playerName, this
                         .getCharPerNumber(playerNum), kbase));
                 playerNum++;
             } catch (final Exception ex) {
@@ -178,7 +178,7 @@ public abstract class GameController implements
         return players;
     }
 
-    protected Collectible getCollectible(final DefaultNode n) {
+    protected Collectible getCollectible(final Node n) {
         return this.collectiblesByNode.get(n);
     }
 
@@ -212,7 +212,7 @@ public abstract class GameController implements
         return this.lengths.get(p);
     }
 
-    protected Deque<DefaultNode> getPlayerPosition(final Player p) {
+    protected Deque<Node> getPlayerPosition(final Player p) {
         if (!this.positions.containsKey(p)) {
             throw new IllegalStateException(
                     "Player doesn't have any position assigned: " + p);
@@ -248,7 +248,7 @@ public abstract class GameController implements
     protected abstract Map<Collectible, Player> performCollectibleCollection(
             final Collection<Player> players);
 
-    protected abstract Map<Collectible, DefaultNode> performCollectibleDistribution(
+    protected abstract Map<Collectible, Node> performCollectibleDistribution(
             final Properties gameConfig, final DefaultPlayground playground,
             final Collection<Player> players, final int currentTurnNumber);
 
@@ -260,12 +260,12 @@ public abstract class GameController implements
             final Collection<Player> currentPlayers,
             final int currentTurnNumber, final int allowedInactiveTurns);
 
-    protected abstract Deque<DefaultNode> performPlayerMove(
-            final Player player, final Move decision);
+    protected abstract Deque<Node> performPlayerMove(final Player player,
+            final Move decision);
 
     @Override
-    public GameReport<DefaultPlayground, DefaultNode, DefaultEdge> play(
-            final Properties gameConfig, final Properties playerConfig) {
+    public GameReport<DefaultPlayground> play(final Properties gameConfig,
+            final Properties playerConfig) {
         // prepare the playground
         DefaultPlayground playground;
         try {
@@ -285,8 +285,7 @@ public abstract class GameController implements
         final int wormSurvivalBonus = Integer.valueOf(gameConfig.getProperty(
                 "worm.survival.bonus", "1"));
         // prepare starting positions
-        final List<DefaultNode> startingPositions = playground
-                .getStartingPositions();
+        final List<Node> startingPositions = playground.getStartingPositions();
         final int playersSupported = startingPositions.size();
         final int playersAvailable = players.size();
         if (playersSupported < playersAvailable) {
@@ -296,7 +295,7 @@ public abstract class GameController implements
         }
         int i = 0;
         for (final Player player : players) {
-            final Deque<DefaultNode> pos = new LinkedList<DefaultNode>();
+            final Deque<Node> pos = new LinkedList<Node>();
             pos.push(startingPositions.get(i));
             this.setPlayerPosition(player, pos);
             this.setPlayerLength(player, wormLength);
@@ -316,7 +315,7 @@ public abstract class GameController implements
         int turnNumber = 0;
         do {
             GameController.LOGGER.info("--- Starting turn no. {}.", turnNumber);
-            final List<Command<DefaultPlayground, DefaultNode, DefaultEdge>> commands = new LinkedList<Command<DefaultPlayground, DefaultNode, DefaultEdge>>();
+            final List<Command<DefaultPlayground>> commands = new LinkedList<>();
             // remove inactive worms
             for (final Player player : this.performInactivityDetection(
                     currentPlayers, turnNumber, allowedInactiveTurns)) {
@@ -327,8 +326,7 @@ public abstract class GameController implements
             for (final Player p : currentPlayers) {
                 final Move m = decisions.get(p);
                 this.addDecision(p, m, turnNumber);
-                final Deque<DefaultNode> newPosition = this.performPlayerMove(
-                        p, m);
+                final Deque<Node> newPosition = this.performPlayerMove(p, m);
                 this.setPlayerPosition(p, newPosition);
                 commands.add(new MovePlayerCommand(p, m, newPosition));
             }
@@ -367,11 +365,11 @@ public abstract class GameController implements
                 commands.add(new CollectCollectibleCommand(c, p));
             }
             // distribute new collectibles
-            for (final Map.Entry<Collectible, DefaultNode> entry : this
+            for (final Map.Entry<Collectible, Node> entry : this
                     .performCollectibleDistribution(gameConfig, playground,
                             currentPlayers, turnNumber).entrySet()) {
                 final Collectible c = entry.getKey();
-                final DefaultNode n = entry.getValue();
+                final Node n = entry.getValue();
                 this.addCollectible(c, n);
                 commands.add(new AddCollectibleCommand(c, n));
             }
@@ -391,7 +389,7 @@ public abstract class GameController implements
     }
 
     private void removeCollectible(final Collectible c) {
-        final DefaultNode n = this.nodesByCollectible.remove(c);
+        final Node n = this.nodesByCollectible.remove(c);
         this.collectiblesByNode.remove(n);
     }
 
@@ -406,8 +404,7 @@ public abstract class GameController implements
         this.lengths.put(p, length);
     }
 
-    private void setPlayerPosition(final Player p,
-            final Deque<DefaultNode> position) {
+    private void setPlayerPosition(final Player p, final Deque<Node> position) {
         this.positions.put(p, position);
     }
 

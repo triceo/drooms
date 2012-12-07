@@ -1,21 +1,21 @@
 package org.drooms.impl.logic.facts;
 
+import org.drooms.api.Node;
 import org.drooms.api.Player;
-import org.drooms.impl.DefaultNode;
 
-public class Worm implements Positioned<DefaultNode> {
+public class Worm implements Positioned<Node> {
 
     private final Player player;
 
-    private final DefaultNode node;
+    private final Node node;
 
-    public Worm(final Player p, final DefaultNode node) {
+    public Worm(final Player p, final Node node) {
         this.player = p;
         this.node = node;
     }
 
     @Override
-    public DefaultNode getNode() {
+    public Node getNode() {
         return this.node;
     }
 

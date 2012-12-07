@@ -3,8 +3,6 @@ package org.drooms.impl.logic.commands;
 import org.drooms.api.Collectible;
 import org.drooms.api.GameReport;
 import org.drooms.api.Player;
-import org.drooms.impl.DefaultEdge;
-import org.drooms.impl.DefaultNode;
 import org.drooms.impl.DefaultPlayground;
 import org.drooms.impl.logic.CollectibleRelated;
 import org.drooms.impl.logic.CommandDistributor;
@@ -15,9 +13,7 @@ import org.drooms.impl.logic.events.CollectibleRewardEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CollectCollectibleCommand implements
-        Command<DefaultPlayground, DefaultNode, DefaultEdge>, PlayerRelated,
-        CollectibleRelated, RewardRelated {
+public class CollectCollectibleCommand implements Command<DefaultPlayground>, PlayerRelated, CollectibleRelated, RewardRelated {
 
     private static final Logger LOGGER = LoggerFactory
             .getLogger(CollectCollectibleCommand.class);
@@ -59,8 +55,7 @@ public class CollectCollectibleCommand implements
     }
 
     @Override
-    public void report(
-            final GameReport<DefaultPlayground, DefaultNode, DefaultEdge> report) {
+    public void report(final GameReport<DefaultPlayground> report) {
         report.collectibleCollected(this.getCollectible(), this.getPlayer(), this.getPoints());
         CollectCollectibleCommand.LOGGER.info(
                 "Collectible {} collected by player {}.", this.toCollect,

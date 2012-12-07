@@ -6,17 +6,17 @@ import java.io.Writer;
 import org.drooms.api.Collectible;
 import org.drooms.api.GameReport;
 import org.drooms.api.Move;
+import org.drooms.api.Node;
 import org.drooms.api.Player;
 
-public class XmlReport implements
-        GameReport<DefaultPlayground, DefaultNode, DefaultEdge> {
+public class XmlReport implements GameReport<DefaultPlayground> {
 
     private static String collectibleXml(final Collectible c) {
         return "<collectible type='" + c.getClass().getName() + "' sign='"
                 + c.getSign() + "' points='" + c.getPoints() + "' />";
     }
 
-    private static String nodeXml(final DefaultNode c) {
+    private static String nodeXml(final Node c) {
         return "<node x='" + c.getX() + "' y='" + c.getY() + "' />";
     }
 
@@ -34,7 +34,7 @@ public class XmlReport implements
     }
 
     @Override
-    public void collectibleAdded(final Collectible c, final DefaultNode where) {
+    public void collectibleAdded(final Collectible c, final Node where) {
         this.report.append("<newCollectible>");
         this.report.append(XmlReport.collectibleXml(c));
         this.report.append(XmlReport.nodeXml(where));
@@ -81,11 +81,10 @@ public class XmlReport implements
     }
 
     @Override
-    public void playerMoved(final Player p, final Move m,
-            final DefaultNode... nodes) {
+    public void playerMoved(final Player p, final Move m, final Node... nodes) {
         this.report.append("<playerPosition>");
         this.report.append(XmlReport.playerXml(p));
-        for (final DefaultNode n : nodes) {
+        for (final Node n : nodes) {
             this.report.append(XmlReport.nodeXml(n));
         }
         this.report.append("</playerPosition>");

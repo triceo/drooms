@@ -24,6 +24,7 @@ import java.util.Set;
 import org.drooms.api.Collectible;
 import org.drooms.api.GameReport;
 import org.drooms.api.Move;
+import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.impl.collectibles.CheapCollectible;
 import org.drooms.impl.collectibles.ExtremeCollectible;
@@ -37,7 +38,7 @@ public class DefaultGame extends GameController {
     }
 
     public static void main(final String[] args) {
-        GameReport<DefaultPlayground, DefaultNode, DefaultEdge> report = null;
+        GameReport<DefaultPlayground> report = null;
         final Properties gameConfig = new Properties();
         final Properties playerConfig = new Properties();
         File reportFolder = null;
@@ -82,8 +83,7 @@ public class DefaultGame extends GameController {
             final Collection<Player> players) {
         final Map<Collectible, Player> collections = new HashMap<Collectible, Player>();
         for (final Player p : players) {
-            final DefaultNode headPosition = this.getPlayerPosition(p)
-                    .getFirst();
+            final Node headPosition = this.getPlayerPosition(p).getFirst();
             final Collectible c = this.getCollectible(headPosition);
             if (c != null) { // successfully collected
                 collections.put(c, p);
@@ -93,10 +93,10 @@ public class DefaultGame extends GameController {
     }
 
     @Override
-    protected Map<Collectible, DefaultNode> performCollectibleDistribution(
+    protected Map<Collectible, Node> performCollectibleDistribution(
             final Properties gameConfig, final DefaultPlayground playground,
             final Collection<Player> players, final int currentTurnNumber) {
-        final Map<Collectible, DefaultNode> collectibles = new HashMap<Collectible, DefaultNode>();
+        final Map<Collectible, Node> collectibles = new HashMap<Collectible, Node>();
         for (final CollectibleType ct : CollectibleType.values()) {
             final BigDecimal probability = ct
                     .getProbabilityOfAppearance(gameConfig);
@@ -134,16 +134,15 @@ public class DefaultGame extends GameController {
             final Collection<Player> currentPlayers) {
         final Set<Player> collisions = new HashSet<Player>();
         for (final Player p1 : currentPlayers) {
-            final Deque<DefaultNode> position = this.getPlayerPosition(p1);
-            final DefaultNode firstPosition = position.getFirst();
+            final Deque<Node> position = this.getPlayerPosition(p1);
+            final Node firstPosition = position.getFirst();
             if (!playground.isAvailable(firstPosition.getX(),
                     firstPosition.getY())) {
                 collisions.add(p1);
                 continue;
             } else {
                 // make sure the worm didn't crash into itself
-                final Set<DefaultNode> nodes = new HashSet<DefaultNode>(
-                        position);
+                final Set<Node> nodes = new HashSet<Node>(position);
                 if (nodes.size() < position.size()) {
                     // a worm occupies one node twice = a crash into itself
                     collisions.add(p1);
@@ -154,7 +153,7 @@ public class DefaultGame extends GameController {
                     // the same worm
                     continue;
                 }
-                final DefaultNode secondPosition = this.getPlayerPosition(p2)
+                final Node secondPosition = this.getPlayerPosition(p2)
                         .getFirst();
                 if (firstPosition.equals(secondPosition)) {
                     // head-on-head collision
@@ -195,27 +194,27 @@ public class DefaultGame extends GameController {
     }
 
     @Override
-    protected Deque<DefaultNode> performPlayerMove(final Player player,
+    protected Deque<Node> performPlayerMove(final Player player,
             final Move decision) {
         // move the head of the worm
-        final Deque<DefaultNode> currentPos = this.getPlayerPosition(player);
-        final DefaultNode currentHeadPos = currentPos.getFirst();
-        DefaultNode newHeadPos;
+        final Deque<Node> currentPos = this.getPlayerPosition(player);
+        final Node currentHeadPos = currentPos.getFirst();
+        Node newHeadPos;
         switch (decision) {
             case UP:
-                newHeadPos = DefaultNode.getNode(currentHeadPos.getX(),
+                newHeadPos = Node.getNode(currentHeadPos.getX(),
                         currentHeadPos.getY() + 1);
                 break;
             case DOWN:
-                newHeadPos = DefaultNode.getNode(currentHeadPos.getX(),
+                newHeadPos = Node.getNode(currentHeadPos.getX(),
                         currentHeadPos.getY() - 1);
                 break;
             case LEFT:
-                newHeadPos = DefaultNode.getNode(currentHeadPos.getX() - 1,
+                newHeadPos = Node.getNode(currentHeadPos.getX() - 1,
                         currentHeadPos.getY());
                 break;
             case RIGHT:
-                newHeadPos = DefaultNode.getNode(currentHeadPos.getX() + 1,
+                newHeadPos = Node.getNode(currentHeadPos.getX() + 1,
                         currentHeadPos.getY());
                 break;
             case STAY:
@@ -225,8 +224,7 @@ public class DefaultGame extends GameController {
                 throw new IllegalStateException("Unknown move!");
         }
         // move the head of the snake
-        final Deque<DefaultNode> newPosition = new LinkedList<DefaultNode>(
-                currentPos);
+        final Deque<Node> newPosition = new LinkedList<Node>(currentPos);
         if (decision != Move.STAY) {
             newPosition.push(newHeadPos);
         }
@@ -238,9 +236,9 @@ public class DefaultGame extends GameController {
         return newPosition;
     }
 
-    private DefaultNode pickRandomUnusedNode(final DefaultPlayground p,
+    private Node pickRandomUnusedNode(final DefaultPlayground p,
             final Collection<Player> players) {
-        final List<DefaultNode> nodes = new LinkedList<DefaultNode>();
+        final List<Node> nodes = new LinkedList<Node>();
         // locate available nodes
         for (int x = 0; x < p.getWidth(); x++) {
             for (int y = 0; y < p.getHeight(); y++) {
@@ -254,8 +252,8 @@ public class DefaultGame extends GameController {
             nodes.removeAll(this.getPlayerPosition(player));
         }
         // exclude nodes where collectibles are
-        final List<DefaultNode> nodesCopy = new LinkedList<DefaultNode>(nodes);
-        for (final DefaultNode n : nodesCopy) {
+        final List<Node> nodesCopy = new LinkedList<Node>(nodes);
+        for (final Node n : nodesCopy) {
             if (this.getCollectible(n) != null) {
                 nodes.remove(n);
             }

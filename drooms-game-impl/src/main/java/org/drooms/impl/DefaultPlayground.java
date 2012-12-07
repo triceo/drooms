@@ -17,13 +17,15 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.apache.commons.io.IOUtils;
+import org.drooms.api.Edge;
+import org.drooms.api.Node;
 import org.drooms.api.Playground;
 
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.Graphs;
 
-public class DefaultPlayground implements Playground<DefaultNode, DefaultEdge> {
+public class DefaultPlayground implements Playground {
 
     private static final char WALL_SIGN = '#';
 
@@ -40,14 +42,14 @@ public class DefaultPlayground implements Playground<DefaultNode, DefaultEdge> {
         return new DefaultPlayground(IOUtils.readLines(r));
     }
 
-    private final Set<DefaultNode> nodes = new HashSet<DefaultNode>();
+    private final Set<Node> nodes = new HashSet<Node>();
 
-    private final List<DefaultNode[]> nodeLocations = new ArrayList<DefaultNode[]>();
+    private final List<Node[]> nodeLocations = new ArrayList<Node[]>();
 
-    private static final DefaultNode WALL_NODE = DefaultNode.getNode(-1, -1);
+    private static final Node WALL_NODE = Node.getNode(-1, -1);
 
-    private final Graph<DefaultNode, DefaultEdge> graph = new UndirectedSparseGraph<DefaultNode, DefaultEdge>();
-    private final SortedMap<Character, DefaultNode> startingNodes = new TreeMap<Character, DefaultNode>();
+    private final Graph<Node, Edge> graph = new UndirectedSparseGraph<Node, Edge>();
+    private final SortedMap<Character, Node> startingNodes = new TreeMap<Character, Node>();
     private final int width;
 
     private DefaultPlayground(final List<String> lines) {
@@ -55,19 +57,19 @@ public class DefaultPlayground implements Playground<DefaultNode, DefaultEdge> {
         int maxX = Integer.MIN_VALUE;
         for (final String line : lines) {
             int y = this.nodeLocations.size();
-            final DefaultNode[] locations = new DefaultNode[line.length()];
+            final Node[] locations = new Node[line.length()];
             for (int x = 0; x < line.length(); x++) {
                 final char nodeLabel = line.charAt(x);
-                DefaultNode n;
+                Node n;
                 switch (nodeLabel) {
                     case WALL_SIGN: // wall node
                         n = DefaultPlayground.WALL_NODE;
                         break;
                     case ' ': // regular node
-                        n = DefaultNode.getNode(x, y);
+                        n = Node.getNode(x, y);
                         break;
                     default: // starting point for a worm
-                        n = DefaultNode.getNode(x, y);
+                        n = Node.getNode(x, y);
                         this.startingNodes.put(nodeLabel, n);
                         break;
                 }
@@ -80,7 +82,7 @@ public class DefaultPlayground implements Playground<DefaultNode, DefaultEdge> {
         }
         this.width = maxX + 1;
         // link nodes
-        for (final DefaultNode n : this.nodes) {
+        for (final Node n : this.nodes) {
             if (n == DefaultPlayground.WALL_NODE) {
                 // don't link wall node to any other node
                 continue;
@@ -95,7 +97,7 @@ public class DefaultPlayground implements Playground<DefaultNode, DefaultEdge> {
             if (y < this.nodeLocations.size() - 1) {
                 this.link(x, y, x, y + 1);
             }
-            final DefaultNode[] nodes = this.nodeLocations.get(y);
+            final Node[] nodes = this.nodeLocations.get(y);
             // link to the left
             if (x > 0) {
                 this.link(x, y, x - 1, y);
@@ -108,7 +110,7 @@ public class DefaultPlayground implements Playground<DefaultNode, DefaultEdge> {
     }
 
     @Override
-    public Graph<DefaultNode, DefaultEdge> getGraph() {
+    public Graph<Node, Edge> getGraph() {
         return Graphs.unmodifiableGraph(this.graph);
     }
 
@@ -118,7 +120,7 @@ public class DefaultPlayground implements Playground<DefaultNode, DefaultEdge> {
     }
 
     @Override
-    public DefaultNode getNode(final int x, final int y) {
+    public Node getNode(final int x, final int y) {
         if (!this.isAvailable(x, y)) {
             throw new IllegalStateException("No node with coordinates [" + x
                     + "," + y + "].");
@@ -126,12 +128,12 @@ public class DefaultPlayground implements Playground<DefaultNode, DefaultEdge> {
         return this.nodeLocations.get(y)[x];
     }
 
-    private DefaultNode getNodeInternal(final int x, final int y) {
+    private Node getNodeInternal(final int x, final int y) {
         if (y < 0 || y >= this.nodeLocations.size()) {
             throw new IllegalArgumentException(
                     "There are no nodes with coordinates [x, " + y + "]");
         }
-        final DefaultNode[] nodes = this.nodeLocations.get(y);
+        final Node[] nodes = this.nodeLocations.get(y);
         if (x < 0 || x >= nodes.length) {
             throw new IllegalArgumentException(
                     "There are no nodes with coordinates [" + x + ", " + y
@@ -141,8 +143,8 @@ public class DefaultPlayground implements Playground<DefaultNode, DefaultEdge> {
     }
 
     @Override
-    public List<DefaultNode> getStartingPositions() {
-        final List<DefaultNode> nodes = new ArrayList<DefaultNode>(
+    public List<Node> getStartingPositions() {
+        final List<Node> nodes = new ArrayList<Node>(
                 this.startingNodes.values());
         return Collections.unmodifiableList(nodes);
     }
@@ -162,19 +164,19 @@ public class DefaultPlayground implements Playground<DefaultNode, DefaultEdge> {
         }
     }
 
-    private DefaultEdge link(final int x, final int y, final int otherX,
+    private Edge link(final int x, final int y, final int otherX,
             final int otherY) {
-        final DefaultNode node1 = this.getNodeInternal(x, y);
+        final Node node1 = this.getNodeInternal(x, y);
         if (node1 == DefaultPlayground.WALL_NODE) {
             return null;
         }
-        final DefaultNode node2 = this.getNodeInternal(otherX, otherY);
+        final Node node2 = this.getNodeInternal(otherX, otherY);
         if (node2 == DefaultPlayground.WALL_NODE) {
             return null;
         }
-        DefaultEdge e = this.graph.findEdge(node1, node2);
+        Edge e = this.graph.findEdge(node1, node2);
         if (e == null) {
-            e = new DefaultEdge(node1, node2);
+            e = new Edge(node1, node2);
             this.graph.addEdge(e, node1, node2);
         }
         return e;
@@ -186,12 +188,12 @@ public class DefaultPlayground implements Playground<DefaultNode, DefaultEdge> {
 
     public void write(final Writer w) throws IOException {
         final BufferedWriter bw = new BufferedWriter(w);
-        for (final DefaultNode[] line : this.nodeLocations) {
-            for (final DefaultNode n : line) {
+        for (final Node[] line : this.nodeLocations) {
+            for (final Node n : line) {
                 if (n == DefaultPlayground.WALL_NODE) {
                     bw.append(DefaultPlayground.WALL_SIGN);
                 } else if (this.startingNodes.containsValue(n)) {
-                    for (final SortedMap.Entry<Character, DefaultNode> entry : this.startingNodes
+                    for (final SortedMap.Entry<Character, Node> entry : this.startingNodes
                             .entrySet()) {
                         if (!entry.getValue().equals(n)) {
                             continue;

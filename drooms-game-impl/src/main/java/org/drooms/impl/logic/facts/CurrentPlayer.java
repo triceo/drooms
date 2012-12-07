@@ -1,15 +1,15 @@
 package org.drooms.impl.logic.facts;
 
+import org.drooms.api.Node;
 import org.drooms.api.Player;
-import org.drooms.impl.DefaultNode;
 
-public class CurrentPlayer implements Positioned<DefaultNode> {
+public class CurrentPlayer implements Positioned<Node> {
 
     private final Player player;
 
-    private DefaultNode node;
+    private Node node;
 
-    public CurrentPlayer(final Player p, final DefaultNode node) {
+    public CurrentPlayer(final Player p, final Node node) {
         this.player = p;
         this.node = node;
     }
@@ -19,7 +19,7 @@ public class CurrentPlayer implements Positioned<DefaultNode> {
     }
 
     @Override
-    public DefaultNode getNode() {
+    public Node getNode() {
         return this.node;
     }
 
@@ -33,7 +33,7 @@ public class CurrentPlayer implements Positioned<DefaultNode> {
         return this.node.getY();
     }
 
-    public void setNode(final DefaultNode node) {
+    public void setNode(final Node node) {
         this.node = node;
     }
 }

@@ -18,10 +18,9 @@ import org.drools.runtime.conf.ClockTypeOption;
 import org.drools.runtime.rule.FactHandle;
 import org.drools.runtime.rule.WorkingMemoryEntryPoint;
 import org.drools.time.SessionPseudoClock;
+import org.drooms.api.Node;
 import org.drooms.api.Move;
 import org.drooms.api.Player;
-import org.drooms.impl.DefaultEdge;
-import org.drooms.impl.DefaultNode;
 import org.drooms.impl.DefaultPlayground;
 import org.drooms.impl.logic.events.CollectibleAdditionEvent;
 import org.drooms.impl.logic.events.CollectibleRemovalEvent;
@@ -61,11 +60,11 @@ public class DecisionMaker implements Channel {
     private final FactHandle currentTurn;
     private final FactHandle currentPlayer;
 
-    private final Map<Player, Map<DefaultNode, FactHandle>> handles = new HashMap<Player, Map<DefaultNode, FactHandle>>();
+    private final Map<Player, Map<Node, FactHandle>> handles = new HashMap<Player, Map<Node, FactHandle>>();
 
     public DecisionMaker(
             final Player p,
-            final PathTracker<DefaultPlayground, DefaultNode, DefaultEdge> tracker,
+            final PathTracker<DefaultPlayground> tracker,
             final File reportFolder) {
         this.player = p;
         this.session = p.getKnowledgeBase().newStatefulKnowledgeSession(
@@ -113,13 +112,13 @@ public class DecisionMaker implements Channel {
         for (int x = -1; x <= playground.getWidth(); x++) {
             for (int y = -1; y <= playground.getHeight(); y++) {
                 if (!playground.isAvailable(x, y)) {
-                    this.session.insert(new Wall(DefaultNode.getNode(x, y)));
+                    this.session.insert(new Wall(Node.getNode(x, y)));
                 }
             }
         }
         // insert info about the game status
         this.currentPlayer = this.session.insert(new CurrentPlayer(p,
-                DefaultNode.getNode(0, 0)));
+                Node.getNode(0, 0)));
         this.currentTurn = this.session.insert(new CurrentTurn(0));
     }
 
@@ -161,7 +160,7 @@ public class DecisionMaker implements Channel {
     }
 
     public void notifyOfCollectibleAddition(
-            final CollectibleAdditionEvent<DefaultNode> evt) {
+            final CollectibleAdditionEvent<Node> evt) {
         this.gameEvents.insert(evt);
     }
 
@@ -177,31 +176,31 @@ public class DecisionMaker implements Channel {
         this.playerEvents.insert(evt);
         final Player p = evt.getPlayer();
         // remove player from the WM
-        for (final Map.Entry<DefaultNode, FactHandle> entry : this.handles
+        for (final Map.Entry<Node, FactHandle> entry : this.handles
                 .remove(p).entrySet()) {
             this.session.retract(entry.getValue());
         }
     }
 
-    public void notifyOfPlayerMove(final PlayerMoveEvent<DefaultNode> evt) {
-        final DefaultNode newHead = evt.getNodes().getFirst();
+    public void notifyOfPlayerMove(final PlayerMoveEvent<Node> evt) {
+        final Node newHead = evt.getNodes().getFirst();
         final Player p = evt.getPlayer();
         this.playerEvents.insert(evt);
         // update player positions
         if (!this.handles.containsKey(p)) {
-            this.handles.put(p, new HashMap<DefaultNode, FactHandle>());
+            this.handles.put(p, new HashMap<Node, FactHandle>());
         }
-        final Map<DefaultNode, FactHandle> playerHandles = this.handles.get(p);
-        final Set<DefaultNode> untraversedNodes = new HashSet<DefaultNode>(
+        final Map<Node, FactHandle> playerHandles = this.handles.get(p);
+        final Set<Node> untraversedNodes = new HashSet<Node>(
                 playerHandles.keySet());
-        for (final DefaultNode n : evt.getNodes()) {
+        for (final Node n : evt.getNodes()) {
             if (!playerHandles.containsKey(n)) { // worm occupies a new node
                 final FactHandle fh = this.session.insert(new Worm(p, n));
                 playerHandles.put(n, fh);
             }
             untraversedNodes.remove(n);
         }
-        for (final DefaultNode n : untraversedNodes) { // worm no longer
+        for (final Node n : untraversedNodes) { // worm no longer
                                                        // occupies a node
             final FactHandle fh = playerHandles.remove(n);
             this.session.retract(fh);

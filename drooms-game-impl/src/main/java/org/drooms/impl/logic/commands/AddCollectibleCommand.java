@@ -1,9 +1,8 @@
 package org.drooms.impl.logic.commands;
 
 import org.drooms.api.Collectible;
+import org.drooms.api.Node;
 import org.drooms.api.GameReport;
-import org.drooms.impl.DefaultEdge;
-import org.drooms.impl.DefaultNode;
 import org.drooms.impl.DefaultPlayground;
 import org.drooms.impl.logic.CollectibleRelated;
 import org.drooms.impl.logic.CommandDistributor;
@@ -12,21 +11,19 @@ import org.drooms.impl.logic.events.CollectibleAdditionEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class AddCollectibleCommand implements
-        Command<DefaultPlayground, DefaultNode, DefaultEdge>,
-        CollectibleRelated {
+public class AddCollectibleCommand implements Command<DefaultPlayground>, CollectibleRelated {
 
     private final static Logger LOGGER = LoggerFactory
             .getLogger(AddCollectibleCommand.class);
 
     private final Collectible toAdd;
-    private final DefaultNode whereToAdd;
-    private final CollectibleAdditionEvent<DefaultNode> event;
+    private final Node whereToAdd;
+    private final CollectibleAdditionEvent<Node> event;
 
-    public AddCollectibleCommand(final Collectible c, final DefaultNode n) {
+    public AddCollectibleCommand(final Collectible c, final Node n) {
         this.toAdd = c;
         this.whereToAdd = n;
-        this.event = new CollectibleAdditionEvent<DefaultNode>(c, n);
+        this.event = new CollectibleAdditionEvent<Node>(c, n);
     }
 
     @Override
@@ -45,8 +42,7 @@ public class AddCollectibleCommand implements
     }
 
     @Override
-    public void report(
-            final GameReport<DefaultPlayground, DefaultNode, DefaultEdge> report) {
+    public void report(final GameReport<DefaultPlayground> report) {
         report.collectibleAdded(toAdd, whereToAdd);
         AddCollectibleCommand.LOGGER.info("Collectible {} added at [{},{}].",
                 new Object[] { this.toAdd, this.whereToAdd.getX(),

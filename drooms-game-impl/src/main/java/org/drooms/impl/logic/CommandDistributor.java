@@ -11,11 +11,10 @@ import java.util.Map;
 import java.util.Set;
 
 import org.drooms.api.Collectible;
+import org.drooms.api.Node;
 import org.drooms.api.GameReport;
 import org.drooms.api.Move;
 import org.drooms.api.Player;
-import org.drooms.impl.DefaultEdge;
-import org.drooms.impl.DefaultNode;
 import org.drooms.impl.DefaultPlayground;
 import org.drooms.impl.logic.commands.AddCollectibleCommand;
 import org.drooms.impl.logic.commands.CollectCollectibleCommand;
@@ -34,7 +33,7 @@ public class CommandDistributor {
             .getLogger(CommandDistributor.class);
 
     private static boolean isCommandSupported(
-            final Command<DefaultPlayground, DefaultNode, DefaultEdge> command) {
+            final Command<DefaultPlayground> command) {
         for (@SuppressWarnings("rawtypes")
         final Class c : CommandDistributor.SUPPORTED_COMMANDS) {
             if (command.getClass() == c) {
@@ -45,8 +44,8 @@ public class CommandDistributor {
     }
 
     private final Map<Player, DecisionMaker> players = new LinkedHashMap<>();
-    private final Map<Player, PathTracker<DefaultPlayground, DefaultNode, DefaultEdge>> trackers = new LinkedHashMap<>();
-    private final GameReport<DefaultPlayground, DefaultNode, DefaultEdge> report;
+    private final Map<Player, PathTracker<DefaultPlayground>> trackers = new LinkedHashMap<>();
+    private final GameReport<DefaultPlayground> report;
     private final Set<Collectible> collectibles = new HashSet<>();
 
     @SuppressWarnings("rawtypes")
@@ -59,10 +58,10 @@ public class CommandDistributor {
     public CommandDistributor(
             final DefaultPlayground playground,
             final List<Player> players,
-            final GameReport<DefaultPlayground, DefaultNode, DefaultEdge> report,
+            final GameReport<DefaultPlayground> report,
             final File reportFolder) {
         for (final Player player : players) {
-            final PathTracker<DefaultPlayground, DefaultNode, DefaultEdge> tracker = new PathTracker<>(
+            final PathTracker<DefaultPlayground> tracker = new PathTracker<>(
                     playground, player);
             this.trackers.put(player, tracker);
             this.players.put(player, new DecisionMaker(player, tracker,
@@ -72,12 +71,12 @@ public class CommandDistributor {
     }
 
     public Map<Player, Move> execute(
-            final List<Command<DefaultPlayground, DefaultNode, DefaultEdge>> stateChanges) {
+            final List<Command<DefaultPlayground>> stateChanges) {
         this.report.nextTurn();
         CommandDistributor.LOGGER
                 .info("Changing state before the decision making can start.");
-        final Map<Player, Deque<DefaultNode>> positions = new HashMap<>();
-        for (final Command<DefaultPlayground, DefaultNode, DefaultEdge> change : stateChanges) {
+        final Map<Player, Deque<Node>> positions = new HashMap<>();
+        for (final Command<DefaultPlayground> change : stateChanges) {
             if (!CommandDistributor.isCommandSupported(change)) {
                 CommandDistributor.LOGGER.warn(
                         "Command not supported and will not be executed: {}.",
@@ -135,7 +134,7 @@ public class CommandDistributor {
         return Collections.unmodifiableMap(moves);
     }
 
-    public GameReport<DefaultPlayground, DefaultNode, DefaultEdge> getReport() {
+    public GameReport<DefaultPlayground> getReport() {
         return this.report;
     }
 

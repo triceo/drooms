@@ -21,44 +21,44 @@ import edu.uci.ics.jung.algorithms.shortestpath.ShortestPathUtils;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 
-public class PathTracker<P extends Playground<N, E>, N extends Node, E extends Edge<N>> {
+public class PathTracker<P extends Playground> {
 
     private final P playground;
 
     private final Player player;
-    private Graph<N, E> currentGraph;
-    private ShortestPath<N, E> currentPath;
+    private Graph<Node, Edge> currentGraph;
+    private ShortestPath<Node, Edge> currentPath;
 
     public PathTracker(final P playground, final Player p) {
         this.playground = playground;
         this.player = p;
     }
 
-    private Graph<N, E> cloneGraph(final Graph<N, E> src,
-            final Collection<N> removeNodes) {
-        final Graph<N, E> clone = new UndirectedSparseGraph<>();
-        for (final N v : src.getVertices()) {
+    private Graph<Node, Edge> cloneGraph(final Graph<Node, Edge> src,
+            final Collection<Node> removeNodes) {
+        final Graph<Node, Edge> clone = new UndirectedSparseGraph<>();
+        for (final Node v : src.getVertices()) {
             clone.addVertex(v);
         }
-        for (final E e : src.getEdges()) {
+        for (final Edge e : src.getEdges()) {
             clone.addEdge(e, src.getIncidentVertices(e));
         }
-        for (final N node : removeNodes) {
+        for (final Node node : removeNodes) {
             clone.removeVertex(node);
         }
         return clone;
     }
 
-    public List<E> getPath(final N start, final N end) {
+    public List<Edge> getPath(final Node start, final Node end) {
         return ShortestPathUtils.getPath(this.currentGraph, this.currentPath,
                 start, end);
     }
 
-    public List<E> getPath(final N start, final N node2, final N node3) {
-        final List<E> path2 = this.getPath(start, node2);
-        final List<E> path3 = this.getPath(start, node3);
-        final List<E> path23 = this.getPath(node2, node3);
-        final List<E> result = new ArrayList<E>();
+    public List<Edge> getPath(final Node start, final Node node2, final Node node3) {
+        final List<Edge> path2 = this.getPath(start, node2);
+        final List<Edge> path3 = this.getPath(start, node3);
+        final List<Edge> path23 = this.getPath(node2, node3);
+        final List<Edge> result = new ArrayList<Edge>();
         if (path2.size() > path3.size()) {
             result.addAll(path3);
             Collections.reverse(path23);
@@ -78,9 +78,9 @@ public class PathTracker<P extends Playground<N, E>, N extends Node, E extends E
     }
 
     // FIXME Strategies should never be able to call this method.
-    protected void movePlayers(final Map<Player, Deque<N>> newPositions) {
-        final Set<N> unavailable = new HashSet<N>();
-        for (final Map.Entry<Player, Deque<N>> entry : newPositions.entrySet()) {
+    protected void movePlayers(final Map<Player, Deque<Node>> newPositions) {
+        final Set<Node> unavailable = new HashSet<>();
+        for (final Map.Entry<Player, Deque<Node>> entry : newPositions.entrySet()) {
             if (entry.getKey() == this.player) {
                 /*
                  * remove all the nodes occupied by the current player, except
@@ -88,7 +88,7 @@ public class PathTracker<P extends Playground<N, E>, N extends Node, E extends E
                  * remain, so that we can always calculate the path to other
                  * nodes.
                  */
-                final Deque<N> player = new LinkedList<N>(entry.getValue());
+                final Deque<Node> player = new LinkedList<>(entry.getValue());
                 player.pop();
                 unavailable.addAll(player);
             } else {
@@ -96,9 +96,9 @@ public class PathTracker<P extends Playground<N, E>, N extends Node, E extends E
                 unavailable.addAll(entry.getValue());
             }
         }
-        final Graph<N, E> graphWithoutPlayers = this.playground.getGraph();
+        final Graph<Node, Edge> graphWithoutPlayers = this.playground.getGraph();
         this.currentGraph = this.cloneGraph(graphWithoutPlayers, unavailable);
-        this.currentPath = new DijkstraShortestPath<N, E>(this.currentGraph);
+        this.currentPath = new DijkstraShortestPath<Node, Edge>(this.currentGraph);
     }
 
 }

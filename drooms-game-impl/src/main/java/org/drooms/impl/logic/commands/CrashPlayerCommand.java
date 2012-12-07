@@ -2,8 +2,6 @@ package org.drooms.impl.logic.commands;
 
 import org.drooms.api.GameReport;
 import org.drooms.api.Player;
-import org.drooms.impl.DefaultEdge;
-import org.drooms.impl.DefaultNode;
 import org.drooms.impl.DefaultPlayground;
 import org.drooms.impl.logic.CommandDistributor;
 import org.drooms.impl.logic.DecisionMaker;
@@ -13,8 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 // FIXME investigate code share between CrashPlayerCommand and DeactivatePlayerCommand
-public class CrashPlayerCommand implements
-        Command<DefaultPlayground, DefaultNode, DefaultEdge>, PlayerRelated {
+public class CrashPlayerCommand implements Command<DefaultPlayground>, PlayerRelated {
 
     private static final Logger LOGGER = LoggerFactory
             .getLogger(CrashPlayerCommand.class);
@@ -46,8 +43,7 @@ public class CrashPlayerCommand implements
     }
 
     @Override
-    public void report(
-            final GameReport<DefaultPlayground, DefaultNode, DefaultEdge> report) {
+    public void report(final GameReport<DefaultPlayground> report) {
         report.playerCrashed(this.toDie);
         CrashPlayerCommand.LOGGER.info(
                 "Player {} crashed and has been removed from the game.",
