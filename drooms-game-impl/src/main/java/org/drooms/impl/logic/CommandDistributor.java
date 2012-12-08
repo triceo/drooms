@@ -33,7 +33,8 @@ public class CommandDistributor {
         private final DecisionMaker playerLogic;
         private final List<Command> commands;
 
-        public DecisionMakerUnit(final DecisionMaker m, final List<Command> commands) {
+        public DecisionMakerUnit(final DecisionMaker m,
+                final List<Command> commands) {
             this.playerLogic = m;
             this.commands = commands;
         }
@@ -50,16 +51,43 @@ public class CommandDistributor {
 
     private static final Logger LOGGER = LoggerFactory
             .getLogger(CommandDistributor.class);
+
+    private static Map<Player, Deque<Node>> retrieveNewPlayerPositions(
+            final List<Command> commands) {
+        final Map<Player, Deque<Node>> positions = new HashMap<>();
+        for (final Command command : commands) {
+            if (command instanceof MovePlayerCommand) {
+                final MovePlayerCommand cmd = (MovePlayerCommand) command;
+                positions.put(cmd.getPlayer(), cmd.getNodes());
+            }
+        }
+        return Collections.unmodifiableMap(positions);
+    }
+
+    private static Set<Player> retrievePlayersToRemove(
+            final List<Command> commands) {
+        final Set<Player> players = new HashSet<>();
+        for (final Command command : commands) {
+            if (command instanceof DeactivatePlayerCommand) {
+                // player being removed from the game
+                players.add(((PlayerRelated) command).getPlayer());
+            }
+        }
+        return Collections.unmodifiableSet(players);
+    }
+
     private final Map<Player, DecisionMaker> players = new LinkedHashMap<>();
     private final Map<Player, PathTracker<DefaultPlayground>> trackers = new LinkedHashMap<>();
 
     private final GameReport report;
+
     private final int playerTimeoutInSeconds;
 
     private final ExecutorService e = Executors.newFixedThreadPool(1);
 
     public CommandDistributor(final DefaultPlayground playground,
-            final List<Player> players, final GameReport report, final File reportFolder, final int playerTimeoutInSeconds) {
+            final List<Player> players, final GameReport report,
+            final File reportFolder, final int playerTimeoutInSeconds) {
         for (final Player player : players) {
             final PathTracker<DefaultPlayground> tracker = new PathTracker<>(
                     playground, player);
@@ -71,8 +99,7 @@ public class CommandDistributor {
         this.playerTimeoutInSeconds = playerTimeoutInSeconds;
     }
 
-    public Map<Player, Move> execute(
-            final List<Command> commands) {
+    public Map<Player, Move> execute(final List<Command> commands) {
         CommandDistributor.LOGGER
                 .info("First reporting what happens in this turn.");
         this.report.nextTurn();
@@ -80,9 +107,9 @@ public class CommandDistributor {
             command.report(this.report);
         }
         CommandDistributor.LOGGER.info("Now passing these changes to players.");
-        final Map<Player, Deque<Node>> positions = this
+        final Map<Player, Deque<Node>> positions = CommandDistributor
                 .retrieveNewPlayerPositions(commands);
-        final Set<Player> playersToRemove = this
+        final Set<Player> playersToRemove = CommandDistributor
                 .retrievePlayersToRemove(commands);
         final Map<Player, Move> moves = new HashMap<Player, Move>();
         for (final Map.Entry<Player, DecisionMaker> entry : this.players
@@ -126,30 +153,6 @@ public class CommandDistributor {
 
     public GameReport getReport() {
         return this.report;
-    }
-
-    private Map<Player, Deque<Node>> retrieveNewPlayerPositions(
-            final List<Command> commands) {
-        final Map<Player, Deque<Node>> positions = new HashMap<>();
-        for (final Command command : commands) {
-            if (command instanceof MovePlayerCommand) {
-                final MovePlayerCommand cmd = (MovePlayerCommand) command;
-                positions.put(cmd.getPlayer(), cmd.getNodes());
-            }
-        }
-        return Collections.unmodifiableMap(positions);
-    }
-
-    private Set<Player> retrievePlayersToRemove(
-            final List<Command> commands) {
-        final Set<Player> players = new HashSet<>();
-        for (final Command command : commands) {
-            if (command instanceof DeactivatePlayerCommand) {
-                // player being removed from the game
-                players.add(((PlayerRelated) command).getPlayer());
-            }
-        }
-        return Collections.unmodifiableSet(players);
     }
 
     public void terminate() {

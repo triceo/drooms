@@ -1,9 +1,6 @@
 package org.drooms.impl;
 
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -28,10 +25,6 @@ import edu.uci.ics.jung.graph.util.Graphs;
 public class DefaultPlayground implements Playground {
 
     private static final char WALL_SIGN = '#';
-
-    public static DefaultPlayground read(final File f) throws IOException {
-        return DefaultPlayground.read(new FileReader(f));
-    }
 
     public static DefaultPlayground read(final InputStream s)
             throws IOException {
@@ -168,10 +161,6 @@ public class DefaultPlayground implements Playground {
             this.graph.addEdge(e, node1, node2);
         }
         return e;
-    }
-
-    public void write(final File f) throws IOException {
-        this.write(new FileWriter(f));
     }
 
     public void write(final Writer w) throws IOException {

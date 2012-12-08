@@ -23,18 +23,7 @@ import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 
 public class PathTracker<P extends Playground> {
 
-    private final P playground;
-
-    private final Player player;
-    private Graph<Node, Edge> currentGraph;
-    private ShortestPath<Node, Edge> currentPath;
-
-    public PathTracker(final P playground, final Player p) {
-        this.playground = playground;
-        this.player = p;
-    }
-
-    private Graph<Node, Edge> cloneGraph(final Graph<Node, Edge> src,
+    private static Graph<Node, Edge> cloneGraph(final Graph<Node, Edge> src,
             final Collection<Node> removeNodes) {
         final Graph<Node, Edge> clone = new UndirectedSparseGraph<>();
         for (final Node v : src.getVertices()) {
@@ -49,12 +38,24 @@ public class PathTracker<P extends Playground> {
         return clone;
     }
 
+    private final P playground;
+    private final Player player;
+    private Graph<Node, Edge> currentGraph;
+
+    private ShortestPath<Node, Edge> currentPath;
+
+    public PathTracker(final P playground, final Player p) {
+        this.playground = playground;
+        this.player = p;
+    }
+
     public List<Edge> getPath(final Node start, final Node end) {
         return ShortestPathUtils.getPath(this.currentGraph, this.currentPath,
                 start, end);
     }
 
-    public List<Edge> getPath(final Node start, final Node node2, final Node node3) {
+    public List<Edge> getPath(final Node start, final Node node2,
+            final Node node3) {
         final List<Edge> path2 = this.getPath(start, node2);
         final List<Edge> path3 = this.getPath(start, node3);
         final List<Edge> path23 = this.getPath(node2, node3);
@@ -80,7 +81,8 @@ public class PathTracker<P extends Playground> {
     // FIXME Strategies should never be able to call this method.
     protected void movePlayers(final Map<Player, Deque<Node>> newPositions) {
         final Set<Node> unavailable = new HashSet<>();
-        for (final Map.Entry<Player, Deque<Node>> entry : newPositions.entrySet()) {
+        for (final Map.Entry<Player, Deque<Node>> entry : newPositions
+                .entrySet()) {
             if (entry.getKey() == this.player) {
                 /*
                  * remove all the nodes occupied by the current player, except
@@ -96,9 +98,12 @@ public class PathTracker<P extends Playground> {
                 unavailable.addAll(entry.getValue());
             }
         }
-        final Graph<Node, Edge> graphWithoutPlayers = this.playground.getGraph();
-        this.currentGraph = this.cloneGraph(graphWithoutPlayers, unavailable);
-        this.currentPath = new DijkstraShortestPath<Node, Edge>(this.currentGraph);
+        final Graph<Node, Edge> graphWithoutPlayers = this.playground
+                .getGraph();
+        this.currentGraph = PathTracker.cloneGraph(graphWithoutPlayers,
+                unavailable);
+        this.currentPath = new DijkstraShortestPath<Node, Edge>(
+                this.currentGraph);
     }
 
 }

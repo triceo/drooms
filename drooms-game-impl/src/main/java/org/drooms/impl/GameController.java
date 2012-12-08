@@ -1,7 +1,9 @@
 package org.drooms.impl;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -82,6 +84,19 @@ public abstract class GameController implements Game {
         }
     }
 
+    private static char getCharPerNumber(final int number) {
+        if (number >= 0 && number < 10) {
+            // for first 10 players, we have numbers 0 - 9
+            return (char) (48 + number);
+        } else if (number > 9 && number < 36) {
+            // for next 25 players, we have capital letters
+            return (char) (55 + number);
+        } else {
+            throw new IllegalArgumentException("Invalid number of a player: "
+                    + number);
+        }
+    }
+
     private final File reportFolder;
 
     private static final Logger LOGGER = LoggerFactory
@@ -92,8 +107,8 @@ public abstract class GameController implements Game {
     private final String timestamp;
 
     private final Map<Player, Integer> playerPoints = new HashMap<Player, Integer>();
-
     private final Map<URL, ClassLoader> strategyClassloaders = new HashMap<URL, ClassLoader>();
+
     private final Map<String, Strategy> strategyInstances = new HashMap<String, Strategy>();
 
     private final Map<Player, Integer> lengths = new HashMap<Player, Integer>();
@@ -166,7 +181,7 @@ public abstract class GameController implements Game {
                     .loadJar(strategyJar));
             try {
                 final KnowledgeBase kbase = kb.newKnowledgeBase();
-                players.add(new Player(playerName, this
+                players.add(new Player(playerName, GameController
                         .getCharPerNumber(playerNum), kbase));
                 playerNum++;
             } catch (final Exception ex) {
@@ -194,19 +209,6 @@ public abstract class GameController implements Game {
         return moves;
     }
 
-    private char getCharPerNumber(final int number) {
-        if (number >= 0 && number < 10) {
-            // for first 10 players, we have numbers 0 - 9
-            return (char) (48 + number);
-        } else if (number > 9 && number < 36) {
-            // for next 25 players, we have capital letters
-            return (char) (55 + number);
-        } else {
-            throw new IllegalArgumentException("Invalid number of a player: "
-                    + number);
-        }
-    }
-
     protected int getPlayerLength(final Player p) {
         if (!this.lengths.containsKey(p)) {
             throw new IllegalStateException(
@@ -229,6 +231,7 @@ public abstract class GameController implements Game {
 
     private ClassLoader loadJar(final URL strategyJar) {
         if (!this.strategyClassloaders.containsKey(strategyJar)) {
+            @SuppressWarnings("resource")
             final ClassLoader loader = URLClassLoader
                     .newInstance(new URL[] { strategyJar }, this.getClass()
                             .getClassLoader());
@@ -271,9 +274,9 @@ public abstract class GameController implements Game {
             final Properties playerConfig) {
         // prepare the playground
         DefaultPlayground playground;
-        try {
-            playground = DefaultPlayground.read(new File(gameConfig
-                    .getProperty("playground.file")));
+        try (final InputStream fis = new FileInputStream(new File(
+                gameConfig.getProperty("playground.file")))) {
+            playground = DefaultPlayground.read(fis);
         } catch (final IOException e) {
             throw new IllegalArgumentException(
                     "Playground file cannot be read!", e);
