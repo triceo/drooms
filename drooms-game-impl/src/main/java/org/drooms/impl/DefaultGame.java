@@ -42,6 +42,7 @@ public class DefaultGame extends GameController {
         final Properties gameConfig = new Properties();
         final Properties playerConfig = new Properties();
         File reportFolder = null;
+        // play the game
         try (Reader gameConfigFile = new FileReader(args[0]);
                 Reader playerConfigFile = new FileReader(args[1]);
                 FileOutputStream fos = new FileOutputStream(new File(args[2]))) {
@@ -59,18 +60,13 @@ public class DefaultGame extends GameController {
             report = g.play(gameConfig, playerConfig);
         } catch (final IOException e) {
             throw new IllegalStateException("Failed reading config files.", e);
-        } finally {
-            // write the report file
-            if (report == null) {
-                return;
-            }
-            try (Writer w = new FileWriter(new File(reportFolder,
-                    gameConfig.getProperty("report.file", "report.xml")))) {
-                report.write(w);
-            } catch (final IOException e) {
-                throw new IllegalStateException("Failed writing report file.",
-                        e);
-            }
+        }
+        // report
+        try (Writer w = new FileWriter(new File(reportFolder,
+                gameConfig.getProperty("report.file", "report.xml")))) {
+            report.write(w);
+        } catch (final IOException e) {
+            throw new IllegalStateException("Failed writing report file.", e);
         }
     }
 
