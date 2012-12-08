@@ -32,8 +32,9 @@ public class XmlReport implements GameReport {
 
     private int turnNumber = 0;
 
-    public XmlReport(final Playground p, final Properties gameConfig) {
-        this.report.append("<game date=''>");
+    public XmlReport(final Playground p, final Properties gameConfig,
+            final String timestamp) {
+        this.report.append("<game timestamp='" + timestamp + "'>");
         // report game config
         this.report.append("<config>");
         for (final Map.Entry<Object, Object> pair : gameConfig.entrySet()) {

@@ -50,8 +50,8 @@ public class DefaultGame extends GameController {
             playerConfig.load(playerConfigFile);
             // play and report
             final DefaultGame g = new DefaultGame(new File(
-                    gameConfig.getProperty("reports.dir"),
-                    DefaultGame.getTimestamp()));
+                    gameConfig.getProperty("reports.dir")),
+                    DefaultGame.getTimestamp());
             reportFolder = g.getReportFolder();
             if (!reportFolder.exists()) {
                 reportFolder.mkdirs();
@@ -74,8 +74,8 @@ public class DefaultGame extends GameController {
         }
     }
 
-    public DefaultGame(final File reportFolder) {
-        super(reportFolder);
+    public DefaultGame(final File reportFolder, final String timestamp) {
+        super(reportFolder, timestamp);
     }
 
     @Override

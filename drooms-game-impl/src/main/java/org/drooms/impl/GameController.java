@@ -89,6 +89,8 @@ public abstract class GameController implements Game {
 
     protected static final SecureRandom RANDOM = new SecureRandom();
 
+    private final String timestamp;
+
     private final Map<Player, Integer> playerPoints = new HashMap<Player, Integer>();
 
     private final Map<URL, ClassLoader> strategyClassloaders = new HashMap<URL, ClassLoader>();
@@ -104,8 +106,9 @@ public abstract class GameController implements Game {
 
     private final Map<Player, SortedMap<Integer, Move>> decisionRecord = new HashMap<Player, SortedMap<Integer, Move>>();
 
-    protected GameController(final File reportFolder) {
-        this.reportFolder = reportFolder;
+    protected GameController(final File reportFolder, final String timestamp) {
+        this.reportFolder = new File(reportFolder, timestamp);
+        this.timestamp = timestamp;
     }
 
     private void addCollectible(final Collectible c, final Node n) {
@@ -307,8 +310,8 @@ public abstract class GameController implements Game {
         }
         // prepare situation
         final CommandDistributor playerControl = new CommandDistributor(
-                playground, players, new XmlReport(playground, gameConfig),
-                this.getReportFolder(), wormTimeout);
+                playground, players, new XmlReport(playground, gameConfig,
+                        this.timestamp), this.getReportFolder(), wormTimeout);
         final Set<Player> currentPlayers = new HashSet<Player>(players);
         Map<Player, Move> decisions = new HashMap<Player, Move>();
         for (final Player p : currentPlayers) { // initialize players
