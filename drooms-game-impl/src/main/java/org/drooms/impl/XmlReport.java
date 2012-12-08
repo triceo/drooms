@@ -2,6 +2,7 @@ package org.drooms.impl;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -32,6 +33,8 @@ public class XmlReport implements GameReport {
 
     private int turnNumber = 0;
 
+    private final Map<Player, Integer> playerPoints = new HashMap<>();
+
     public XmlReport(final Playground p, final Properties gameConfig,
             final String timestamp) {
         this.report.append("<game timestamp='" + timestamp + "'>");
@@ -57,6 +60,14 @@ public class XmlReport implements GameReport {
         this.report.append("<turns>");
     }
 
+    private void addPoints(final Player p, final int points) {
+        if (this.playerPoints.containsKey(p)) {
+            this.playerPoints.put(p, this.playerPoints.get(p) + points);
+        } else {
+            this.playerPoints.put(p, points);
+        }
+    }
+
     @Override
     public void collectibleAdded(final Collectible c, final Node where) {
         this.report.append("<newCollectible>");
@@ -68,6 +79,7 @@ public class XmlReport implements GameReport {
     @Override
     public void collectibleCollected(final Collectible c, final Player p,
             final int points) {
+        this.addPoints(p, points);
         this.report.append("<collectedCollectible points='" + points + "'>");
         this.report.append(XmlReport.collectibleXml(c));
         this.report.append(XmlReport.playerXml(p));
@@ -116,6 +128,7 @@ public class XmlReport implements GameReport {
 
     @Override
     public void playerSurvived(final Player p, final int points) {
+        this.addPoints(p, points);
         this.report.append("<survivedPlayer points='" + points + "'>");
         this.report.append(XmlReport.playerXml(p));
         this.report.append("</survivedPlayer>");
@@ -128,6 +141,14 @@ public class XmlReport implements GameReport {
             result.append("</turn>");
         }
         result.append("</turns>");
+        result.append("<results>");
+        for (final Map.Entry<Player, Integer> entry : this.playerPoints
+                .entrySet()) {
+            result.append("<score points='" + entry.getValue() + "'>");
+            result.append(XmlReport.playerXml(entry.getKey()));
+            result.append("</score>");
+        }
+        result.append("</results>");
         result.append("</game>");
         w.write(result.toString());
     }
