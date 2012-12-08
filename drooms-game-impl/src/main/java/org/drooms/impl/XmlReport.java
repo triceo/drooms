@@ -50,8 +50,8 @@ public class XmlReport implements GameReport {
         this.report.append("<playground>");
         for (int x = -1; x <= p.getWidth(); x++) {
             for (int y = -1; y <= p.getHeight(); y++) {
-                if (!p.isAvailable(x, y)) {
-                    this.report.append("<wall x='" + x + "' y='" + y + "' />");
+                if (p.isAvailable(x, y)) {
+                    this.report.append(XmlReport.nodeXml(Node.getNode(x, y)));
                 }
             }
         }
