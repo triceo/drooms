@@ -31,11 +31,6 @@ public class GoodCollectible implements Collectible {
     }
 
     @Override
-    public char getSign() {
-        return '$';
-    }
-
-    @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("GoodCollectible [expiresInTurn=")

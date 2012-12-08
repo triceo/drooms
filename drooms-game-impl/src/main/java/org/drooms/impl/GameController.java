@@ -84,19 +84,6 @@ public abstract class GameController implements Game {
         }
     }
 
-    private static char getCharPerNumber(final int number) {
-        if (number >= 0 && number < 10) {
-            // for first 10 players, we have numbers 0 - 9
-            return (char) (48 + number);
-        } else if (number > 9 && number < 36) {
-            // for next 25 players, we have capital letters
-            return (char) (55 + number);
-        } else {
-            throw new IllegalArgumentException("Invalid number of a player: "
-                    + number);
-        }
-    }
-
     private final File reportFolder;
 
     private static final Logger LOGGER = LoggerFactory
@@ -164,7 +151,6 @@ public abstract class GameController implements Game {
         }
         // load strategies for players
         final List<Player> players = new ArrayList<Player>();
-        int playerNum = 0;
         for (final Map.Entry<String, String> entry : playerStrategies
                 .entrySet()) {
             final String playerName = entry.getKey();
@@ -181,9 +167,7 @@ public abstract class GameController implements Game {
                     .loadJar(strategyJar));
             try {
                 final KnowledgeBase kbase = kb.newKnowledgeBase();
-                players.add(new Player(playerName, GameController
-                        .getCharPerNumber(playerNum), kbase));
-                playerNum++;
+                players.add(new Player(playerName, kbase));
             } catch (final Exception ex) {
                 for (final KnowledgeBuilderError error : kb.getErrors()) {
                     GameController.LOGGER.error(error.toString());

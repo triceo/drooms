@@ -16,8 +16,8 @@ import org.drooms.api.Playground;
 public class XmlReport implements GameReport {
 
     private static String collectibleXml(final Collectible c) {
-        return "<collectible type='" + c.getClass().getName() + "' sign='"
-                + c.getSign() + "' points='" + c.getPoints() + "' />";
+        return "<collectible type='" + c.getClass().getName() + "' points='"
+                + c.getPoints() + "' />";
     }
 
     private static String nodeXml(final Node c) {
@@ -25,8 +25,7 @@ public class XmlReport implements GameReport {
     }
 
     private static String playerXml(final Player p) {
-        return "<player name='" + p.getName() + "' sign='" + p.getSign()
-                + "' />";
+        return "<player name='" + p.getName() + "' />";
     }
 
     private final StringBuilder report = new StringBuilder();

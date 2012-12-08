@@ -31,11 +31,6 @@ public class ExtremeCollectible implements Collectible {
     }
 
     @Override
-    public char getSign() {
-        return '*';
-    }
-
-    @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("ExtremeCollectible [expiresInTurn=")

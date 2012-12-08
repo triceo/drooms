@@ -4,15 +4,12 @@ import org.drools.KnowledgeBase;
 
 public class Player {
 
-    private final char sign;
     private final String name;
     private final KnowledgeBase kbase;
 
-    public Player(final String name, final char sign,
-            final KnowledgeBase knowledgeBase) {
+    public Player(final String name, final KnowledgeBase knowledgeBase) {
         this.name = name;
         this.kbase = knowledgeBase;
-        this.sign = sign;
     }
 
     @Override
@@ -43,10 +40,6 @@ public class Player {
 
     public String getName() {
         return this.name;
-    }
-
-    public char getSign() {
-        return this.sign;
     }
 
     @Override

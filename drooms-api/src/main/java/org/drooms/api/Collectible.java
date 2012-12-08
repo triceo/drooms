@@ -8,6 +8,4 @@ public interface Collectible {
 
     public int getPoints();
 
-    public char getSign();
-
 }
