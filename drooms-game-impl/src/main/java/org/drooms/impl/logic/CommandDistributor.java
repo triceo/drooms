@@ -76,7 +76,8 @@ public class CommandDistributor {
                 .retrieveValidCommands(stateChanges);
         CommandDistributor.LOGGER
                 .info("Changing state before the decision making can start.");
-        final Map<Player, Deque<Node>> positions = new HashMap<>();
+        final Map<Player, Deque<Node>> positions = this
+                .retrieveNewPlayerPositions(commands);
         for (final Command<DefaultPlayground> change : commands) {
             // notify all players of the change in state
             for (final DecisionMaker player : this.players.values()) {
@@ -95,11 +96,6 @@ public class CommandDistributor {
                     this.collectibles.remove(((CollectibleRelated) change)
                             .getCollectible());
                 }
-            }
-            if (change instanceof MovePlayerCommand) { // update paths in the
-                                                       // WMs
-                final MovePlayerCommand cmd = (MovePlayerCommand) change;
-                positions.put(cmd.getPlayer(), cmd.getNodes());
             }
         }
         CommandDistributor.LOGGER
@@ -132,6 +128,18 @@ public class CommandDistributor {
 
     public boolean hasPlayer(final Player p) {
         return this.players.containsKey(p);
+    }
+
+    private Map<Player, Deque<Node>> retrieveNewPlayerPositions(
+            final List<Command<DefaultPlayground>> commands) {
+        final Map<Player, Deque<Node>> positions = new HashMap<>();
+        for (final Command<DefaultPlayground> command : commands) {
+            if (command instanceof MovePlayerCommand) {
+                final MovePlayerCommand cmd = (MovePlayerCommand) command;
+                positions.put(cmd.getPlayer(), cmd.getNodes());
+            }
+        }
+        return Collections.unmodifiableMap(positions);
     }
 
     private Set<Player> retrievePlayersToRemove(
