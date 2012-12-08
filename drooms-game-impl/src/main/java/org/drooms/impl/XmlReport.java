@@ -2,12 +2,15 @@ package org.drooms.impl;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Map;
+import java.util.Properties;
 
 import org.drooms.api.Collectible;
 import org.drooms.api.GameReport;
 import org.drooms.api.Move;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
+import org.drooms.api.Playground;
 
 public class XmlReport implements GameReport {
 
@@ -29,8 +32,16 @@ public class XmlReport implements GameReport {
 
     private int turnNumber = 0;
 
-    public XmlReport() {
+    public XmlReport(final Playground p, final Properties gameConfig) {
         this.report.append("<game date=''>");
+        this.report.append("<config>");
+        for (final Map.Entry<Object, Object> pair : gameConfig.entrySet()) {
+            final String key = (String) pair.getKey();
+            final String value = (String) pair.getValue();
+            this.report.append("<property name='" + key + "' value='" + value
+                    + "' />");
+        }
+        this.report.append("</config>");
         this.report.append("<turns>");
     }
 

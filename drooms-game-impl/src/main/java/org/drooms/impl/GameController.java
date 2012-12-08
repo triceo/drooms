@@ -307,8 +307,8 @@ public abstract class GameController implements Game {
         }
         // prepare situation
         final CommandDistributor playerControl = new CommandDistributor(
-                playground, players, new XmlReport(), this.getReportFolder(),
-                wormTimeout);
+                playground, players, new XmlReport(playground, gameConfig),
+                this.getReportFolder(), wormTimeout);
         final Set<Player> currentPlayers = new HashSet<Player>(players);
         Map<Player, Move> decisions = new HashMap<Player, Move>();
         for (final Player p : currentPlayers) { // initialize players
