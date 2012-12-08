@@ -10,7 +10,8 @@ import org.drooms.impl.logic.events.PlayerDeathEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DeactivatePlayerCommand implements Command<DefaultPlayground>, PlayerRelated {
+public class DeactivatePlayerCommand implements Command<DefaultPlayground>,
+        PlayerRelated {
 
     private static final Logger LOGGER = LoggerFactory
             .getLogger(DeactivatePlayerCommand.class);
@@ -21,6 +22,10 @@ public class DeactivatePlayerCommand implements Command<DefaultPlayground>, Play
     public DeactivatePlayerCommand(final Player p) {
         this.toDie = p;
         this.event = new PlayerDeathEvent(p);
+    }
+
+    protected PlayerDeathEvent getEvent() {
+        return this.event;
     }
 
     @Override
@@ -35,7 +40,7 @@ public class DeactivatePlayerCommand implements Command<DefaultPlayground>, Play
 
     @Override
     public void perform(final DecisionMaker logic) {
-        logic.notifyOfDeath(this.event);
+        logic.notifyOfDeath(this.getEvent());
         if (logic.getPlayer() == this.toDie) {
             logic.terminate();
         }

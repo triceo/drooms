@@ -11,9 +11,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.drooms.api.Collectible;
-import org.drooms.api.Node;
 import org.drooms.api.GameReport;
 import org.drooms.api.Move;
+import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.impl.DefaultPlayground;
 import org.drooms.impl.logic.commands.AddCollectibleCommand;
@@ -55,11 +55,9 @@ public class CommandDistributor {
             MovePlayerCommand.class, RemoveCollectibleCommand.class,
             RewardSurvivalCommand.class };
 
-    public CommandDistributor(
-            final DefaultPlayground playground,
+    public CommandDistributor(final DefaultPlayground playground,
             final List<Player> players,
-            final GameReport<DefaultPlayground> report,
-            final File reportFolder) {
+            final GameReport<DefaultPlayground> report, final File reportFolder) {
         for (final Player player : players) {
             final PathTracker<DefaultPlayground> tracker = new PathTracker<>(
                     playground, player);
@@ -97,12 +95,9 @@ public class CommandDistributor {
              * update internal representation of the state so that command
              * validation remains functional.
              */
-            if (change instanceof PlayerRelated) {
+            if (change instanceof DeactivatePlayerCommand) {
                 // player being removed from the game
-                if (change instanceof CrashPlayerCommand
-                        || change instanceof DeactivatePlayerCommand) {
-                    this.players.remove(((PlayerRelated) change).getPlayer());
-                }
+                this.players.remove(((PlayerRelated) change).getPlayer());
             }
             if (change instanceof CollectibleRelated) {
                 if (change instanceof AddCollectibleCommand) {
