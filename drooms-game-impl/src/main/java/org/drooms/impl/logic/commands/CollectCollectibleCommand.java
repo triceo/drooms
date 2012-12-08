@@ -5,7 +5,6 @@ import org.drooms.api.GameReport;
 import org.drooms.api.Player;
 import org.drooms.impl.DefaultPlayground;
 import org.drooms.impl.logic.CollectibleRelated;
-import org.drooms.impl.logic.CommandDistributor;
 import org.drooms.impl.logic.DecisionMaker;
 import org.drooms.impl.logic.PlayerRelated;
 import org.drooms.impl.logic.RewardRelated;
@@ -13,7 +12,8 @@ import org.drooms.impl.logic.events.CollectibleRewardEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CollectCollectibleCommand implements Command<DefaultPlayground>, PlayerRelated, CollectibleRelated, RewardRelated {
+public class CollectCollectibleCommand implements Command<DefaultPlayground>,
+        PlayerRelated, CollectibleRelated, RewardRelated {
 
     private static final Logger LOGGER = LoggerFactory
             .getLogger(CollectCollectibleCommand.class);
@@ -44,19 +44,14 @@ public class CollectCollectibleCommand implements Command<DefaultPlayground>, Pl
     }
 
     @Override
-    public boolean isValid(final CommandDistributor controller) {
-        return controller.hasCollectible(this.toCollect)
-                && controller.hasPlayer(this.toReward);
-    }
-
-    @Override
     public void perform(final DecisionMaker logic) {
         logic.notifyOfCollectibleReward(this.event);
     }
 
     @Override
     public void report(final GameReport<DefaultPlayground> report) {
-        report.collectibleCollected(this.getCollectible(), this.getPlayer(), this.getPoints());
+        report.collectibleCollected(this.getCollectible(), this.getPlayer(),
+                this.getPoints());
         CollectCollectibleCommand.LOGGER.info(
                 "Collectible {} collected by player {}.", this.toCollect,
                 this.toReward);

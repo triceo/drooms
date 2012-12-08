@@ -3,7 +3,6 @@ package org.drooms.impl.logic.commands;
 import org.drooms.api.GameReport;
 import org.drooms.api.Player;
 import org.drooms.impl.DefaultPlayground;
-import org.drooms.impl.logic.CommandDistributor;
 import org.drooms.impl.logic.DecisionMaker;
 import org.drooms.impl.logic.PlayerRelated;
 import org.drooms.impl.logic.events.PlayerDeathEvent;
@@ -31,11 +30,6 @@ public class DeactivatePlayerCommand implements Command<DefaultPlayground>,
     @Override
     public Player getPlayer() {
         return this.toDie;
-    }
-
-    @Override
-    public boolean isValid(final CommandDistributor controller) {
-        return controller.hasPlayer(this.toDie);
     }
 
     @Override

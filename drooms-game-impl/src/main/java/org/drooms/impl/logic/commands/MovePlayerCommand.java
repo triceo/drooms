@@ -2,19 +2,19 @@ package org.drooms.impl.logic.commands;
 
 import java.util.Deque;
 
-import org.drooms.api.Node;
 import org.drooms.api.GameReport;
 import org.drooms.api.Move;
+import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.impl.DefaultPlayground;
-import org.drooms.impl.logic.CommandDistributor;
 import org.drooms.impl.logic.DecisionMaker;
 import org.drooms.impl.logic.PlayerRelated;
 import org.drooms.impl.logic.events.PlayerMoveEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MovePlayerCommand implements Command<DefaultPlayground>, PlayerRelated {
+public class MovePlayerCommand implements Command<DefaultPlayground>,
+        PlayerRelated {
 
     private static final Logger LOGGER = LoggerFactory
             .getLogger(MovePlayerCommand.class);
@@ -32,19 +32,13 @@ public class MovePlayerCommand implements Command<DefaultPlayground>, PlayerRela
         this.event = new PlayerMoveEvent<Node>(p, m, nodes);
     }
 
-    @Override
-    public Player getPlayer() {
-        return this.toMove;
-    }
-    
     public Deque<Node> getNodes() {
         return this.nodes;
     }
 
     @Override
-    public boolean isValid(final CommandDistributor controller) {
-        // FIXME add node validation
-        return controller.hasPlayer(this.toMove);
+    public Player getPlayer() {
+        return this.toMove;
     }
 
     @Override
@@ -54,7 +48,8 @@ public class MovePlayerCommand implements Command<DefaultPlayground>, PlayerRela
 
     @Override
     public void report(final GameReport<DefaultPlayground> report) {
-        report.playerMoved(this.toMove, this.whichMove, this.nodes.toArray(new Node[] {}));
+        report.playerMoved(this.toMove, this.whichMove,
+                this.nodes.toArray(new Node[] {}));
         MovePlayerCommand.LOGGER.info(
                 "Player {}'s move is {}, new position is {}.", new Object[] {
                         this.toMove.getName(), this.whichMove, this.nodes });
