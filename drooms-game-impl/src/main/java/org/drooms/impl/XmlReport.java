@@ -31,6 +31,7 @@ public class XmlReport implements GameReport {
 
     public XmlReport() {
         this.report.append("<game date=''>");
+        this.report.append("<turns>");
     }
 
     @Override
@@ -103,6 +104,7 @@ public class XmlReport implements GameReport {
         if (this.turnNumber > 0) {
             result.append("</turn>");
         }
+        result.append("</turns>");
         result.append("</game>");
         w.write(result.toString());
     }
