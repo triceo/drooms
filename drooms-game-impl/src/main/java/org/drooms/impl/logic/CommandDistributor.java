@@ -45,35 +45,45 @@ public class CommandDistributor {
 
     public Map<Player, Move> execute(
             final List<Command<DefaultPlayground>> commands) {
-        this.report.nextTurn();
         CommandDistributor.LOGGER
-                .info("Changing state before the decision making can start.");
+                .info("First reporting what happens in this turn.");
+        this.report.nextTurn();
+        for (final Command<DefaultPlayground> command : commands) {
+            command.report(this.report);
+        }
+        CommandDistributor.LOGGER
+                .info("Now passing these changes to players.");
         final Map<Player, Deque<Node>> positions = this
                 .retrieveNewPlayerPositions(commands);
-        for (final Command<DefaultPlayground> change : commands) {
-            // notify all players of the change in state
-            for (final DecisionMaker player : this.players.values()) {
-                change.perform(player);
-            }
-            change.report(this.report);
-        }
-        CommandDistributor.LOGGER
-                .debug("Removing dead players before decision-making.");
-        for (final Player p : this.retrievePlayersToRemove(commands)) {
-            final DecisionMaker dm = this.players.remove(p);
-            dm.terminate();
-        }
-        // determine the movements of players
-        CommandDistributor.LOGGER.info("Asking players to decide.");
+        final Set<Player> playersToRemove = this
+                .retrievePlayersToRemove(commands);
         final Map<Player, Move> moves = new HashMap<Player, Move>();
         for (final Map.Entry<Player, DecisionMaker> entry : this.players
                 .entrySet()) {
-            this.trackers.get(entry.getKey()).movePlayers(positions);
-            final Move decision = entry.getValue().decideNextMove();
             final Player player = entry.getKey();
-            moves.put(player, decision);
+            final DecisionMaker playerLogic = entry.getValue();
+            CommandDistributor.LOGGER.debug("Processing player {}.",
+                    player.getName());
+            for (final Command<DefaultPlayground> command : commands) {
+                command.perform(playerLogic);
+            }
+            if (!playersToRemove.contains(player)) {
+                this.trackers.get(player).movePlayers(positions);
+                CommandDistributor.LOGGER.debug(
+                        "Asking player {} to decide on the next move.",
+                        player.getName());
+                moves.put(player, playerLogic.decideNextMove());
+            }
+            CommandDistributor.LOGGER.debug("Player {} processed.",
+                    player.getName());
         }
-        CommandDistributor.LOGGER.info("All players have decided.");
+        // purge dead players
+        for (final Player p : playersToRemove) {
+            final DecisionMaker dm = this.players.remove(p);
+            dm.terminate();
+            this.trackers.remove(p);
+        }
+        CommandDistributor.LOGGER.info("Turn processed completely.");
         return Collections.unmodifiableMap(moves);
     }
 
