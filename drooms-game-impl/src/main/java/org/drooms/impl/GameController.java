@@ -285,6 +285,8 @@ public abstract class GameController implements Game {
                 "worm.length.start", "1"));
         final int allowedInactiveTurns = Integer.valueOf(gameConfig
                 .getProperty("worm.max.inactive.turns", "3"));
+        final int allowedTurns = Integer.valueOf(gameConfig.getProperty(
+                "worm.max.turns", "1000"));
         final int wormSurvivalBonus = Integer.valueOf(gameConfig.getProperty(
                 "worm.survival.bonus", "1"));
         final int wormTimeout = Integer.valueOf(gameConfig.getProperty(
@@ -382,7 +384,17 @@ public abstract class GameController implements Game {
             // make the move decision
             decisions = playerControl.execute(commands);
             turnNumber++;
-        } while (currentPlayers.size() > 1);
+            if (turnNumber == allowedTurns) {
+                GameController.LOGGER
+                        .info("Reached a pre-defined limit of {} turns. Terminating game.",
+                                allowedTurns);
+                break;
+            } else if (currentPlayers.size() < 2) {
+                GameController.LOGGER
+                        .info("There are no more players. Terminating game.");
+                break;
+            }
+        } while (true);
         playerControl.terminate(); // clean up all the sessions
         // output player status
         GameController.LOGGER.info("--- Game over.");
