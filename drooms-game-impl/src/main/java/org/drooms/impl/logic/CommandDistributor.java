@@ -6,6 +6,7 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -74,18 +75,8 @@ public class CommandDistributor {
         CommandDistributor.LOGGER
                 .info("Changing state before the decision making can start.");
         final Map<Player, Deque<Node>> positions = new HashMap<>();
-        for (final Command<DefaultPlayground> change : stateChanges) {
-            if (!CommandDistributor.isCommandSupported(change)) {
-                CommandDistributor.LOGGER.warn(
-                        "Command not supported and will not be executed: {}.",
-                        change);
-                continue;
-            } else if (!change.isValid(this)) {
-                CommandDistributor.LOGGER
-                        .warn("Command not valid in this context and will not be executed: {}.",
-                                change);
-                continue;
-            }
+        for (final Command<DefaultPlayground> change : this
+                .retrieveValidCommands(stateChanges)) {
             // notify all players of the change in state
             for (final DecisionMaker player : this.players.values()) {
                 change.perform(player);
@@ -139,6 +130,26 @@ public class CommandDistributor {
 
     public boolean hasPlayer(final Player p) {
         return this.players.containsKey(p);
+    }
+
+    private List<Command<DefaultPlayground>> retrieveValidCommands(
+            final List<Command<DefaultPlayground>> commands) {
+        final List<Command<DefaultPlayground>> validCommands = new LinkedList<>();
+        for (final Command<DefaultPlayground> command : commands) {
+            if (!CommandDistributor.isCommandSupported(command)) {
+                CommandDistributor.LOGGER.warn(
+                        "Command not supported and will not be executed: {}.",
+                        command);
+                continue;
+            } else if (!command.isValid(this)) {
+                CommandDistributor.LOGGER
+                        .warn("Command not valid in this context and will not be executed: {}.",
+                                command);
+                continue;
+            }
+            validCommands.add(command);
+        }
+        return Collections.unmodifiableList(validCommands);
     }
 
     public void terminate() {
