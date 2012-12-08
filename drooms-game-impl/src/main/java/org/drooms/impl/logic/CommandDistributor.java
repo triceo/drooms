@@ -41,13 +41,9 @@ public class CommandDistributor {
 
         @Override
         public Move call() throws Exception {
-            final Player player = this.playerLogic.getPlayer();
             for (final Command<DefaultPlayground> command : this.commands) {
                 command.perform(this.playerLogic);
             }
-            CommandDistributor.LOGGER.debug(
-                    "Asking player {} to decide on the next move.",
-                    player.getName());
             return this.playerLogic.decideNextMove();
         }
 
@@ -102,9 +98,9 @@ public class CommandDistributor {
             this.trackers.get(player).movePlayers(positions);
             CommandDistributor.LOGGER.debug("Processing player {}.",
                     player.getName());
-            // begin the time-box for a player strategy
             final DecisionMakerUnit dmu = new DecisionMakerUnit(playerLogic,
                     commands);
+            // begin the time-box for a player strategy
             final Future<Move> move = this.e.submit(dmu);
             try {
                 moves.put(player,
