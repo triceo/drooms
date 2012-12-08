@@ -1,7 +1,6 @@
 package org.drooms.impl;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -44,8 +43,7 @@ public class DefaultGame extends GameController {
         File reportFolder = null;
         // play the game
         try (Reader gameConfigFile = new FileReader(args[0]);
-                Reader playerConfigFile = new FileReader(args[1]);
-                FileOutputStream fos = new FileOutputStream(new File(args[2]))) {
+                Reader playerConfigFile = new FileReader(args[1])) {
             // prepare configs
             gameConfig.load(gameConfigFile);
             playerConfig.load(playerConfigFile);
