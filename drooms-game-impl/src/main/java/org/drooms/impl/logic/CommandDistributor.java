@@ -9,6 +9,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.drooms.api.GameReport;
 import org.drooms.api.Move;
@@ -23,16 +28,45 @@ import org.slf4j.LoggerFactory;
 
 public class CommandDistributor {
 
+    private static class DecisionMakerUnit implements Callable<Move> {
+
+        private final DecisionMaker playerLogic;
+        private final List<Command<DefaultPlayground>> commands;
+
+        public DecisionMakerUnit(final DecisionMaker m,
+                final List<Command<DefaultPlayground>> commands) {
+            this.playerLogic = m;
+            this.commands = commands;
+        }
+
+        @Override
+        public Move call() throws Exception {
+            final Player player = this.playerLogic.getPlayer();
+            for (final Command<DefaultPlayground> command : this.commands) {
+                command.perform(this.playerLogic);
+            }
+            CommandDistributor.LOGGER.debug(
+                    "Asking player {} to decide on the next move.",
+                    player.getName());
+            return this.playerLogic.decideNextMove();
+        }
+
+    }
+
     private static final Logger LOGGER = LoggerFactory
             .getLogger(CommandDistributor.class);
-
     private final Map<Player, DecisionMaker> players = new LinkedHashMap<>();
     private final Map<Player, PathTracker<DefaultPlayground>> trackers = new LinkedHashMap<>();
+
     private final GameReport<DefaultPlayground> report;
+    private final int playerTimeoutInSeconds;
+
+    private final ExecutorService e = Executors.newFixedThreadPool(1);
 
     public CommandDistributor(final DefaultPlayground playground,
             final List<Player> players,
-            final GameReport<DefaultPlayground> report, final File reportFolder) {
+            final GameReport<DefaultPlayground> report,
+            final File reportFolder, final int playerTimeoutInSeconds) {
         for (final Player player : players) {
             final PathTracker<DefaultPlayground> tracker = new PathTracker<>(
                     playground, player);
@@ -41,6 +75,7 @@ public class CommandDistributor {
                     reportFolder));
         }
         this.report = report;
+        this.playerTimeoutInSeconds = playerTimeoutInSeconds;
     }
 
     public Map<Player, Move> execute(
@@ -51,8 +86,7 @@ public class CommandDistributor {
         for (final Command<DefaultPlayground> command : commands) {
             command.report(this.report);
         }
-        CommandDistributor.LOGGER
-                .info("Now passing these changes to players.");
+        CommandDistributor.LOGGER.info("Now passing these changes to players.");
         final Map<Player, Deque<Node>> positions = this
                 .retrieveNewPlayerPositions(commands);
         final Set<Player> playersToRemove = this
@@ -61,24 +95,34 @@ public class CommandDistributor {
         for (final Map.Entry<Player, DecisionMaker> entry : this.players
                 .entrySet()) {
             final Player player = entry.getKey();
+            if (playersToRemove.contains(player)) {
+                continue;
+            }
             final DecisionMaker playerLogic = entry.getValue();
+            this.trackers.get(player).movePlayers(positions);
             CommandDistributor.LOGGER.debug("Processing player {}.",
                     player.getName());
-            for (final Command<DefaultPlayground> command : commands) {
-                command.perform(playerLogic);
+            // begin the time-box for a player strategy
+            final DecisionMakerUnit dmu = new DecisionMakerUnit(playerLogic,
+                    commands);
+            final Future<Move> move = this.e.submit(dmu);
+            try {
+                moves.put(player,
+                        move.get(this.playerTimeoutInSeconds, TimeUnit.SECONDS));
+            } catch (final Exception e) {
+                CommandDistributor.LOGGER
+                        .warn("Player {}, didn't reach a decision in time, STAY forced.",
+                                player.getName(), e);
+                move.cancel(true);
+                moves.put(player, Move.STAY);
             }
-            if (!playersToRemove.contains(player)) {
-                this.trackers.get(player).movePlayers(positions);
-                CommandDistributor.LOGGER.debug(
-                        "Asking player {} to decide on the next move.",
-                        player.getName());
-                moves.put(player, playerLogic.decideNextMove());
-            }
+            // end the time-box for a player strategy
             CommandDistributor.LOGGER.debug("Player {} processed.",
                     player.getName());
         }
         // purge dead players
         for (final Player p : playersToRemove) {
+            CommandDistributor.LOGGER.debug("Removing player {}.", p.getName());
             final DecisionMaker dm = this.players.remove(p);
             dm.terminate();
             this.trackers.remove(p);
@@ -120,6 +164,7 @@ public class CommandDistributor {
                 .entrySet()) {
             entry.getValue().terminate();
         }
+        this.e.shutdownNow();
     }
 
 }

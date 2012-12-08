@@ -284,6 +284,8 @@ public abstract class GameController implements Game<DefaultPlayground> {
                 .getProperty("worm.max.inactive.turns", "3"));
         final int wormSurvivalBonus = Integer.valueOf(gameConfig.getProperty(
                 "worm.survival.bonus", "1"));
+        final int wormTimeout = Integer.valueOf(gameConfig.getProperty(
+                "worm.timeout.seconds", "1"));
         // prepare starting positions
         final List<Node> startingPositions = playground.getStartingPositions();
         final int playersSupported = startingPositions.size();
@@ -305,7 +307,8 @@ public abstract class GameController implements Game<DefaultPlayground> {
         }
         // prepare situation
         final CommandDistributor playerControl = new CommandDistributor(
-                playground, players, new XmlReport(), this.getReportFolder());
+                playground, players, new XmlReport(), this.getReportFolder(),
+                wormTimeout);
         final Set<Player> currentPlayers = new HashSet<Player>(players);
         Map<Player, Move> decisions = new HashMap<Player, Move>();
         for (final Player p : currentPlayers) { // initialize players
