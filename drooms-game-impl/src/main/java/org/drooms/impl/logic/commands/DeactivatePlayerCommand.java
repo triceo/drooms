@@ -41,9 +41,6 @@ public class DeactivatePlayerCommand implements Command<DefaultPlayground>,
     @Override
     public void perform(final DecisionMaker logic) {
         logic.notifyOfDeath(this.getEvent());
-        if (logic.getPlayer() == this.toDie) {
-            logic.terminate();
-        }
     }
 
     @Override

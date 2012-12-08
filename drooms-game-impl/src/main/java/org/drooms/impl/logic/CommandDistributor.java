@@ -72,11 +72,12 @@ public class CommandDistributor {
     public Map<Player, Move> execute(
             final List<Command<DefaultPlayground>> stateChanges) {
         this.report.nextTurn();
+        final List<Command<DefaultPlayground>> commands = this
+                .retrieveValidCommands(stateChanges);
         CommandDistributor.LOGGER
                 .info("Changing state before the decision making can start.");
         final Map<Player, Deque<Node>> positions = new HashMap<>();
-        for (final Command<DefaultPlayground> change : this
-                .retrieveValidCommands(stateChanges)) {
+        for (final Command<DefaultPlayground> change : commands) {
             // notify all players of the change in state
             for (final DecisionMaker player : this.players.values()) {
                 change.perform(player);
@@ -86,10 +87,6 @@ public class CommandDistributor {
              * update internal representation of the state so that command
              * validation remains functional.
              */
-            if (change instanceof DeactivatePlayerCommand) {
-                // player being removed from the game
-                this.players.remove(((PlayerRelated) change).getPlayer());
-            }
             if (change instanceof CollectibleRelated) {
                 if (change instanceof AddCollectibleCommand) {
                     this.collectibles.add(((CollectibleRelated) change)
@@ -105,9 +102,14 @@ public class CommandDistributor {
                 positions.put(cmd.getPlayer(), cmd.getNodes());
             }
         }
-        // make sure that the path-querying information is up-to-date
-        CommandDistributor.LOGGER.info("Asking players to decide.");
+        CommandDistributor.LOGGER
+                .debug("Removing dead players before decision-making.");
+        for (final Player p : this.retrievePlayersToRemove(commands)) {
+            final DecisionMaker dm = this.players.remove(p);
+            dm.terminate();
+        }
         // determine the movements of players
+        CommandDistributor.LOGGER.info("Asking players to decide.");
         final Map<Player, Move> moves = new HashMap<Player, Move>();
         for (final Map.Entry<Player, DecisionMaker> entry : this.players
                 .entrySet()) {
@@ -130,6 +132,18 @@ public class CommandDistributor {
 
     public boolean hasPlayer(final Player p) {
         return this.players.containsKey(p);
+    }
+
+    private Set<Player> retrievePlayersToRemove(
+            final List<Command<DefaultPlayground>> commands) {
+        final Set<Player> players = new HashSet<>();
+        for (final Command<DefaultPlayground> command : commands) {
+            if (command instanceof DeactivatePlayerCommand) {
+                // player being removed from the game
+                players.add(((PlayerRelated) command).getPlayer());
+            }
+        }
+        return Collections.unmodifiableSet(players);
     }
 
     private List<Command<DefaultPlayground>> retrieveValidCommands(
