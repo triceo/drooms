@@ -34,6 +34,7 @@ public class XmlReport implements GameReport {
 
     public XmlReport(final Playground p, final Properties gameConfig) {
         this.report.append("<game date=''>");
+        // report game config
         this.report.append("<config>");
         for (final Map.Entry<Object, Object> pair : gameConfig.entrySet()) {
             final String key = (String) pair.getKey();
@@ -42,6 +43,16 @@ public class XmlReport implements GameReport {
                     + "' />");
         }
         this.report.append("</config>");
+        // report playground
+        this.report.append("<playground>");
+        for (int x = -1; x <= p.getWidth(); x++) {
+            for (int y = -1; y <= p.getHeight(); y++) {
+                if (!p.isAvailable(x, y)) {
+                    this.report.append("<wall x='" + x + "' y='" + y + "' />");
+                }
+            }
+        }
+        this.report.append("</playground>");
         this.report.append("<turns>");
     }
 
