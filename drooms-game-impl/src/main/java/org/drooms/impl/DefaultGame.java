@@ -239,7 +239,7 @@ public class DefaultGame extends GameController {
         for (int x = 0; x < p.getWidth(); x++) {
             for (int y = 0; y < p.getHeight(); y++) {
                 if (p.isAvailable(x, y)) {
-                    nodes.add(p.getNode(x, y));
+                    nodes.add(Node.getNode(x, y));
                 }
             }
         }

@@ -10,8 +10,6 @@ public interface Playground {
 
     public int getHeight();
 
-    public Node getNode(int x, int y);
-
     public List<Node> getStartingPositions();
 
     public int getWidth();

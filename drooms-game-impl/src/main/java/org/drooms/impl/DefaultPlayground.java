@@ -119,16 +119,7 @@ public class DefaultPlayground implements Playground {
         return this.nodeLocations.size();
     }
 
-    @Override
-    public Node getNode(final int x, final int y) {
-        if (!this.isAvailable(x, y)) {
-            throw new IllegalStateException("No node with coordinates [" + x
-                    + "," + y + "].");
-        }
-        return this.nodeLocations.get(y)[x];
-    }
-
-    private Node getNodeInternal(final int x, final int y) {
+    private Node getNode(final int x, final int y) {
         if (y < 0 || y >= this.nodeLocations.size()) {
             throw new IllegalArgumentException(
                     "There are no nodes with coordinates [x, " + y + "]");
@@ -157,7 +148,7 @@ public class DefaultPlayground implements Playground {
     @Override
     public boolean isAvailable(final int x, final int y) {
         try {
-            return (this.getNodeInternal(x, y) == DefaultPlayground.WALL_NODE) ? false
+            return (this.getNode(x, y) == DefaultPlayground.WALL_NODE) ? false
                     : true;
         } catch (final IllegalArgumentException ex) {
             return false;
@@ -166,14 +157,11 @@ public class DefaultPlayground implements Playground {
 
     private Edge link(final int x, final int y, final int otherX,
             final int otherY) {
-        final Node node1 = this.getNodeInternal(x, y);
-        if (node1 == DefaultPlayground.WALL_NODE) {
+        if (!this.isAvailable(x, y) || !this.isAvailable(otherX, otherY)) {
             return null;
         }
-        final Node node2 = this.getNodeInternal(otherX, otherY);
-        if (node2 == DefaultPlayground.WALL_NODE) {
-            return null;
-        }
+        final Node node1 = this.getNode(x, y);
+        final Node node2 = this.getNode(otherX, otherY);
         Edge e = this.graph.findEdge(node1, node2);
         if (e == null) {
             e = new Edge(node1, node2);
