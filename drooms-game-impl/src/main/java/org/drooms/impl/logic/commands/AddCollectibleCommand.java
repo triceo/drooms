@@ -3,15 +3,13 @@ package org.drooms.impl.logic.commands;
 import org.drooms.api.Collectible;
 import org.drooms.api.GameReport;
 import org.drooms.api.Node;
-import org.drooms.impl.DefaultPlayground;
 import org.drooms.impl.logic.CollectibleRelated;
 import org.drooms.impl.logic.DecisionMaker;
 import org.drooms.impl.logic.events.CollectibleAdditionEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class AddCollectibleCommand implements Command<DefaultPlayground>,
-        CollectibleRelated {
+public class AddCollectibleCommand implements Command, CollectibleRelated {
 
     private final static Logger LOGGER = LoggerFactory
             .getLogger(AddCollectibleCommand.class);
@@ -37,7 +35,7 @@ public class AddCollectibleCommand implements Command<DefaultPlayground>,
     }
 
     @Override
-    public void report(final GameReport<DefaultPlayground> report) {
+    public void report(final GameReport report) {
         report.collectibleAdded(this.toAdd, this.whereToAdd);
         AddCollectibleCommand.LOGGER.info("Collectible {} added at [{},{}].",
                 new Object[] { this.toAdd, this.whereToAdd.getX(),

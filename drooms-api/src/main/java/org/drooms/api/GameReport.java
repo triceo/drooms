@@ -9,7 +9,7 @@ import java.io.Writer;
  * @param <P>
  *            Type of playground on which the game is happening.
  */
-public interface GameReport<P extends Playground> {
+public interface GameReport {
 
     public void collectibleAdded(Collectible c, Node where);
 

@@ -42,7 +42,7 @@ import org.drooms.impl.logic.commands.RewardSurvivalCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class GameController implements Game<DefaultPlayground> {
+public abstract class GameController implements Game {
 
     protected enum CollectibleType {
 
@@ -264,7 +264,7 @@ public abstract class GameController implements Game<DefaultPlayground> {
             final Move decision);
 
     @Override
-    public GameReport<DefaultPlayground> play(final Properties gameConfig,
+    public GameReport play(final Properties gameConfig,
             final Properties playerConfig) {
         // prepare the playground
         DefaultPlayground playground;
@@ -318,7 +318,7 @@ public abstract class GameController implements Game<DefaultPlayground> {
         int turnNumber = 0;
         do {
             GameController.LOGGER.info("--- Starting turn no. {}.", turnNumber);
-            final List<Command<DefaultPlayground>> commands = new LinkedList<>();
+            final List<Command> commands = new LinkedList<>();
             // remove inactive worms
             for (final Player player : this.performInactivityDetection(
                     currentPlayers, turnNumber, allowedInactiveTurns)) {

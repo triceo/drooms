@@ -31,17 +31,16 @@ public class CommandDistributor {
     private static class DecisionMakerUnit implements Callable<Move> {
 
         private final DecisionMaker playerLogic;
-        private final List<Command<DefaultPlayground>> commands;
+        private final List<Command> commands;
 
-        public DecisionMakerUnit(final DecisionMaker m,
-                final List<Command<DefaultPlayground>> commands) {
+        public DecisionMakerUnit(final DecisionMaker m, final List<Command> commands) {
             this.playerLogic = m;
             this.commands = commands;
         }
 
         @Override
         public Move call() throws Exception {
-            for (final Command<DefaultPlayground> command : this.commands) {
+            for (final Command command : this.commands) {
                 command.perform(this.playerLogic);
             }
             return this.playerLogic.decideNextMove();
@@ -54,15 +53,13 @@ public class CommandDistributor {
     private final Map<Player, DecisionMaker> players = new LinkedHashMap<>();
     private final Map<Player, PathTracker<DefaultPlayground>> trackers = new LinkedHashMap<>();
 
-    private final GameReport<DefaultPlayground> report;
+    private final GameReport report;
     private final int playerTimeoutInSeconds;
 
     private final ExecutorService e = Executors.newFixedThreadPool(1);
 
     public CommandDistributor(final DefaultPlayground playground,
-            final List<Player> players,
-            final GameReport<DefaultPlayground> report,
-            final File reportFolder, final int playerTimeoutInSeconds) {
+            final List<Player> players, final GameReport report, final File reportFolder, final int playerTimeoutInSeconds) {
         for (final Player player : players) {
             final PathTracker<DefaultPlayground> tracker = new PathTracker<>(
                     playground, player);
@@ -75,11 +72,11 @@ public class CommandDistributor {
     }
 
     public Map<Player, Move> execute(
-            final List<Command<DefaultPlayground>> commands) {
+            final List<Command> commands) {
         CommandDistributor.LOGGER
                 .info("First reporting what happens in this turn.");
         this.report.nextTurn();
-        for (final Command<DefaultPlayground> command : commands) {
+        for (final Command command : commands) {
             command.report(this.report);
         }
         CommandDistributor.LOGGER.info("Now passing these changes to players.");
@@ -127,14 +124,14 @@ public class CommandDistributor {
         return Collections.unmodifiableMap(moves);
     }
 
-    public GameReport<DefaultPlayground> getReport() {
+    public GameReport getReport() {
         return this.report;
     }
 
     private Map<Player, Deque<Node>> retrieveNewPlayerPositions(
-            final List<Command<DefaultPlayground>> commands) {
+            final List<Command> commands) {
         final Map<Player, Deque<Node>> positions = new HashMap<>();
-        for (final Command<DefaultPlayground> command : commands) {
+        for (final Command command : commands) {
             if (command instanceof MovePlayerCommand) {
                 final MovePlayerCommand cmd = (MovePlayerCommand) command;
                 positions.put(cmd.getPlayer(), cmd.getNodes());
@@ -144,9 +141,9 @@ public class CommandDistributor {
     }
 
     private Set<Player> retrievePlayersToRemove(
-            final List<Command<DefaultPlayground>> commands) {
+            final List<Command> commands) {
         final Set<Player> players = new HashSet<>();
-        for (final Command<DefaultPlayground> command : commands) {
+        for (final Command command : commands) {
             if (command instanceof DeactivatePlayerCommand) {
                 // player being removed from the game
                 players.add(((PlayerRelated) command).getPlayer());

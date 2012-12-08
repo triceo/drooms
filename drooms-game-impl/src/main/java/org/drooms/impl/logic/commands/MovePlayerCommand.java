@@ -6,15 +6,13 @@ import org.drooms.api.GameReport;
 import org.drooms.api.Move;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
-import org.drooms.impl.DefaultPlayground;
 import org.drooms.impl.logic.DecisionMaker;
 import org.drooms.impl.logic.PlayerRelated;
 import org.drooms.impl.logic.events.PlayerMoveEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MovePlayerCommand implements Command<DefaultPlayground>,
-        PlayerRelated {
+public class MovePlayerCommand implements Command, PlayerRelated {
 
     private static final Logger LOGGER = LoggerFactory
             .getLogger(MovePlayerCommand.class);
@@ -47,7 +45,7 @@ public class MovePlayerCommand implements Command<DefaultPlayground>,
     }
 
     @Override
-    public void report(final GameReport<DefaultPlayground> report) {
+    public void report(final GameReport report) {
         report.playerMoved(this.toMove, this.whichMove,
                 this.nodes.toArray(new Node[] {}));
         MovePlayerCommand.LOGGER.info(

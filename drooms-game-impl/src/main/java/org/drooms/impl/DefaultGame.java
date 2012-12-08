@@ -38,7 +38,7 @@ public class DefaultGame extends GameController {
     }
 
     public static void main(final String[] args) {
-        GameReport<DefaultPlayground> report = null;
+        GameReport report = null;
         final Properties gameConfig = new Properties();
         final Properties playerConfig = new Properties();
         File reportFolder = null;

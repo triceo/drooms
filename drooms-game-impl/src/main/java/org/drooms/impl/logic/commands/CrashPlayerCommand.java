@@ -2,7 +2,6 @@ package org.drooms.impl.logic.commands;
 
 import org.drooms.api.GameReport;
 import org.drooms.api.Player;
-import org.drooms.impl.DefaultPlayground;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +15,7 @@ public class CrashPlayerCommand extends DeactivatePlayerCommand {
     }
 
     @Override
-    public void report(final GameReport<DefaultPlayground> report) {
+    public void report(final GameReport report) {
         report.playerCrashed(this.getPlayer());
         CrashPlayerCommand.LOGGER.info(
                 "Player {} crashed and has been removed from the game.", this

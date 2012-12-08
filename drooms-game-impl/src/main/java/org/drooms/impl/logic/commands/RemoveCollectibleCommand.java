@@ -2,15 +2,13 @@ package org.drooms.impl.logic.commands;
 
 import org.drooms.api.Collectible;
 import org.drooms.api.GameReport;
-import org.drooms.impl.DefaultPlayground;
 import org.drooms.impl.logic.CollectibleRelated;
 import org.drooms.impl.logic.DecisionMaker;
 import org.drooms.impl.logic.events.CollectibleRemovalEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RemoveCollectibleCommand implements Command<DefaultPlayground>,
-        CollectibleRelated {
+public class RemoveCollectibleCommand implements Command, CollectibleRelated {
 
     private static final Logger LOGGER = LoggerFactory
             .getLogger(RemoveCollectibleCommand.class);
@@ -34,7 +32,7 @@ public class RemoveCollectibleCommand implements Command<DefaultPlayground>,
     }
 
     @Override
-    public void report(final GameReport<DefaultPlayground> report) {
+    public void report(final GameReport report) {
         report.collectibleRemoved(this.toRemove);
         RemoveCollectibleCommand.LOGGER.info("Collectible {} removed.",
                 this.toRemove);

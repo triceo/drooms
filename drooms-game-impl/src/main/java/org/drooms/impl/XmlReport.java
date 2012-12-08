@@ -9,7 +9,7 @@ import org.drooms.api.Move;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
 
-public class XmlReport implements GameReport<DefaultPlayground> {
+public class XmlReport implements GameReport {
 
     private static String collectibleXml(final Collectible c) {
         return "<collectible type='" + c.getClass().getName() + "' sign='"
