@@ -5,11 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
@@ -22,16 +18,12 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import org.drools.KnowledgeBase;
-import org.drools.builder.KnowledgeBuilder;
-import org.drools.builder.KnowledgeBuilderError;
 import org.drooms.api.Collectible;
 import org.drooms.api.Game;
 import org.drooms.api.GameReport;
 import org.drooms.api.Move;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
-import org.drooms.api.Strategy;
 import org.drooms.impl.logic.CommandDistributor;
 import org.drooms.impl.logic.commands.AddCollectibleCommand;
 import org.drooms.impl.logic.commands.CollectCollectibleCommand;
@@ -41,6 +33,7 @@ import org.drooms.impl.logic.commands.DeactivatePlayerCommand;
 import org.drooms.impl.logic.commands.MovePlayerCommand;
 import org.drooms.impl.logic.commands.RemoveCollectibleCommand;
 import org.drooms.impl.logic.commands.RewardSurvivalCommand;
+import org.drooms.impl.util.PlayerAssembly;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,9 +87,6 @@ public abstract class GameController implements Game {
     private final String timestamp;
 
     private final Map<Player, Integer> playerPoints = new HashMap<Player, Integer>();
-    private final Map<URL, ClassLoader> strategyClassloaders = new HashMap<URL, ClassLoader>();
-
-    private final Map<String, Strategy> strategyInstances = new HashMap<String, Strategy>();
 
     private final Map<Player, Integer> lengths = new HashMap<Player, Integer>();
 
@@ -123,61 +113,6 @@ public abstract class GameController implements Game {
             this.decisionRecord.put(p, new TreeMap<Integer, Move>());
         }
         this.decisionRecord.get(p).put(turnNumber, m);
-    }
-
-    private List<Player> constructPlayers(final Properties config,
-            final Properties playerConfig) {
-        // parse a list of players
-        final Map<String, String> playerStrategies = new HashMap<String, String>();
-        final Map<String, URL> strategyJars = new HashMap<String, URL>();
-        for (final String playerName : playerConfig.stringPropertyNames()) {
-            final String strategyDescr = playerConfig.getProperty(playerName);
-            final String[] parts = strategyDescr.split("\\Q@\\E");
-            if (parts.length != 2) {
-                throw new IllegalArgumentException(
-                        "Invalid strategy descriptor: " + strategyDescr);
-            }
-            final String strategyClass = parts[0];
-            URL strategyJar;
-            try {
-                strategyJar = new URL(parts[1]);
-            } catch (final MalformedURLException e) {
-                throw new IllegalArgumentException(
-                        "Invalid URL in the strategy descriptor: "
-                                + strategyDescr, e);
-            }
-            playerStrategies.put(playerName, strategyClass);
-            strategyJars.put(strategyClass, strategyJar);
-        }
-        // load strategies for players
-        final List<Player> players = new ArrayList<Player>();
-        for (final Map.Entry<String, String> entry : playerStrategies
-                .entrySet()) {
-            final String playerName = entry.getKey();
-            final String strategyClass = entry.getValue();
-            final URL strategyJar = strategyJars.get(strategyClass);
-            Strategy strategy;
-            try {
-                strategy = this.loadStrategy(strategyClass, strategyJar);
-            } catch (final Exception e) {
-                throw new IllegalArgumentException("Failed loading: "
-                        + strategyClass, e);
-            }
-            final KnowledgeBuilder kb = strategy.getKnowledgeBuilder(this
-                    .loadJar(strategyJar));
-            try {
-                final KnowledgeBase kbase = kb.newKnowledgeBase();
-                players.add(new Player(playerName, kbase));
-            } catch (final Exception ex) {
-                for (final KnowledgeBuilderError error : kb.getErrors()) {
-                    GameController.LOGGER.error(error.toString());
-                }
-                throw new IllegalStateException(
-                        "Cannot create knowledge base for strategy: "
-                                + strategy.getName(), ex);
-            }
-        }
-        return players;
     }
 
     protected Collectible getCollectible(final Node n) {
@@ -213,28 +148,6 @@ public abstract class GameController implements Game {
         return this.reportFolder;
     }
 
-    private ClassLoader loadJar(final URL strategyJar) {
-        if (!this.strategyClassloaders.containsKey(strategyJar)) {
-            @SuppressWarnings("resource")
-            final ClassLoader loader = URLClassLoader
-                    .newInstance(new URL[] { strategyJar }, this.getClass()
-                            .getClassLoader());
-            this.strategyClassloaders.put(strategyJar, loader);
-        }
-        return this.strategyClassloaders.get(strategyJar);
-    }
-
-    private Strategy loadStrategy(final String strategyClass,
-            final URL strategyJar) throws Exception {
-        if (!this.strategyInstances.containsKey(strategyClass)) {
-            final Class<?> clz = Class.forName(strategyClass, true,
-                    this.loadJar(strategyJar));
-            final Strategy strategy = (Strategy) clz.newInstance();
-            this.strategyInstances.put(strategyClass, strategy);
-        }
-        return this.strategyInstances.get(strategyClass);
-    }
-
     protected abstract Map<Collectible, Player> performCollectibleCollection(
             final Collection<Player> players);
 
@@ -265,9 +178,6 @@ public abstract class GameController implements Game {
             throw new IllegalArgumentException(
                     "Playground file cannot be read!", e);
         }
-        // prepare the players
-        final List<Player> players = this.constructPlayers(gameConfig,
-                playerConfig);
         final int wormLength = Integer.valueOf(gameConfig.getProperty(
                 "worm.length.start", "1"));
         final int allowedInactiveTurns = Integer.valueOf(gameConfig
@@ -278,7 +188,9 @@ public abstract class GameController implements Game {
                 "worm.survival.bonus", "1"));
         final int wormTimeout = Integer.valueOf(gameConfig.getProperty(
                 "worm.timeout.seconds", "1"));
-        // prepare starting positions
+        // prepare players and their starting positions
+        final List<Player> players = new PlayerAssembly(playerConfig)
+                .assemblePlayers();
         final List<Node> startingPositions = playground.getStartingPositions();
         final int playersSupported = startingPositions.size();
         final int playersAvailable = players.size();
