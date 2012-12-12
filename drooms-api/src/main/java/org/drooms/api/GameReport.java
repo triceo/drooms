@@ -14,9 +14,10 @@ public interface GameReport {
 
     public void collectibleAdded(Collectible c, Node where);
 
-    public void collectibleCollected(Collectible c, Player p, int points);
+    public void collectibleCollected(Collectible c, Player p, Node where,
+            int points);
 
-    public void collectibleRemoved(Collectible c);
+    public void collectibleRemoved(Collectible c, Node where);
 
     public File getTargetFolder();
 

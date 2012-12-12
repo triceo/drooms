@@ -18,8 +18,8 @@ import org.drools.runtime.conf.ClockTypeOption;
 import org.drools.runtime.rule.FactHandle;
 import org.drools.runtime.rule.WorkingMemoryEntryPoint;
 import org.drools.time.SessionPseudoClock;
-import org.drooms.api.Node;
 import org.drooms.api.Move;
+import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.impl.DefaultPlayground;
 import org.drooms.impl.logic.events.CollectibleAdditionEvent;
@@ -62,8 +62,7 @@ public class DecisionMaker implements Channel {
 
     private final Map<Player, Map<Node, FactHandle>> handles = new HashMap<Player, Map<Node, FactHandle>>();
 
-    public DecisionMaker(
-            final Player p,
+    public DecisionMaker(final Player p,
             final PathTracker<DefaultPlayground> tracker,
             final File reportFolder) {
         this.player = p;
@@ -117,8 +116,8 @@ public class DecisionMaker implements Channel {
             }
         }
         // insert info about the game status
-        this.currentPlayer = this.session.insert(new CurrentPlayer(p,
-                Node.getNode(0, 0)));
+        this.currentPlayer = this.session.insert(new CurrentPlayer(p, Node
+                .getNode(0, 0)));
         this.currentTurn = this.session.insert(new CurrentTurn(0));
     }
 
@@ -159,8 +158,7 @@ public class DecisionMaker implements Channel {
         return this.isDisposed;
     }
 
-    public void notifyOfCollectibleAddition(
-            final CollectibleAdditionEvent<Node> evt) {
+    public void notifyOfCollectibleAddition(final CollectibleAdditionEvent evt) {
         this.gameEvents.insert(evt);
     }
 
@@ -176,8 +174,8 @@ public class DecisionMaker implements Channel {
         this.playerEvents.insert(evt);
         final Player p = evt.getPlayer();
         // remove player from the WM
-        for (final Map.Entry<Node, FactHandle> entry : this.handles
-                .remove(p).entrySet()) {
+        for (final Map.Entry<Node, FactHandle> entry : this.handles.remove(p)
+                .entrySet()) {
             this.session.retract(entry.getValue());
         }
     }
@@ -201,7 +199,7 @@ public class DecisionMaker implements Channel {
             untraversedNodes.remove(n);
         }
         for (final Node n : untraversedNodes) { // worm no longer
-                                                       // occupies a node
+                                                // occupies a node
             final FactHandle fh = playerHandles.remove(n);
             this.session.retract(fh);
         }

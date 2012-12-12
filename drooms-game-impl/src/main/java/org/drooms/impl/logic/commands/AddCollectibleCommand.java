@@ -16,17 +16,22 @@ public class AddCollectibleCommand implements Command, CollectibleRelated {
 
     private final Collectible toAdd;
     private final Node whereToAdd;
-    private final CollectibleAdditionEvent<Node> event;
+    private final CollectibleAdditionEvent event;
 
     public AddCollectibleCommand(final Collectible c, final Node n) {
         this.toAdd = c;
         this.whereToAdd = n;
-        this.event = new CollectibleAdditionEvent<Node>(c, n);
+        this.event = new CollectibleAdditionEvent(c, n);
     }
 
     @Override
     public Collectible getCollectible() {
         return this.toAdd;
+    }
+
+    @Override
+    public Node getNode() {
+        return this.whereToAdd;
     }
 
     @Override

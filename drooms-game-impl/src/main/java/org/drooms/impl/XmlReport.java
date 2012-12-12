@@ -84,18 +84,20 @@ public class XmlReport implements GameReport {
 
     @Override
     public void collectibleCollected(final Collectible c, final Player p,
-            final int points) {
+            final Node where, final int points) {
         this.addPoints(p, points);
         this.report.append("<collectedCollectible points='" + points + "'>");
         this.report.append(XmlReport.collectibleXml(c));
         this.report.append(XmlReport.playerXml(p));
+        this.report.append(XmlReport.nodeXml(where));
         this.report.append("</collectedCollectible>");
     }
 
     @Override
-    public void collectibleRemoved(final Collectible c) {
+    public void collectibleRemoved(final Collectible c, final Node where) {
         this.report.append("<removedCollectible>");
         this.report.append(XmlReport.collectibleXml(c));
+        this.report.append(XmlReport.nodeXml(where));
         this.report.append("</removedCollectible>");
     }
 

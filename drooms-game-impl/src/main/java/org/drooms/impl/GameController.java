@@ -119,6 +119,10 @@ public abstract class GameController implements Game {
         return moves;
     }
 
+    protected Node getNode(final Collectible c) {
+        return this.nodesByCollectible.get(c);
+    }
+
     protected int getPlayerLength(final Player p) {
         if (!this.lengths.containsKey(p)) {
             throw new IllegalStateException(
@@ -245,8 +249,8 @@ public abstract class GameController implements Game {
                 }
             }
             for (final Collectible c : removeCollectibles) {
+                commands.add(new RemoveCollectibleCommand(c, this.getNode(c)));
                 this.removeCollectible(c);
-                commands.add(new RemoveCollectibleCommand(c));
             }
             // add points for collected collectibles
             for (final Map.Entry<Collectible, Player> entry : this
@@ -254,9 +258,10 @@ public abstract class GameController implements Game {
                 final Collectible c = entry.getKey();
                 final Player p = entry.getValue();
                 this.reward(p, c.getPoints());
+                commands.add(new CollectCollectibleCommand(c, p, this
+                        .getNode(c)));
                 this.removeCollectible(c);
                 this.setPlayerLength(p, this.getPlayerLength(p) + 1);
-                commands.add(new CollectCollectibleCommand(c, p));
             }
             // distribute new collectibles
             for (final Map.Entry<Collectible, Node> entry : this

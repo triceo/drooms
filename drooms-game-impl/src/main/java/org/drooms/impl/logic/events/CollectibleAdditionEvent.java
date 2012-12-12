@@ -4,13 +4,12 @@ import org.drooms.api.Collectible;
 import org.drooms.api.Node;
 import org.drooms.impl.logic.CollectibleRelated;
 
-public class CollectibleAdditionEvent<N extends Node> implements
-        CollectibleRelated {
+public class CollectibleAdditionEvent implements CollectibleRelated {
 
-    private final N node;
+    private final Node node;
     private final Collectible collectible;
 
-    public CollectibleAdditionEvent(final Collectible c, final N n) {
+    public CollectibleAdditionEvent(final Collectible c, final Node n) {
         this.node = n;
         this.collectible = c;
     }
@@ -20,7 +19,8 @@ public class CollectibleAdditionEvent<N extends Node> implements
         return this.collectible;
     }
 
-    public N getNode() {
+    @Override
+    public Node getNode() {
         return this.node;
     }
 

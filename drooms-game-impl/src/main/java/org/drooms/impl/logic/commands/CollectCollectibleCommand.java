@@ -2,6 +2,7 @@ package org.drooms.impl.logic.commands;
 
 import org.drooms.api.Collectible;
 import org.drooms.api.GameReport;
+import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.impl.logic.CollectibleRelated;
 import org.drooms.impl.logic.DecisionMaker;
@@ -19,17 +20,25 @@ public class CollectCollectibleCommand implements Command, PlayerRelated,
 
     private final Collectible toCollect;
     private final Player toReward;
+    private final Node node;
     private final CollectibleRewardEvent event;
 
-    public CollectCollectibleCommand(final Collectible c, final Player p) {
+    public CollectCollectibleCommand(final Collectible c, final Player p,
+            final Node n) {
         this.toCollect = c;
         this.toReward = p;
-        this.event = new CollectibleRewardEvent(p, c);
+        this.event = new CollectibleRewardEvent(p, c, n);
+        this.node = n;
     }
 
     @Override
     public Collectible getCollectible() {
         return this.toCollect;
+    }
+
+    @Override
+    public Node getNode() {
+        return this.node;
     }
 
     @Override
@@ -50,7 +59,7 @@ public class CollectCollectibleCommand implements Command, PlayerRelated,
     @Override
     public void report(final GameReport report) {
         report.collectibleCollected(this.getCollectible(), this.getPlayer(),
-                this.getPoints());
+                this.getNode(), this.getPoints());
         CollectCollectibleCommand.LOGGER.info(
                 "Collectible {} collected by player {}.", this.toCollect,
                 this.toReward);
