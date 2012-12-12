@@ -10,8 +10,10 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Properties;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.drooms.api.Game;
 import org.drooms.api.GameReport;
+import org.drooms.impl.util.CLI;
 
 public class Drooms {
 
@@ -36,14 +38,20 @@ public class Drooms {
     }
 
     public static void main(final String[] args) {
+        final CLI cli = CLI.getInstance();
+        final Pair<File, File> configs = cli.process(args);
+        if (configs == null) {
+            cli.printHelp();
+            System.exit(-1);
+        }
+        // play the game
         GameReport report = null;
         final Properties gameConfig = new Properties();
-        final Properties playerConfig = new Properties();
-        // play the game
-        try (Reader gameConfigFile = new FileReader(args[0]);
-                Reader playerConfigFile = new FileReader(args[1])) {
+        try (Reader gameConfigFile = new FileReader(configs.getLeft());
+                Reader playerConfigFile = new FileReader(configs.getRight())) {
             // prepare configs
             gameConfig.load(gameConfigFile);
+            final Properties playerConfig = new Properties();
             playerConfig.load(playerConfigFile);
             // play and report
             final Game g = Drooms.getGameImpl(gameConfig.getProperty(
