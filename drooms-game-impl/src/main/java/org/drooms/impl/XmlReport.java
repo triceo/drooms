@@ -1,5 +1,6 @@
 package org.drooms.impl;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.HashMap;
@@ -33,9 +34,15 @@ public class XmlReport implements GameReport {
     private int turnNumber = 0;
 
     private final Map<Player, Integer> playerPoints = new HashMap<>();
+    private final File reportFolder;
 
     public XmlReport(final Playground p, final Properties gameConfig,
             final String gameId) {
+        this.reportFolder = new File(gameConfig.getProperty("reports.dir",
+                "reports"));
+        if (!this.reportFolder.exists()) {
+            this.reportFolder.mkdirs();
+        }
         this.report.append("<game id='" + gameId + "'>");
         // report game config
         this.report.append("<config>");
@@ -90,6 +97,11 @@ public class XmlReport implements GameReport {
         this.report.append("<removedCollectible>");
         this.report.append(XmlReport.collectibleXml(c));
         this.report.append("</removedCollectible>");
+    }
+
+    @Override
+    public File getTargetFolder() {
+        return this.reportFolder;
     }
 
     @Override

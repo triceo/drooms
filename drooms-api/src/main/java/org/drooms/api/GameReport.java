@@ -1,5 +1,6 @@
 package org.drooms.api;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 
@@ -16,6 +17,8 @@ public interface GameReport {
     public void collectibleCollected(Collectible c, Player p, int points);
 
     public void collectibleRemoved(Collectible c);
+
+    public File getTargetFolder();
 
     public void nextTurn();
 

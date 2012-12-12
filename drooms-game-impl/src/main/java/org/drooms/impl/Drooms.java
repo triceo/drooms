@@ -23,7 +23,6 @@ public class Drooms {
         GameReport report = null;
         final Properties gameConfig = new Properties();
         final Properties playerConfig = new Properties();
-        File reportFolder = null;
         // play the game
         try (Reader gameConfigFile = new FileReader(args[0]);
                 Reader playerConfigFile = new FileReader(args[1])) {
@@ -31,18 +30,13 @@ public class Drooms {
             gameConfig.load(gameConfigFile);
             playerConfig.load(playerConfigFile);
             // play and report
-            final DefaultGame g = new DefaultGame(new File(
-                    gameConfig.getProperty("reports.dir")),
-                    Drooms.getTimestamp());
-            reportFolder = g.getReportFolder();
-            if (!reportFolder.exists()) {
-                reportFolder.mkdirs();
-            }
-            report = g.play(gameConfig, playerConfig);
+            final DefaultGame g = new DefaultGame();
+            report = g.play(Drooms.getTimestamp(), gameConfig, playerConfig);
         } catch (final IOException e) {
             throw new IllegalStateException("Failed reading config files.", e);
         }
         // report
+        final File reportFolder = report.getTargetFolder();
         try (Writer w = new FileWriter(new File(reportFolder,
                 gameConfig.getProperty("report.file", "report.xml")))) {
             report.write(w);

@@ -1,6 +1,5 @@
 package org.drooms.impl.logic;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
@@ -86,14 +85,12 @@ public class CommandDistributor {
     private final ExecutorService e = Executors.newFixedThreadPool(1);
 
     public CommandDistributor(final DefaultPlayground playground,
-            final List<Player> players, final GameReport report,
-            final File reportFolder, final int playerTimeoutInSeconds) {
+            final List<Player> players, final GameReport report, final int playerTimeoutInSeconds) {
         for (final Player player : players) {
             final PathTracker<DefaultPlayground> tracker = new PathTracker<>(
                     playground, player);
             this.trackers.put(player, tracker);
-            this.players.put(player, new DecisionMaker(player, tracker,
-                    reportFolder));
+            this.players.put(player, new DecisionMaker(player, tracker, report.getTargetFolder()));
         }
         this.report = report;
         this.playerTimeoutInSeconds = playerTimeoutInSeconds;

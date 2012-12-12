@@ -77,14 +77,10 @@ public abstract class GameController implements Game {
         }
     }
 
-    private final File reportFolder;
-
     private static final Logger LOGGER = LoggerFactory
             .getLogger(GameController.class);
 
     protected static final SecureRandom RANDOM = new SecureRandom();
-
-    private final String gameId;
 
     private final Map<Player, Integer> playerPoints = new HashMap<Player, Integer>();
 
@@ -97,11 +93,6 @@ public abstract class GameController implements Game {
     private final Map<Node, Collectible> collectiblesByNode = new HashMap<Node, Collectible>();
 
     private final Map<Player, SortedMap<Integer, Move>> decisionRecord = new HashMap<Player, SortedMap<Integer, Move>>();
-
-    protected GameController(final File reportFolder, final String gameId) {
-        this.reportFolder = new File(reportFolder, gameId);
-        this.gameId = gameId;
-    }
 
     private void addCollectible(final Collectible c, final Node n) {
         this.collectiblesByNode.put(n, c);
@@ -144,10 +135,6 @@ public abstract class GameController implements Game {
         return this.positions.get(p);
     }
 
-    public File getReportFolder() {
-        return this.reportFolder;
-    }
-
     protected abstract Map<Collectible, Player> performCollectibleCollection(
             final Collection<Player> players);
 
@@ -167,7 +154,7 @@ public abstract class GameController implements Game {
             final Move decision);
 
     @Override
-    public GameReport play(final Properties gameConfig,
+    public GameReport play(final String id, final Properties gameConfig,
             final Properties playerConfig) {
         // prepare the playground
         DefaultPlayground playground;
@@ -211,8 +198,8 @@ public abstract class GameController implements Game {
         }
         // prepare situation
         final CommandDistributor playerControl = new CommandDistributor(
-                playground, players, new XmlReport(playground, gameConfig,
-                        this.gameId), this.getReportFolder(), wormTimeout);
+                playground, players, new XmlReport(playground, gameConfig, id),
+                wormTimeout);
         final Set<Player> currentPlayers = new HashSet<Player>(players);
         Map<Player, Move> decisions = new HashMap<Player, Move>();
         for (final Player p : currentPlayers) { // initialize players

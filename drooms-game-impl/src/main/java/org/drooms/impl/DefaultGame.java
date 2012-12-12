@@ -1,6 +1,5 @@
 package org.drooms.impl;
 
-import java.io.File;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Collections;
@@ -22,10 +21,6 @@ import org.drooms.impl.collectibles.ExtremeCollectible;
 import org.drooms.impl.collectibles.GoodCollectible;
 
 public class DefaultGame extends GameController {
-
-    public DefaultGame(final File reportFolder, final String gameId) {
-        super(reportFolder, gameId);
-    }
 
     @Override
     protected Map<Collectible, Player> performCollectibleCollection(

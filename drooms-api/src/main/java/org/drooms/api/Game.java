@@ -4,6 +4,6 @@ import java.util.Properties;
 
 public interface Game {
 
-    public GameReport play(Properties config, Properties players);
+    public GameReport play(String id, Properties config, Properties players);
 
 }
