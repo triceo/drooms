@@ -39,7 +39,7 @@ public class XmlReport implements GameReport {
     public XmlReport(final Playground p, final Properties gameConfig,
             final String gameId) {
         this.reportFolder = new File(gameConfig.getProperty("reports.dir",
-                "reports"));
+                "reports"), gameId);
         if (!this.reportFolder.exists()) {
             this.reportFolder.mkdirs();
         }
