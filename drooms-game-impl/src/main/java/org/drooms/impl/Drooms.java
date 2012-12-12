@@ -10,9 +10,25 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Properties;
 
+import org.drooms.api.Game;
 import org.drooms.api.GameReport;
 
 public class Drooms {
+
+    private static Game getGameImpl(final String id) {
+        try {
+            @SuppressWarnings("unchecked")
+            final Class<? extends Game> cls = (Class<? extends Game>) Class
+                    .forName(id);
+            return cls.newInstance();
+        } catch (final ClassNotFoundException e) {
+            throw new IllegalStateException("Cannot find game implementation: "
+                    + id);
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new IllegalStateException(
+                    "Cannot instantiate game implementation: " + id, e);
+        }
+    }
 
     private static String getTimestamp() {
         final Date date = new java.util.Date();
@@ -30,7 +46,8 @@ public class Drooms {
             gameConfig.load(gameConfigFile);
             playerConfig.load(playerConfigFile);
             // play and report
-            final DefaultGame g = new DefaultGame();
+            final Game g = Drooms.getGameImpl(gameConfig.getProperty(
+                    "game.class", "org.drooms.impl.DefaultGame"));
             report = g.play(Drooms.getTimestamp(), gameConfig, playerConfig);
         } catch (final IOException e) {
             throw new IllegalStateException("Failed reading config files.", e);
