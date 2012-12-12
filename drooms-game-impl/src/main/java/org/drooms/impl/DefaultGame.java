@@ -1,16 +1,9 @@
 package org.drooms.impl;
 
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
 import java.math.BigDecimal;
-import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,7 +14,6 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.drooms.api.Collectible;
-import org.drooms.api.GameReport;
 import org.drooms.api.Move;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
@@ -31,45 +23,8 @@ import org.drooms.impl.collectibles.GoodCollectible;
 
 public class DefaultGame extends GameController {
 
-    private static String getTimestamp() {
-        final Date date = new java.util.Date();
-        return new Timestamp(date.getTime()).toString();
-    }
-
-    public static void main(final String[] args) {
-        GameReport report = null;
-        final Properties gameConfig = new Properties();
-        final Properties playerConfig = new Properties();
-        File reportFolder = null;
-        // play the game
-        try (Reader gameConfigFile = new FileReader(args[0]);
-                Reader playerConfigFile = new FileReader(args[1])) {
-            // prepare configs
-            gameConfig.load(gameConfigFile);
-            playerConfig.load(playerConfigFile);
-            // play and report
-            final DefaultGame g = new DefaultGame(new File(
-                    gameConfig.getProperty("reports.dir")),
-                    DefaultGame.getTimestamp());
-            reportFolder = g.getReportFolder();
-            if (!reportFolder.exists()) {
-                reportFolder.mkdirs();
-            }
-            report = g.play(gameConfig, playerConfig);
-        } catch (final IOException e) {
-            throw new IllegalStateException("Failed reading config files.", e);
-        }
-        // report
-        try (Writer w = new FileWriter(new File(reportFolder,
-                gameConfig.getProperty("report.file", "report.xml")))) {
-            report.write(w);
-        } catch (final IOException e) {
-            throw new IllegalStateException("Failed writing report file.", e);
-        }
-    }
-
-    public DefaultGame(final File reportFolder, final String timestamp) {
-        super(reportFolder, timestamp);
+    public DefaultGame(final File reportFolder, final String gameId) {
+        super(reportFolder, gameId);
     }
 
     @Override

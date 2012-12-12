@@ -84,7 +84,7 @@ public abstract class GameController implements Game {
 
     protected static final SecureRandom RANDOM = new SecureRandom();
 
-    private final String timestamp;
+    private final String gameId;
 
     private final Map<Player, Integer> playerPoints = new HashMap<Player, Integer>();
 
@@ -98,9 +98,9 @@ public abstract class GameController implements Game {
 
     private final Map<Player, SortedMap<Integer, Move>> decisionRecord = new HashMap<Player, SortedMap<Integer, Move>>();
 
-    protected GameController(final File reportFolder, final String timestamp) {
-        this.reportFolder = new File(reportFolder, timestamp);
-        this.timestamp = timestamp;
+    protected GameController(final File reportFolder, final String gameId) {
+        this.reportFolder = new File(reportFolder, gameId);
+        this.gameId = gameId;
     }
 
     private void addCollectible(final Collectible c, final Node n) {
@@ -212,7 +212,7 @@ public abstract class GameController implements Game {
         // prepare situation
         final CommandDistributor playerControl = new CommandDistributor(
                 playground, players, new XmlReport(playground, gameConfig,
-                        this.timestamp), this.getReportFolder(), wormTimeout);
+                        this.gameId), this.getReportFolder(), wormTimeout);
         final Set<Player> currentPlayers = new HashSet<Player>(players);
         Map<Player, Move> decisions = new HashMap<Player, Move>();
         for (final Player p : currentPlayers) { // initialize players
