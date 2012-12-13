@@ -9,13 +9,8 @@ import org.drooms.api.Player;
 import org.drooms.impl.logic.DecisionMaker;
 import org.drooms.impl.logic.PlayerRelated;
 import org.drooms.impl.logic.events.PlayerMoveEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class MovePlayerCommand implements Command, PlayerRelated {
-
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(MovePlayerCommand.class);
 
     private final Player toMove;
     private final Move whichMove;
@@ -48,9 +43,6 @@ public class MovePlayerCommand implements Command, PlayerRelated {
     public void report(final GameProgressListener report) {
         report.playerMoved(this.toMove, this.whichMove,
                 this.nodes.toArray(new Node[] {}));
-        MovePlayerCommand.LOGGER.info(
-                "Player {}'s move is {}, new position is {}.", new Object[] {
-                        this.toMove.getName(), this.whichMove, this.nodes });
     }
 
     @Override

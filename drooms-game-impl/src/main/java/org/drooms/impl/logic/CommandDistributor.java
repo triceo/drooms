@@ -5,6 +5,7 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Receives state changes ({@link Command}s) from the {@link GameController} and
- * distributes them to all the player strategies ({@link DecisionMaker} to 
+ * distributes them to all the player strategies ({@link DecisionMaker} to
  * process them and make {@link Move} decisions on them.
  */
 public class CommandDistributor {
@@ -84,7 +85,7 @@ public class CommandDistributor {
     private final Map<Player, DecisionMaker> players = new LinkedHashMap<>();
     private final Map<Player, PathTracker> trackers = new LinkedHashMap<>();
 
-    private final GameProgressListener report;
+    private final List<GameProgressListener> listeners = new LinkedList<GameProgressListener>();
 
     private final int playerTimeoutInSeconds;
 
@@ -103,7 +104,6 @@ public class CommandDistributor {
      *            How much time the player strategies should be given to make
      *            move decisions.
      */
-    // FIXME allow for more listeners
     public CommandDistributor(final DefaultPlayground playground,
             final List<Player> players, final GameProgressListener report,
             final int playerTimeoutInSeconds) {
@@ -115,8 +115,23 @@ public class CommandDistributor {
                             new DecisionMaker(player, tracker, report
                                     .getTargetFolder()));
         }
-        this.report = report;
+        this.listeners.add(report);
         this.playerTimeoutInSeconds = playerTimeoutInSeconds;
+    }
+
+    /**
+     * Add another listener.
+     * 
+     * @param listener
+     * @return True if added, false if already added.
+     */
+    public boolean addListener(final GameProgressListener listener) {
+        if (!this.listeners.contains(listener)) {
+            this.listeners.add(listener);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -130,9 +145,14 @@ public class CommandDistributor {
     public Map<Player, Move> execute(final List<Command> commands) {
         CommandDistributor.LOGGER
                 .info("First reporting what happens in this turn.");
-        this.report.nextTurn();
+        for (final GameProgressListener listener : this.listeners) {
+            listener.nextTurn();
+        }
         for (final Command command : commands) {
-            command.report(this.report);
+            CommandDistributor.LOGGER.info("Will process command: {}", command);
+            for (final GameProgressListener listener : this.listeners) {
+                command.report(listener);
+            }
         }
         CommandDistributor.LOGGER.info("Now passing these changes to players.");
         final Map<Player, Deque<Node>> positions = CommandDistributor
@@ -180,7 +200,7 @@ public class CommandDistributor {
     }
 
     public GameProgressListener getReport() {
-        return this.report;
+        return this.listeners.get(0);
     }
 
     /**

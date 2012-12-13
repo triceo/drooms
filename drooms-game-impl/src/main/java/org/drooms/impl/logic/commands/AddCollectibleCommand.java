@@ -6,13 +6,8 @@ import org.drooms.api.Node;
 import org.drooms.impl.logic.CollectibleRelated;
 import org.drooms.impl.logic.DecisionMaker;
 import org.drooms.impl.logic.events.CollectibleAdditionEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class AddCollectibleCommand implements Command, CollectibleRelated {
-
-    private final static Logger LOGGER = LoggerFactory
-            .getLogger(AddCollectibleCommand.class);
 
     private final Collectible toAdd;
     private final Node whereToAdd;
@@ -42,9 +37,6 @@ public class AddCollectibleCommand implements Command, CollectibleRelated {
     @Override
     public void report(final GameProgressListener report) {
         report.collectibleAdded(this.toAdd, this.whereToAdd);
-        AddCollectibleCommand.LOGGER.info("Collectible {} added at [{},{}].",
-                new Object[] { this.toAdd, this.whereToAdd.getX(),
-                        this.whereToAdd.getY() });
     }
 
     @Override

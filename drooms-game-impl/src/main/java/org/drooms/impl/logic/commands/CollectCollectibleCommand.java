@@ -9,14 +9,9 @@ import org.drooms.impl.logic.DecisionMaker;
 import org.drooms.impl.logic.PlayerRelated;
 import org.drooms.impl.logic.RewardRelated;
 import org.drooms.impl.logic.events.CollectibleRewardEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class CollectCollectibleCommand implements Command, PlayerRelated,
         CollectibleRelated, RewardRelated {
-
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(CollectCollectibleCommand.class);
 
     private final Collectible toCollect;
     private final Player toReward;
@@ -60,9 +55,6 @@ public class CollectCollectibleCommand implements Command, PlayerRelated,
     public void report(final GameProgressListener report) {
         report.collectibleCollected(this.getCollectible(), this.getPlayer(),
                 this.getNode(), this.getPoints());
-        CollectCollectibleCommand.LOGGER.info(
-                "Collectible {} collected by player {}.", this.toCollect,
-                this.toReward);
     }
 
     @Override

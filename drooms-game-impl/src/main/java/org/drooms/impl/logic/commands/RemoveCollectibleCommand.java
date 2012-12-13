@@ -6,13 +6,8 @@ import org.drooms.api.Node;
 import org.drooms.impl.logic.CollectibleRelated;
 import org.drooms.impl.logic.DecisionMaker;
 import org.drooms.impl.logic.events.CollectibleRemovalEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class RemoveCollectibleCommand implements Command, CollectibleRelated {
-
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(RemoveCollectibleCommand.class);
 
     private final Collectible toRemove;
     private final CollectibleRemovalEvent event;
@@ -42,8 +37,6 @@ public class RemoveCollectibleCommand implements Command, CollectibleRelated {
     @Override
     public void report(final GameProgressListener report) {
         report.collectibleRemoved(this.toRemove, this.getNode());
-        RemoveCollectibleCommand.LOGGER.info("Collectible {} removed.",
-                this.toRemove);
     }
 
     @Override

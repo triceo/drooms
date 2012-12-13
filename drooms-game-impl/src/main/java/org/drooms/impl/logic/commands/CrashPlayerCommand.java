@@ -2,13 +2,8 @@ package org.drooms.impl.logic.commands;
 
 import org.drooms.api.GameProgressListener;
 import org.drooms.api.Player;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class CrashPlayerCommand extends DeactivatePlayerCommand {
-
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(CrashPlayerCommand.class);
 
     public CrashPlayerCommand(final Player p) {
         super(p);
@@ -17,9 +12,6 @@ public class CrashPlayerCommand extends DeactivatePlayerCommand {
     @Override
     public void report(final GameProgressListener report) {
         report.playerCrashed(this.getPlayer());
-        CrashPlayerCommand.LOGGER.info(
-                "Player {} crashed and has been removed from the game.", this
-                        .getPlayer().getName());
     }
 
     @Override

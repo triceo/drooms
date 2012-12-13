@@ -6,14 +6,9 @@ import org.drooms.impl.logic.DecisionMaker;
 import org.drooms.impl.logic.PlayerRelated;
 import org.drooms.impl.logic.RewardRelated;
 import org.drooms.impl.logic.events.SurvivalRewardEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class RewardSurvivalCommand implements Command, PlayerRelated,
         RewardRelated {
-
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(RewardSurvivalCommand.class);
 
     private final Player toReward;
     private final int rewardAmount;
@@ -43,9 +38,6 @@ public class RewardSurvivalCommand implements Command, PlayerRelated,
     @Override
     public void report(final GameProgressListener report) {
         report.playerSurvived(this.toReward, this.rewardAmount);
-        RewardSurvivalCommand.LOGGER
-                .info("Player {} has been rewarded {} points for surviving another turn.",
-                        this.toReward.getName(), this.rewardAmount);
     }
 
     @Override
