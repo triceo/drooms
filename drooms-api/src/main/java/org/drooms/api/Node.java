@@ -3,12 +3,25 @@ package org.drooms.api;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+/**
+ * A single indivisible place on the {@link Playground}, where (part of) a worm
+ * or a wall can be located.
+ */
 public class Node {
 
     private final int x, y;
 
     private static final SortedMap<Integer, SortedMap<Integer, Node>> nodes = new TreeMap<Integer, SortedMap<Integer, Node>>();
 
+    /**
+     * Get a node with particular co-ordinates.
+     * 
+     * @param x
+     *            Horizontal co-ordinate.
+     * @param y
+     *            Vertical co-ordinate.
+     * @return The node.
+     */
     public static synchronized Node getNode(final int x, final int y) {
         if (!Node.nodes.containsKey(x)) {
             Node.nodes.put(x, new TreeMap<Integer, Node>());

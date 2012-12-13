@@ -2,7 +2,6 @@ package org.drooms.api;
 
 /**
  * The various possibilities for the worm to move in.
- * 
  */
 public enum Move {
 
@@ -10,7 +9,6 @@ public enum Move {
      * Increases Y, doesn't change X.
      */
     UP,
-
     /**
      * Decreases Y, doesn't change X.
      */

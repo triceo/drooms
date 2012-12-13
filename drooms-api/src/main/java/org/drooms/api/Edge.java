@@ -1,9 +1,23 @@
 package org.drooms.api;
 
+/**
+ * Represents a connection (a route) between two immediately adjacent
+ * {@link Node}s in a {@link Playground}. Worms can move from one {@link Node}
+ * to anoter only by using an {@link Edge}. The connection is always
+ * bi-directional.
+ */
 public class Edge {
 
     private final Node firstNode, secondNode;
 
+    /**
+     * Make two nodes immediately adjacent.
+     * 
+     * @param firstNode
+     *            One node.
+     * @param secondNode
+     *            The other.
+     */
     public Edge(final Node firstNode, final Node secondNode) {
         this.firstNode = firstNode;
         this.secondNode = secondNode;

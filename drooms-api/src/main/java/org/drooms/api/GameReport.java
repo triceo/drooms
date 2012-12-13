@@ -10,6 +10,7 @@ import java.io.Writer;
  * @param <P>
  *            Type of playground on which the game is happening.
  */
+// FIXME rename to some listener
 public interface GameReport {
 
     public void collectibleAdded(Collectible c, Node where);

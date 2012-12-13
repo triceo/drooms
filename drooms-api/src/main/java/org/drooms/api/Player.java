@@ -2,11 +2,22 @@ package org.drooms.api;
 
 import org.drools.KnowledgeBase;
 
+/**
+ * Represents a worm in the {@link Game} on the {@link Playground}.
+ */
 public class Player {
 
     private final String name;
     private final KnowledgeBase kbase;
 
+    /**
+     * Create a player instance.
+     * 
+     * @param name
+     *            Name of the player.
+     * @param knowledgeBase
+     *            Rules that implement the player's strategy.
+     */
     public Player(final String name, final KnowledgeBase knowledgeBase) {
         this.name = name;
         this.kbase = knowledgeBase;
@@ -34,10 +45,20 @@ public class Player {
         return true;
     }
 
+    /**
+     * Retrieve the player's strategy.
+     * 
+     * @return The strategy.
+     */
     public KnowledgeBase getKnowledgeBase() {
         return this.kbase;
     }
 
+    /**
+     * Retrieve the player's name.
+     * 
+     * @return The name.
+     */
     public String getName() {
         return this.name;
     }
@@ -54,7 +75,7 @@ public class Player {
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
-        builder.append("DefaultPlayer [name=").append(this.name).append("]");
+        builder.append("Player [name=").append(this.name).append("]");
         return builder.toString();
     }
 
