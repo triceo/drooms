@@ -40,7 +40,7 @@ public class CurrentPlayer implements Positioned {
         return this.node.getY();
     }
 
-    // FIXME strategies shouldn't be allowed to call this
+    // TODO strategies shouldn't be allowed to call this
     public void setNode(final Node node) {
         this.node = node;
     }

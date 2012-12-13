@@ -16,7 +16,7 @@ public class CurrentTurn {
         return this.number;
     }
 
-    // FIXME strategies shouldn't be allowed to call this
+    // TODO strategies shouldn't be allowed to call this
     public void setNumber(final int number) {
         this.number = number;
     }
