@@ -54,11 +54,13 @@ import org.slf4j.LoggerFactory;
  * <ul>
  * <li>'gameEvents' entry point must be declared, where the events not directly
  * related to player actions will be sent. These events are
- * {@link CollectibleAdditionEvent}, {@link CollectibleRemovalEvent},
- * {@link CollectibleRewardEvent} and {@link SurvivalRewardEvent}.</li>
+ * {@link CollectibleAdditionEvent} and {@link CollectibleRemovalEvent}.</li>
  * <li>'playerEvents' entry point must be declared, where the player-caused
  * events will be sent. These events are {@link PlayerMoveEvent} and
  * {@link PlayerDeathEvent}.</li>
+ * <li>'rewardEvents' entry point must be declared, where the reward events will
+ * be sent. These events are {@link CollectibleRewardEvent} and
+ * {@link SurvivalRewardEvent}.</li>
  * </ul>
  * 
  * <p>
@@ -86,7 +88,6 @@ import org.slf4j.LoggerFactory;
  * </ul>
  * 
  */
-// FIXME rewards should have their own entry point, don't forget to update doc
 public class DecisionMaker implements Channel {
 
     private static final Logger LOGGER = LoggerFactory
@@ -107,7 +108,8 @@ public class DecisionMaker implements Channel {
     private final StatefulKnowledgeSession session;
     private final KnowledgeRuntimeLogger sessionAudit;
     private final boolean isDisposed = false;
-    private final WorkingMemoryEntryPoint gameEvents, playerEvents;
+    private final WorkingMemoryEntryPoint gameEvents, playerEvents,
+            rewardEvents;
     private Move latestDecision = null;
     private final FactHandle currentTurn;
     private final FactHandle currentPlayer;
@@ -144,6 +146,13 @@ public class DecisionMaker implements Channel {
                     this.player.getName());
         }
         // this is where we will send events from the game
+        this.rewardEvents = this.session
+                .getWorkingMemoryEntryPoint("rewardEvents");
+        if (this.rewardEvents == null) {
+            // FIXME output strategy name
+            throw new IllegalStateException(
+                    "Problem in your rule file: 'rewardEvents' entry point not declared.");
+        }
         this.gameEvents = this.session.getWorkingMemoryEntryPoint("gameEvents");
         if (this.gameEvents == null) {
             throw new IllegalStateException(
@@ -230,7 +239,7 @@ public class DecisionMaker implements Channel {
     }
 
     public void notifyOfCollectibleReward(final CollectibleRewardEvent evt) {
-        this.gameEvents.insert(evt);
+        this.rewardEvents.insert(evt);
     }
 
     public void notifyOfDeath(final PlayerDeathEvent evt) {
@@ -276,7 +285,7 @@ public class DecisionMaker implements Channel {
     }
 
     public void notifyOfSurvivalReward(final SurvivalRewardEvent evt) {
-        this.gameEvents.insert(evt);
+        this.rewardEvents.insert(evt);
     }
 
     @Override
