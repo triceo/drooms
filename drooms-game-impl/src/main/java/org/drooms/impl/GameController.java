@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.Collection;
 import java.util.Deque;
@@ -24,6 +23,8 @@ import org.drooms.api.GameProgressListener;
 import org.drooms.api.Move;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
+import org.drooms.api.Playground;
+import org.drooms.api.Strategy;
 import org.drooms.impl.logic.CommandDistributor;
 import org.drooms.impl.logic.commands.AddCollectibleCommand;
 import org.drooms.impl.logic.commands.CollectCollectibleCommand;
@@ -37,45 +38,71 @@ import org.drooms.impl.util.PlayerAssembly;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Provide a common ground for various types of games. We introduce a couple of
+ * concepts and let the implementing classes specify the rules around those
+ * concepts. The following concepts will be shared by all games extending this
+ * class:
+ * 
+ * <ul>
+ * <li>Each player gets one worm. Properties of these worms come from the game
+ * config and will be explained later. List of players comes from the player
+ * config.</li>
+ * <li>When a worm collides with something, it is terminated. Collisions are
+ * determined by classes extending this one.</li>
+ * <li>When a worm's past couple decisions were all STAY (see {@link Move}), the
+ * worm may be terminated. This is controlled by the classes extending this one.
+ * </li>
+ * <li>At the end of each turn, each non-terminated worm is rewarded for
+ * surviving.</li>
+ * <li>Terminated worms will disappear from the playground in the next turn.</li>
+ * <li>In each turn, a collectible item of a certain value may appear in the
+ * playground. These collectibles will disappear after a certain amount of
+ * turns. Worms who collect them in the meantime will be rewarded. How often,
+ * how valuable and how persistent the collectibles are, that depends on the
+ * classes extending this one.</li>
+ * <li>Upon collecting an item, the worm's length will increase by 1.</li>
+ * <li>Game ends either when there are between 0 and 1 worms standing or when a
+ * maximum number of turns is reached.</li>
+ * <li>At the end of the game, a player whose worm has the most points is
+ * declared the winner.</li>
+ * </ul>
+ * 
+ * <p>
+ * Some of the decisions can be made by classes extending this one. These are
+ * clearly described above.
+ * </p>
+ * 
+ * <p>
+ * This class depends on a couple properties from the game config:
+ * </p>
+ * 
+ * <dl>
+ * <dt>playground.file</dt>
+ * <dd>From where the {@link Playground} should be read. Will be passed to
+ * {@link DefaultPlayground#read(InputStream)}.</dd>
+ * <dt>worm.length.start (defaults to 3)</dt>
+ * <dd>Length of the worm at the start of the game. Actually, initially each
+ * worm will only have a length of 1. But as it first moves its head, the tail
+ * of the worm will stay where the head was, until the worm reaches the
+ * specified starting length. From then on, the length will be kept constant and
+ * only changed upon collecting an item.</dd>
+ * <dt>worm.max.turns (defaults to 1000)</dt>
+ * <dd>Maximum length of the game, in case more than 1 worm keeps on surviving.</dd>
+ * <dt>worm.max.inactive.turns (defaults to 3)</dt>
+ * <dd>Maximum number of turns of inactivity after which a player may be
+ * terminated, if the game decides so.</dd>
+ * <dt>worm.timeout.seconds (defaults to 1)</dt>
+ * <dd>The maximum amount of time that the {@link Player}'s {@link Strategy} has
+ * to make a decision on the next movement of the worm. If it doesn't make it in
+ * time, STAY is enforced, potentially leading to the worm being terminated for
+ * inactivity.</dd>
+ * <dt>worm.survival.bonus (defaults to 1)</dt>
+ * <dd>The amount of points that the worm will be awarded upon surviving another
+ * turn.</dd>
+ * </dl>
+ */
 public abstract class GameController implements Game {
-
-    protected enum CollectibleType {
-
-        CHEAP("cheap"), GOOD("good"), EXTREME("extreme");
-
-        private static final String COMMON_PREFIX = "collectible.";
-        private static final String PROBABILITY_PREFIX = CollectibleType.COMMON_PREFIX
-                + "probability.";
-        private static final String PRICE_PREFIX = CollectibleType.COMMON_PREFIX
-                + "price.";
-        private static final String EXPIRATION_PREFIX = CollectibleType.COMMON_PREFIX
-                + "expiration.";
-        private final String collectibleName;
-
-        CollectibleType(final String propertyName) {
-            this.collectibleName = propertyName;
-        }
-
-        public int getExpiration(final Properties config) {
-            final String price = config.getProperty(
-                    CollectibleType.EXPIRATION_PREFIX + this.collectibleName,
-                    "1");
-            return Integer.valueOf(price);
-        }
-
-        public int getPoints(final Properties config) {
-            final String price = config.getProperty(
-                    CollectibleType.PRICE_PREFIX + this.collectibleName, "1");
-            return Integer.valueOf(price);
-        }
-
-        public BigDecimal getProbabilityOfAppearance(final Properties config) {
-            final String probability = config.getProperty(
-                    CollectibleType.PROBABILITY_PREFIX + this.collectibleName,
-                    "0.1");
-            return new BigDecimal(probability);
-        }
-    }
 
     private static final Logger LOGGER = LoggerFactory
             .getLogger(GameController.class);
@@ -158,8 +185,8 @@ public abstract class GameController implements Game {
             final Move decision);
 
     @Override
-    public GameProgressListener play(final String id, final Properties gameConfig,
-            final Properties playerConfig) {
+    public GameProgressListener play(final String id,
+            final Properties gameConfig, final Properties playerConfig) {
         // prepare the playground
         DefaultPlayground playground;
         try (final InputStream fis = new FileInputStream(new File(
@@ -170,7 +197,7 @@ public abstract class GameController implements Game {
                     "Playground file cannot be read!", e);
         }
         final int wormLength = Integer.valueOf(gameConfig.getProperty(
-                "worm.length.start", "1"));
+                "worm.length.start", "3"));
         final int allowedInactiveTurns = Integer.valueOf(gameConfig
                 .getProperty("worm.max.inactive.turns", "3"));
         final int allowedTurns = Integer.valueOf(gameConfig.getProperty(
@@ -202,8 +229,8 @@ public abstract class GameController implements Game {
         }
         // prepare situation
         final CommandDistributor playerControl = new CommandDistributor(
-                playground, players, new XmlProgressListener(playground, gameConfig, id),
-                wormTimeout);
+                playground, players, new XmlProgressListener(playground,
+                        gameConfig, id), wormTimeout);
         final Set<Player> currentPlayers = new HashSet<Player>(players);
         Map<Player, Move> decisions = new HashMap<Player, Move>();
         for (final Player p : currentPlayers) { // initialize players

@@ -22,6 +22,7 @@ import org.drooms.api.Move;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
+import org.drooms.api.Strategy;
 import org.drooms.impl.logic.events.CollectibleAdditionEvent;
 import org.drooms.impl.logic.events.CollectibleRemovalEvent;
 import org.drooms.impl.logic.events.CollectibleRewardEvent;
@@ -35,6 +36,57 @@ import org.drooms.impl.logic.facts.Worm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Represents a {@link Player}'s {@link Strategy} in action. This class holds
+ * and maintains Drools engine's state for each particular player.
+ * 
+ * <p>
+ * When asked (see {@link #decideNextMove()}), the strategy should make a
+ * decision on the next move, based on the current state of the working memory.
+ * This decision should be sent over the provided 'decision' channel. If not
+ * sent, it will default to STAY. See @{link Move} for the various types of
+ * decisions.
+ * </p>
+ * <p>
+ * This class enforces the following requirements on the strategies:
+ * </p>
+ * 
+ * <ul>
+ * <li>'gameEvents' entry point must be declared, where the events not directly
+ * related to player actions will be sent. These events are
+ * {@link CollectibleAdditionEvent}, {@link CollectibleRemovalEvent},
+ * {@link CollectibleRewardEvent} and {@link SurvivalRewardEvent}.</li>
+ * <li>'playerEvents' entry point must be declared, where the player-caused
+ * events will be sent. These events are {@link PlayerMoveEvent} and
+ * {@link PlayerDeathEvent}.</li>
+ * </ul>
+ * 
+ * <p>
+ * This class provides the following Drools globals, if declared in the
+ * strategy:
+ * </p>
+ * 
+ * <ul>
+ * <li>'logger' implementation of the {@link Logger} interface, to use for
+ * logging from within the rules.</li>
+ * <li>'tracker' instance of the {@link PathTracker}, to facilitate path-finding
+ * in the rules.</li>
+ * </ul>
+ * 
+ * <p>
+ * The working memory will contain instances of the various helper fact types:
+ * </p>
+ * 
+ * <ul>
+ * <li>{@link CurrentPlayer}, once. Will change with every turn.</li>
+ * <li>{@link CurrentTurn}, once. Will change with every turn.</li>
+ * <li>{@link Wall}, many. Will remain constant over the whole game.</li>
+ * <li>{@link Worm}, many. Will be added and removed as the worms will move, but
+ * never modified.</li>
+ * </ul>
+ * 
+ */
+// FIXME rewards should have their own entry point, don't forget to update doc
 public class DecisionMaker implements Channel {
 
     private static final Logger LOGGER = LoggerFactory
@@ -62,6 +114,7 @@ public class DecisionMaker implements Channel {
 
     private final Map<Player, Map<Node, FactHandle>> handles = new HashMap<Player, Map<Node, FactHandle>>();
 
+    // FIXME separate the strategy validation into its own helper class
     public DecisionMaker(final Player p, final PathTracker tracker,
             final File reportFolder) {
         this.player = p;
@@ -120,6 +173,12 @@ public class DecisionMaker implements Channel {
         this.currentTurn = this.session.insert(new CurrentTurn(0));
     }
 
+    /**
+     * Call on the Drools engine to make the decision on worm's next move,
+     * according to the {@link Player}'s {@link Strategy}.
+     * 
+     * @return The move. STAY will be chosen when the strategy doesn't respond.
+     */
     public Move decideNextMove() {
         this.validate();
         DecisionMaker.LOGGER.trace("Player {} advancing time. ",
@@ -153,6 +212,11 @@ public class DecisionMaker implements Channel {
         return this.player;
     }
 
+    /**
+     * Whether or not this object can still be used for decision making.
+     * 
+     * @return False when it can be used.
+     */
     public boolean isTerminated() {
         return this.isDisposed;
     }
@@ -179,7 +243,7 @@ public class DecisionMaker implements Channel {
         }
     }
 
-    public void notifyOfPlayerMove(final PlayerMoveEvent<Node> evt) {
+    public void notifyOfPlayerMove(final PlayerMoveEvent evt) {
         final Node newHead = evt.getNodes().getFirst();
         final Player p = evt.getPlayer();
         this.playerEvents.insert(evt);
@@ -233,6 +297,13 @@ public class DecisionMaker implements Channel {
         }
     }
 
+    /**
+     * Clean up after this Drools instance. Will terminate the session and leave
+     * all the objects up for garbage collection. Only call once and then don't
+     * use this object anymore.
+     * 
+     * @return False if already terminated.
+     */
     public boolean terminate() {
         if (this.isDisposed) {
             DecisionMaker.LOGGER.warn("Player {} already terminated.",

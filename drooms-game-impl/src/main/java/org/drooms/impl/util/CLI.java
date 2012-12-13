@@ -11,7 +11,27 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.drooms.impl.GameController;
 
+/**
+ * Command-line interface for the application. It enforces two options on the
+ * command line:
+ * 
+ * <dl>
+ * <dt>-p &lt;file&gt;</dt>
+ * <dd>Provides a player configuration file, as described in
+ * {@link GameController#play(String, java.util.Properties, java.util.Properties)}
+ * .</dd>
+ * <dt>-g &lt;file&gt;</dt>
+ * <dd>Provides a game configuration file, as described in
+ * {@link GameController#play(String, java.util.Properties, java.util.Properties)}
+ * .</dd>
+ * </dl>
+ * 
+ * Not providing any of those or pointing to unreadable (non-existent) files
+ * should result in a help message being printed out and the application being
+ * terminated.
+ */
 public class CLI {
 
     private static final CLI INSTANCE = new CLI();
@@ -60,6 +80,14 @@ public class CLI {
         formatter.printHelp("java -jar drooms.jar", this.options, true);
     }
 
+    /**
+     * Process the command-line arguments.
+     * 
+     * @param args
+     *            The arguments.
+     * @return A pair of config files. Game config is the first, player config
+     *         the second.
+     */
     public Pair<File, File> process(final String[] args) {
         final CommandLineParser parser = new GnuParser();
         try {

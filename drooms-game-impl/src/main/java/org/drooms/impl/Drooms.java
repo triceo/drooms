@@ -15,6 +15,9 @@ import org.drooms.api.Game;
 import org.drooms.api.GameProgressListener;
 import org.drooms.impl.util.CLI;
 
+/**
+ * Main class of the application, used to launch a particular game.
+ */
 public class Drooms {
 
     private static Game getGameImpl(final String id) {
@@ -37,6 +40,31 @@ public class Drooms {
         return new Timestamp(date.getTime()).toString();
     }
 
+    /**
+     * Run the application from the command-line. For a description of the
+     * command line interface, see {@link CLI}.
+     * 
+     * This method expects couple properties to come out of
+     * {@link CLI#process(String[])}'s game config {@link Properties}:
+     * 
+     * <dl>
+     * <dt>game.class</dt>
+     * <dd>A fully qualified name of a class on the classpath that will be used
+     * as the game implementation. If not specified, {@link DefaultGame} will be
+     * used.</dd>
+     * <dt>reports.dir</dt>
+     * <dd>A directory in which to write the report file of that game. If not
+     * specified, it will be "reports". A subdirectory will be created, named as
+     * a timestamp for the current game, and that is the effective target
+     * directory for reports.</dd>
+     * <dt>report.file</dt>
+     * <dd>Where to write the report file at the end of that game. If not
+     * specified, it will be "${reports.dir}/report.xml".</dd>
+     * </dl>
+     * 
+     * @param args
+     *            Command-line arguments.
+     */
     public static void main(final String[] args) {
         final CLI cli = CLI.getInstance();
         final Pair<File, File> configs = cli.process(args);

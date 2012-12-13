@@ -3,8 +3,8 @@ package org.drooms.impl;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -26,13 +26,22 @@ public class DefaultPlayground implements Playground {
 
     private static final char WALL_SIGN = '#';
 
+    /**
+     * Build the playground from an input stream. Each line in that stream
+     * represents one row on the playground. Each '#' in that line represents a
+     * wall node, ' ' represents a node where the worm can move and any other
+     * character represents a possible starting position for a worm. (Starting
+     * positions also can be moved into.)
+     * 
+     * @param s
+     *            Stream in question.
+     * @return Playground constructed from that stream.
+     * @throws IOException
+     *             In case the stream cannot be read.
+     */
     public static DefaultPlayground read(final InputStream s)
             throws IOException {
         return new DefaultPlayground(IOUtils.readLines(s));
-    }
-
-    public static DefaultPlayground read(final Reader r) throws IOException {
-        return new DefaultPlayground(IOUtils.readLines(r));
     }
 
     private final Set<Node> nodes = new HashSet<Node>();
@@ -163,28 +172,38 @@ public class DefaultPlayground implements Playground {
         return e;
     }
 
-    public void write(final Writer w) throws IOException {
-        final BufferedWriter bw = new BufferedWriter(w);
-        for (final Node[] line : this.nodeLocations) {
-            for (final Node n : line) {
-                if (n == DefaultPlayground.WALL_NODE) {
-                    bw.append(DefaultPlayground.WALL_SIGN);
-                } else if (this.startingNodes.containsValue(n)) {
-                    for (final SortedMap.Entry<Character, Node> entry : this.startingNodes
-                            .entrySet()) {
-                        if (!entry.getValue().equals(n)) {
-                            continue;
+    /**
+     * Write out the playground into a stream, according to the spec described
+     * in {@link #read(InputStream)}.
+     * 
+     * @param s
+     *            The stream
+     * @throws IOException
+     *             In case the stream cannot be written.
+     */
+    public void write(final OutputStream s) throws IOException {
+        try (final BufferedWriter bw = new BufferedWriter(
+                new OutputStreamWriter(s))) {
+            for (final Node[] line : this.nodeLocations) {
+                for (final Node n : line) {
+                    if (n == DefaultPlayground.WALL_NODE) {
+                        bw.append(DefaultPlayground.WALL_SIGN);
+                    } else if (this.startingNodes.containsValue(n)) {
+                        for (final SortedMap.Entry<Character, Node> entry : this.startingNodes
+                                .entrySet()) {
+                            if (!entry.getValue().equals(n)) {
+                                continue;
+                            }
+                            bw.append(entry.getKey());
+                            break;
                         }
-                        bw.append(entry.getKey());
-                        break;
+                    } else {
+                        bw.append(' ');
                     }
-                } else {
-                    bw.append(' ');
                 }
+                bw.newLine();
             }
-            bw.newLine();
         }
-        bw.close();
     }
 
 }

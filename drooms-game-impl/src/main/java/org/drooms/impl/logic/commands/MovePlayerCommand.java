@@ -20,14 +20,14 @@ public class MovePlayerCommand implements Command, PlayerRelated {
     private final Player toMove;
     private final Move whichMove;
     private final Deque<Node> nodes;
-    private final PlayerMoveEvent<Node> event;
+    private final PlayerMoveEvent event;
 
     public MovePlayerCommand(final Player p, final Move m,
             final Deque<Node> nodes) {
         this.toMove = p;
         this.whichMove = m;
         this.nodes = nodes;
-        this.event = new PlayerMoveEvent<Node>(p, m, nodes);
+        this.event = new PlayerMoveEvent(p, m, nodes);
     }
 
     public Deque<Node> getNodes() {

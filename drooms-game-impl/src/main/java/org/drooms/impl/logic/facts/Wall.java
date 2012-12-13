@@ -2,7 +2,11 @@ package org.drooms.impl.logic.facts;
 
 import org.drooms.api.Node;
 
-public class Wall implements Positioned<Node> {
+/**
+ * Represents type of fact to be inserted into the working memory, so that the
+ * strategy has information about where the walls are and where it can move.
+ */
+public class Wall implements Positioned {
 
     private final Node node;
 

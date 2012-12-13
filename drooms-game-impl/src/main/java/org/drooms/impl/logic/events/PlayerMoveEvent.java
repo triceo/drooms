@@ -7,13 +7,13 @@ import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.impl.logic.PlayerRelated;
 
-public class PlayerMoveEvent<N extends Node> implements PlayerRelated {
+public class PlayerMoveEvent implements PlayerRelated {
 
     private final Player player;
     private final Move move;
-    private final Deque<N> nodes;
+    private final Deque<Node> nodes;
 
-    public PlayerMoveEvent(final Player p, final Move m, final Deque<N> nodes) {
+    public PlayerMoveEvent(final Player p, final Move m, final Deque<Node> nodes) {
         this.player = p;
         this.nodes = nodes;
         this.move = m;
@@ -23,7 +23,7 @@ public class PlayerMoveEvent<N extends Node> implements PlayerRelated {
         return this.move;
     }
 
-    public Deque<N> getNodes() {
+    public Deque<Node> getNodes() {
         return this.nodes;
     }
 

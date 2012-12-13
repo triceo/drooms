@@ -15,9 +15,14 @@ import org.drools.builder.KnowledgeBuilder;
 import org.drools.builder.KnowledgeBuilderError;
 import org.drooms.api.Player;
 import org.drooms.api.Strategy;
+import org.drooms.impl.GameController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * A helper class to load {@link Strategy} implementations. for all requested
+ * {@link Player}s.
+ */
 public class PlayerAssembly {
 
     private static final Logger LOGGER = LoggerFactory
@@ -28,10 +33,23 @@ public class PlayerAssembly {
 
     private final Map<String, Strategy> strategyInstances = new HashMap<String, Strategy>();
 
+    /**
+     * Initialize the class.
+     * 
+     * @param config
+     *            Game config as described in
+     *            {@link GameController#play(String, Properties, Properties)}.
+     */
     public PlayerAssembly(final Properties config) {
         this.config = config;
     }
 
+    /**
+     * Perform all the strategy resolution and return a list of fully
+     * initialized players.
+     * 
+     * @return The unmodifiable list of players.
+     */
     public List<Player> assemblePlayers() {
         // parse a list of players
         final Map<String, String> playerStrategies = new HashMap<String, String>();
@@ -86,6 +104,14 @@ public class PlayerAssembly {
         return Collections.unmodifiableList(players);
     }
 
+    /**
+     * Load a strategy JAR file in its own class-loader, effectively isolating
+     * the strategies from each other.
+     * 
+     * @param strategyJar
+     *            The JAR coming from the player config.
+     * @return The class-loader used to load the strategy jar.
+     */
     private ClassLoader loadJar(final URL strategyJar) {
         if (!this.strategyClassloaders.containsKey(strategyJar)) {
             @SuppressWarnings("resource")

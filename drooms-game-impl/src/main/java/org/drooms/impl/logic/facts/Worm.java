@@ -3,7 +3,11 @@ package org.drooms.impl.logic.facts;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
 
-public class Worm implements Positioned<Node> {
+/**
+ * Represents type of fact to be inserted into the working memory, so that the
+ * strategy has information about the position of worms.
+ */
+public class Worm implements Positioned {
 
     private final Player player;
 

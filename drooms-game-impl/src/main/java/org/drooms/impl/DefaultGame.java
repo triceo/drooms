@@ -17,7 +17,69 @@ import org.drooms.api.Move;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
 
+/**
+ * On top of the rules implemented by {@link GameController}, this game
+ * implementation also puts forward some of its own. Those are:
+ * 
+ * <dl>
+ * <dt>Collision detection</dt>
+ * <dd>When a worm reaches a node at the same time as another worm, both are
+ * terminated. When a worm moves into a body of another worm or into a wall,
+ * only this worm is terminated. Specific probabilities and values come from the
+ * game config.</dd>
+ * <dt>Various types of collectibles</dt>
+ * <dd>This class implements three types of collectibles with varying
+ * probabilities of appearance, expirations and valuations. There are cheap ones
+ * that occur all the time, good ones that occur sometimes and extremely
+ * lucrative ones that occur scarcely and don't last long.</dd>
+ * <dt>Simultaneos collections</dt>
+ * <dd>When two worms collect the same item at the same time, it is considered a
+ * collision. Both worms are terminated and neither is awarded points for the
+ * item.</dd>
+ * <dt>Inactivity enforcement</dt>
+ * <dd>This implementation will terminate worms for inactivity, as described in
+ * the super class.</dd>
+ * </dl>
+ */
 public class DefaultGame extends GameController {
+
+    private enum CollectibleType {
+
+        CHEAP("cheap"), GOOD("good"), EXTREME("extreme");
+
+        private static final String COMMON_PREFIX = "collectible.";
+        private static final String PROBABILITY_PREFIX = CollectibleType.COMMON_PREFIX
+                + "probability.";
+        private static final String PRICE_PREFIX = CollectibleType.COMMON_PREFIX
+                + "price.";
+        private static final String EXPIRATION_PREFIX = CollectibleType.COMMON_PREFIX
+                + "expiration.";
+        private final String collectibleName;
+
+        CollectibleType(final String propertyName) {
+            this.collectibleName = propertyName;
+        }
+
+        public int getExpiration(final Properties config) {
+            final String price = config.getProperty(
+                    CollectibleType.EXPIRATION_PREFIX + this.collectibleName,
+                    "1");
+            return Integer.valueOf(price);
+        }
+
+        public int getPoints(final Properties config) {
+            final String price = config.getProperty(
+                    CollectibleType.PRICE_PREFIX + this.collectibleName, "1");
+            return Integer.valueOf(price);
+        }
+
+        public BigDecimal getProbabilityOfAppearance(final Properties config) {
+            final String probability = config.getProperty(
+                    CollectibleType.PROBABILITY_PREFIX + this.collectibleName,
+                    "0.1");
+            return new BigDecimal(probability);
+        }
+    }
 
     @Override
     protected Map<Collectible, Player> performCollectibleCollection(

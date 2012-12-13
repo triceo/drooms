@@ -19,12 +19,18 @@ import org.drooms.api.Move;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.impl.DefaultPlayground;
+import org.drooms.impl.GameController;
 import org.drooms.impl.logic.commands.Command;
 import org.drooms.impl.logic.commands.DeactivatePlayerCommand;
 import org.drooms.impl.logic.commands.MovePlayerCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Receives state changes ({@link Command}s) from the {@link GameController} and
+ * distributes them to all the player strategies ({@link DecisionMaker} to 
+ * process them and make {@link Move} decisions on them.
+ */
 public class CommandDistributor {
 
     private static class DecisionMakerUnit implements Callable<Move> {
@@ -84,6 +90,20 @@ public class CommandDistributor {
 
     private final ExecutorService e = Executors.newFixedThreadPool(1);
 
+    /**
+     * Initialize the class.
+     * 
+     * @param playground
+     *            The playground on which the game is happening.
+     * @param players
+     *            The players taking part in the game.
+     * @param report
+     *            The game listener.
+     * @param playerTimeoutInSeconds
+     *            How much time the player strategies should be given to make
+     *            move decisions.
+     */
+    // FIXME allow for more listeners
     public CommandDistributor(final DefaultPlayground playground,
             final List<Player> players, final GameProgressListener report,
             final int playerTimeoutInSeconds) {
@@ -99,6 +119,14 @@ public class CommandDistributor {
         this.playerTimeoutInSeconds = playerTimeoutInSeconds;
     }
 
+    /**
+     * Execute the commands.
+     * 
+     * @param commands
+     *            A collection of state changes, to be handed over to strategies
+     *            in this exact order.
+     * @return Strategy decisions.
+     */
     public Map<Player, Move> execute(final List<Command> commands) {
         CommandDistributor.LOGGER
                 .info("First reporting what happens in this turn.");
@@ -155,6 +183,12 @@ public class CommandDistributor {
         return this.report;
     }
 
+    /**
+     * Clean up when the game is over. This instance shouldn't be used anymore
+     * after this method is called. Not calling this method after the game may
+     * result in the JVM not terminating, since the executors will still be
+     * active.
+     */
     public void terminate() {
         for (final Map.Entry<Player, DecisionMaker> entry : this.players
                 .entrySet()) {

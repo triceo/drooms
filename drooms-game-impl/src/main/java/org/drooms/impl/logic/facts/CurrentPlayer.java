@@ -3,7 +3,14 @@ package org.drooms.impl.logic.facts;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
 
-public class CurrentPlayer implements Positioned<Node> {
+/**
+ * Represents type of fact to be inserted into the working memory, so that the
+ * strategy has information about who and where the current player is.
+ * 
+ * FIXME this probably doesn't need to implement Positioned, since that
+ * information can be easily inferred from events.
+ */
+public class CurrentPlayer implements Positioned {
 
     private final Player player;
 
@@ -33,6 +40,7 @@ public class CurrentPlayer implements Positioned<Node> {
         return this.node.getY();
     }
 
+    // FIXME strategies shouldn't be allowed to call this
     public void setNode(final Node node) {
         this.node = node;
     }
