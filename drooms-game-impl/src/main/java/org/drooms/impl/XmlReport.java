@@ -17,8 +17,8 @@ import org.drooms.api.Playground;
 public class XmlReport implements GameReport {
 
     private static String collectibleXml(final Collectible c) {
-        return "<collectible type='" + c.getClass().getName() + "' points='"
-                + c.getPoints() + "' />";
+        return "<collectible points='" + c.getPoints() + "' expiresInTurn='"
+                + c.expiresInTurn() + "' />";
     }
 
     private static String nodeXml(final Node c) {

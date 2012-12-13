@@ -16,9 +16,6 @@ import org.drooms.api.Collectible;
 import org.drooms.api.Move;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
-import org.drooms.impl.collectibles.CheapCollectible;
-import org.drooms.impl.collectibles.ExtremeCollectible;
-import org.drooms.impl.collectibles.GoodCollectible;
 
 public class DefaultGame extends GameController {
 
@@ -50,21 +47,7 @@ public class DefaultGame extends GameController {
                 final int expiration = currentTurnNumber
                         + ct.getExpiration(gameConfig);
                 final int points = ct.getPoints(gameConfig);
-                Collectible c = null;
-                switch (ct) {
-                    case CHEAP:
-                        c = new CheapCollectible(points, expiration);
-                        break;
-                    case GOOD:
-                        c = new GoodCollectible(points, expiration);
-                        break;
-                    case EXTREME:
-                        c = new ExtremeCollectible(points, expiration);
-                        break;
-                    default:
-                        throw new IllegalStateException(
-                                "Unknown collectible type!");
-                }
+                final Collectible c = new Collectible(points, expiration);
                 collectibles.put(c,
                         this.pickRandomUnusedNode(playground, players));
             }
