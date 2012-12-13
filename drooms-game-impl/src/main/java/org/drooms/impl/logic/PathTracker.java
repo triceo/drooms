@@ -15,9 +15,9 @@ import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
 
-import edu.uci.ics.jung.algorithms.shortestpath.DijkstraShortestPath;
 import edu.uci.ics.jung.algorithms.shortestpath.ShortestPath;
 import edu.uci.ics.jung.algorithms.shortestpath.ShortestPathUtils;
+import edu.uci.ics.jung.algorithms.shortestpath.UnweightedShortestPath;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 
@@ -122,8 +122,6 @@ public class PathTracker {
      *            New current positions of all the worms.
      */
     // FIXME Strategies should never be able to call this method.
-    // FIXME Dijkstra throws exceptions on non-existent paths. We don't want
-    // that.
     protected void movePlayers(final Map<Player, Deque<Node>> newPositions) {
         final Set<Node> unavailable = new HashSet<>();
         for (final Map.Entry<Player, Deque<Node>> entry : newPositions
@@ -147,7 +145,7 @@ public class PathTracker {
                 .getGraph();
         this.currentGraph = PathTracker.cloneGraph(graphWithoutPlayers,
                 unavailable);
-        this.currentPath = new DijkstraShortestPath<Node, Edge>(
+        this.currentPath = new UnweightedShortestPath<Node, Edge>(
                 this.currentGraph);
     }
 
