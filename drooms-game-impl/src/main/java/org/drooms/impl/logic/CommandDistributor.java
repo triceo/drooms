@@ -76,7 +76,7 @@ public class CommandDistributor {
     }
 
     private final Map<Player, DecisionMaker> players = new LinkedHashMap<>();
-    private final Map<Player, PathTracker<DefaultPlayground>> trackers = new LinkedHashMap<>();
+    private final Map<Player, PathTracker> trackers = new LinkedHashMap<>();
 
     private final GameReport report;
 
@@ -85,12 +85,15 @@ public class CommandDistributor {
     private final ExecutorService e = Executors.newFixedThreadPool(1);
 
     public CommandDistributor(final DefaultPlayground playground,
-            final List<Player> players, final GameReport report, final int playerTimeoutInSeconds) {
+            final List<Player> players, final GameReport report,
+            final int playerTimeoutInSeconds) {
         for (final Player player : players) {
-            final PathTracker<DefaultPlayground> tracker = new PathTracker<>(
-                    playground, player);
+            final PathTracker tracker = new PathTracker(playground, player);
             this.trackers.put(player, tracker);
-            this.players.put(player, new DecisionMaker(player, tracker, report.getTargetFolder()));
+            this.players
+                    .put(player,
+                            new DecisionMaker(player, tracker, report
+                                    .getTargetFolder()));
         }
         this.report = report;
         this.playerTimeoutInSeconds = playerTimeoutInSeconds;

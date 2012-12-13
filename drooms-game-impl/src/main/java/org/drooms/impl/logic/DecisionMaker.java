@@ -21,7 +21,7 @@ import org.drools.time.SessionPseudoClock;
 import org.drooms.api.Move;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
-import org.drooms.impl.DefaultPlayground;
+import org.drooms.api.Playground;
 import org.drooms.impl.logic.events.CollectibleAdditionEvent;
 import org.drooms.impl.logic.events.CollectibleRemovalEvent;
 import org.drooms.impl.logic.events.CollectibleRewardEvent;
@@ -62,8 +62,7 @@ public class DecisionMaker implements Channel {
 
     private final Map<Player, Map<Node, FactHandle>> handles = new HashMap<Player, Map<Node, FactHandle>>();
 
-    public DecisionMaker(final Player p,
-            final PathTracker<DefaultPlayground> tracker,
+    public DecisionMaker(final Player p, final PathTracker tracker,
             final File reportFolder) {
         this.player = p;
         this.session = p.getKnowledgeBase().newStatefulKnowledgeSession(
@@ -107,7 +106,7 @@ public class DecisionMaker implements Channel {
          * insert playground walls; make sure the playground is always
          * surrounded with walls.
          */
-        final DefaultPlayground playground = tracker.getPlayground();
+        final Playground playground = tracker.getPlayground();
         for (int x = -1; x <= playground.getWidth(); x++) {
             for (int y = -1; y <= playground.getHeight(); y++) {
                 if (!playground.isAvailable(x, y)) {

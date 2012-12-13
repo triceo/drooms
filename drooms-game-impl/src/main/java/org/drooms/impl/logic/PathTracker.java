@@ -21,7 +21,7 @@ import edu.uci.ics.jung.algorithms.shortestpath.ShortestPathUtils;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 
-public class PathTracker<P extends Playground> {
+public class PathTracker {
 
     private static Graph<Node, Edge> cloneGraph(final Graph<Node, Edge> src,
             final Collection<Node> removeNodes) {
@@ -38,13 +38,13 @@ public class PathTracker<P extends Playground> {
         return clone;
     }
 
-    private final P playground;
+    private final Playground playground;
     private final Player player;
     private Graph<Node, Edge> currentGraph;
 
     private ShortestPath<Node, Edge> currentPath;
 
-    public PathTracker(final P playground, final Player p) {
+    public PathTracker(final Playground playground, final Player p) {
         this.playground = playground;
         this.player = p;
     }
@@ -74,7 +74,7 @@ public class PathTracker<P extends Playground> {
         return this.player;
     }
 
-    public P getPlayground() {
+    public Playground getPlayground() {
         return this.playground;
     }
 
