@@ -1,7 +1,7 @@
 package org.drooms.impl.logic.commands;
 
 import org.drooms.api.Collectible;
-import org.drooms.api.GameReport;
+import org.drooms.api.GameProgressListener;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.impl.logic.CollectibleRelated;
@@ -57,7 +57,7 @@ public class CollectCollectibleCommand implements Command, PlayerRelated,
     }
 
     @Override
-    public void report(final GameReport report) {
+    public void report(final GameProgressListener report) {
         report.collectibleCollected(this.getCollectible(), this.getPlayer(),
                 this.getNode(), this.getPoints());
         CollectCollectibleCommand.LOGGER.info(

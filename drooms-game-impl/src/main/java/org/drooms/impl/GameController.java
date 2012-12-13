@@ -20,7 +20,7 @@ import java.util.TreeMap;
 
 import org.drooms.api.Collectible;
 import org.drooms.api.Game;
-import org.drooms.api.GameReport;
+import org.drooms.api.GameProgressListener;
 import org.drooms.api.Move;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
@@ -158,7 +158,7 @@ public abstract class GameController implements Game {
             final Move decision);
 
     @Override
-    public GameReport play(final String id, final Properties gameConfig,
+    public GameProgressListener play(final String id, final Properties gameConfig,
             final Properties playerConfig) {
         // prepare the playground
         DefaultPlayground playground;
@@ -202,7 +202,7 @@ public abstract class GameController implements Game {
         }
         // prepare situation
         final CommandDistributor playerControl = new CommandDistributor(
-                playground, players, new XmlReport(playground, gameConfig, id),
+                playground, players, new XmlProgressListener(playground, gameConfig, id),
                 wormTimeout);
         final Set<Player> currentPlayers = new HashSet<Player>(players);
         Map<Player, Move> decisions = new HashMap<Player, Move>();

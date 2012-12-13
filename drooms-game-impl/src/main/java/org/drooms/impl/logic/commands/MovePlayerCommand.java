@@ -2,7 +2,7 @@ package org.drooms.impl.logic.commands;
 
 import java.util.Deque;
 
-import org.drooms.api.GameReport;
+import org.drooms.api.GameProgressListener;
 import org.drooms.api.Move;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
@@ -45,7 +45,7 @@ public class MovePlayerCommand implements Command, PlayerRelated {
     }
 
     @Override
-    public void report(final GameReport report) {
+    public void report(final GameProgressListener report) {
         report.playerMoved(this.toMove, this.whichMove,
                 this.nodes.toArray(new Node[] {}));
         MovePlayerCommand.LOGGER.info(

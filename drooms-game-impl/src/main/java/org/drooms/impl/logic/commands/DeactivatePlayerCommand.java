@@ -1,6 +1,6 @@
 package org.drooms.impl.logic.commands;
 
-import org.drooms.api.GameReport;
+import org.drooms.api.GameProgressListener;
 import org.drooms.api.Player;
 import org.drooms.impl.logic.DecisionMaker;
 import org.drooms.impl.logic.PlayerRelated;
@@ -36,7 +36,7 @@ public class DeactivatePlayerCommand implements Command, PlayerRelated {
     }
 
     @Override
-    public void report(final GameReport report) {
+    public void report(final GameProgressListener report) {
         report.playerDeactivated(this.toDie);
         DeactivatePlayerCommand.LOGGER.info(
                 "Player {} has been removed from the game due to inactivity.",

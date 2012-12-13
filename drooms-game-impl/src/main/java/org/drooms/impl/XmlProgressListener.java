@@ -8,13 +8,13 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.drooms.api.Collectible;
-import org.drooms.api.GameReport;
+import org.drooms.api.GameProgressListener;
 import org.drooms.api.Move;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
 
-public class XmlReport implements GameReport {
+public class XmlProgressListener implements GameProgressListener {
 
     private static String collectibleXml(final Collectible c) {
         return "<collectible points='" + c.getPoints() + "' expiresInTurn='"
@@ -36,7 +36,7 @@ public class XmlReport implements GameReport {
     private final Map<Player, Integer> playerPoints = new HashMap<>();
     private final File reportFolder;
 
-    public XmlReport(final Playground p, final Properties gameConfig,
+    public XmlProgressListener(final Playground p, final Properties gameConfig,
             final String gameId) {
         this.reportFolder = new File(gameConfig.getProperty("reports.dir",
                 "reports"), gameId);
@@ -58,7 +58,7 @@ public class XmlReport implements GameReport {
         for (int x = -1; x <= p.getWidth(); x++) {
             for (int y = -1; y <= p.getHeight(); y++) {
                 if (p.isAvailable(x, y)) {
-                    this.report.append(XmlReport.nodeXml(Node.getNode(x, y)));
+                    this.report.append(XmlProgressListener.nodeXml(Node.getNode(x, y)));
                 }
             }
         }
@@ -77,8 +77,8 @@ public class XmlReport implements GameReport {
     @Override
     public void collectibleAdded(final Collectible c, final Node where) {
         this.report.append("<newCollectible>");
-        this.report.append(XmlReport.collectibleXml(c));
-        this.report.append(XmlReport.nodeXml(where));
+        this.report.append(XmlProgressListener.collectibleXml(c));
+        this.report.append(XmlProgressListener.nodeXml(where));
         this.report.append("</newCollectible>");
     }
 
@@ -87,17 +87,17 @@ public class XmlReport implements GameReport {
             final Node where, final int points) {
         this.addPoints(p, points);
         this.report.append("<collectedCollectible points='" + points + "'>");
-        this.report.append(XmlReport.collectibleXml(c));
-        this.report.append(XmlReport.playerXml(p));
-        this.report.append(XmlReport.nodeXml(where));
+        this.report.append(XmlProgressListener.collectibleXml(c));
+        this.report.append(XmlProgressListener.playerXml(p));
+        this.report.append(XmlProgressListener.nodeXml(where));
         this.report.append("</collectedCollectible>");
     }
 
     @Override
     public void collectibleRemoved(final Collectible c, final Node where) {
         this.report.append("<removedCollectible>");
-        this.report.append(XmlReport.collectibleXml(c));
-        this.report.append(XmlReport.nodeXml(where));
+        this.report.append(XmlProgressListener.collectibleXml(c));
+        this.report.append(XmlProgressListener.nodeXml(where));
         this.report.append("</removedCollectible>");
     }
 
@@ -118,23 +118,23 @@ public class XmlReport implements GameReport {
     @Override
     public void playerCrashed(final Player p) {
         this.report.append("<crashedPlayer>");
-        this.report.append(XmlReport.playerXml(p));
+        this.report.append(XmlProgressListener.playerXml(p));
         this.report.append("</crashedPlayer>");
     }
 
     @Override
     public void playerDeactivated(final Player p) {
         this.report.append("<deactivatedPlayer>");
-        this.report.append(XmlReport.playerXml(p));
+        this.report.append(XmlProgressListener.playerXml(p));
         this.report.append("</deactivatedPlayer>");
     }
 
     @Override
     public void playerMoved(final Player p, final Move m, final Node... nodes) {
         this.report.append("<playerPosition>");
-        this.report.append(XmlReport.playerXml(p));
+        this.report.append(XmlProgressListener.playerXml(p));
         for (final Node n : nodes) {
-            this.report.append(XmlReport.nodeXml(n));
+            this.report.append(XmlProgressListener.nodeXml(n));
         }
         this.report.append("</playerPosition>");
     }
@@ -143,7 +143,7 @@ public class XmlReport implements GameReport {
     public void playerSurvived(final Player p, final int points) {
         this.addPoints(p, points);
         this.report.append("<survivedPlayer points='" + points + "'>");
-        this.report.append(XmlReport.playerXml(p));
+        this.report.append(XmlProgressListener.playerXml(p));
         this.report.append("</survivedPlayer>");
     }
 
@@ -158,7 +158,7 @@ public class XmlReport implements GameReport {
         for (final Map.Entry<Player, Integer> entry : this.playerPoints
                 .entrySet()) {
             result.append("<score points='" + entry.getValue() + "'>");
-            result.append(XmlReport.playerXml(entry.getKey()));
+            result.append(XmlProgressListener.playerXml(entry.getKey()));
             result.append("</score>");
         }
         result.append("</results>");

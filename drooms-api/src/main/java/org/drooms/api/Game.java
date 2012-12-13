@@ -18,6 +18,6 @@ public interface Game {
      *            Configuration of players that enter the game.
      * @return A complete account of the game's progress.
      */
-    public GameReport play(String id, Properties config, Properties players);
+    public GameProgressListener play(String id, Properties config, Properties players);
 
 }

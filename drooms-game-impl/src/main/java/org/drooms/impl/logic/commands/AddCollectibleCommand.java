@@ -1,7 +1,7 @@
 package org.drooms.impl.logic.commands;
 
 import org.drooms.api.Collectible;
-import org.drooms.api.GameReport;
+import org.drooms.api.GameProgressListener;
 import org.drooms.api.Node;
 import org.drooms.impl.logic.CollectibleRelated;
 import org.drooms.impl.logic.DecisionMaker;
@@ -40,7 +40,7 @@ public class AddCollectibleCommand implements Command, CollectibleRelated {
     }
 
     @Override
-    public void report(final GameReport report) {
+    public void report(final GameProgressListener report) {
         report.collectibleAdded(this.toAdd, this.whereToAdd);
         AddCollectibleCommand.LOGGER.info("Collectible {} added at [{},{}].",
                 new Object[] { this.toAdd, this.whereToAdd.getX(),

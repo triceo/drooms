@@ -12,7 +12,7 @@ import java.util.Properties;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.drooms.api.Game;
-import org.drooms.api.GameReport;
+import org.drooms.api.GameProgressListener;
 import org.drooms.impl.util.CLI;
 
 public class Drooms {
@@ -45,7 +45,7 @@ public class Drooms {
             System.exit(-1);
         }
         // play the game
-        GameReport report = null;
+        GameProgressListener report = null;
         final Properties gameConfig = new Properties();
         try (Reader gameConfigFile = new FileReader(configs.getLeft());
                 Reader playerConfigFile = new FileReader(configs.getRight())) {

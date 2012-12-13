@@ -14,7 +14,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import org.drooms.api.GameReport;
+import org.drooms.api.GameProgressListener;
 import org.drooms.api.Move;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
@@ -78,14 +78,14 @@ public class CommandDistributor {
     private final Map<Player, DecisionMaker> players = new LinkedHashMap<>();
     private final Map<Player, PathTracker> trackers = new LinkedHashMap<>();
 
-    private final GameReport report;
+    private final GameProgressListener report;
 
     private final int playerTimeoutInSeconds;
 
     private final ExecutorService e = Executors.newFixedThreadPool(1);
 
     public CommandDistributor(final DefaultPlayground playground,
-            final List<Player> players, final GameReport report,
+            final List<Player> players, final GameProgressListener report,
             final int playerTimeoutInSeconds) {
         for (final Player player : players) {
             final PathTracker tracker = new PathTracker(playground, player);
@@ -151,7 +151,7 @@ public class CommandDistributor {
         return Collections.unmodifiableMap(moves);
     }
 
-    public GameReport getReport() {
+    public GameProgressListener getReport() {
         return this.report;
     }
 

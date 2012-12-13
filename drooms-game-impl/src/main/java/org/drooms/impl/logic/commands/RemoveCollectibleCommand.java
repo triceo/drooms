@@ -1,7 +1,7 @@
 package org.drooms.impl.logic.commands;
 
 import org.drooms.api.Collectible;
-import org.drooms.api.GameReport;
+import org.drooms.api.GameProgressListener;
 import org.drooms.api.Node;
 import org.drooms.impl.logic.CollectibleRelated;
 import org.drooms.impl.logic.DecisionMaker;
@@ -40,7 +40,7 @@ public class RemoveCollectibleCommand implements Command, CollectibleRelated {
     }
 
     @Override
-    public void report(final GameReport report) {
+    public void report(final GameProgressListener report) {
         report.collectibleRemoved(this.toRemove, this.getNode());
         RemoveCollectibleCommand.LOGGER.info("Collectible {} removed.",
                 this.toRemove);

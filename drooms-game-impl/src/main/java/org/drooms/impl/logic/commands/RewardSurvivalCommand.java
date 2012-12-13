@@ -1,6 +1,6 @@
 package org.drooms.impl.logic.commands;
 
-import org.drooms.api.GameReport;
+import org.drooms.api.GameProgressListener;
 import org.drooms.api.Player;
 import org.drooms.impl.logic.DecisionMaker;
 import org.drooms.impl.logic.PlayerRelated;
@@ -41,7 +41,7 @@ public class RewardSurvivalCommand implements Command, PlayerRelated,
     }
 
     @Override
-    public void report(final GameReport report) {
+    public void report(final GameProgressListener report) {
         report.playerSurvived(this.toReward, this.rewardAmount);
         RewardSurvivalCommand.LOGGER
                 .info("Player {} has been rewarded {} points for surviving another turn.",

@@ -5,13 +5,10 @@ import java.io.IOException;
 import java.io.Writer;
 
 /**
- * Represents a report of the progress of the game.
+ * Tracks progress of the game.
  * 
- * @param <P>
- *            Type of playground on which the game is happening.
  */
-// FIXME rename to some listener
-public interface GameReport {
+public interface GameProgressListener {
 
     public void collectibleAdded(Collectible c, Node where);
 
@@ -33,12 +30,12 @@ public interface GameReport {
     public void playerSurvived(Player p, int points);
 
     /**
-     * Write the report in its current state.
+     * Write a report of the current state.
      * 
      * @param w
      *            Where to write.
      * @throws IOException
-     *             When the stream cannot be written.
+     *             When it cannot be written.
      */
     public void write(Writer w) throws IOException;
 
