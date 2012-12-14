@@ -18,42 +18,31 @@
         <h1>Drooms</h1>
         <p>Drools-based competition in a Snake-like game</p>
 
-        <p class="view"><a href="https://github.com/triceo/drooms">View the Project on GitHub <small>triceo/drooms</small></a></p>
+        <p class="view"><a href="https://github.com/triceo/drooms">View the Project on GitHub <small>triceo/drooms</small></a>. Full <a href="http://triceo.github.com/drooms/report/">Maven report</a> is also available.</p>
 
 
         <ul>
-          <li><a href="https://github.com/triceo/drooms/zipball/master">Download <strong>ZIP File</strong></a></li>
-          <li><a href="https://github.com/triceo/drooms/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/triceo/drooms/archive/0.1.Final.zip">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/triceo/drooms/archive/0.1.Final.tar.gz">Download <strong>TAR Ball</strong></a></li>
           <li><a href="https://github.com/triceo/drooms">View On <strong>GitHub</strong></a></li>
         </ul>
       </header>
       <section>
-        <h3>Welcome to GitHub Pages.</h3>
-
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
-
-<pre><code>$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
-</code></pre>
-
-<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
-
-<h3>Designer Templates</h3>
-
-<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
-
-<h3>Rather Drive Stick?</h3>
-
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
-
-<h3>Authors and Contributors</h3>
-
-<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
-
-<h3>Support or Contact</h3>
-
-<p>Having trouble with Pages? Check out the documentation at <a href="http://help.github.com/pages">http://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
+        <h3>Rules of the game</h3>
+        <p>The game can be run from the main class called <a href="http://triceo.github.com/drooms/report/apidocs/org/drooms/impl/Drooms.html">Drooms</a>. The Javadoc gives you all you need to know.</p>
+        <p>The game currently has only one implementation, which is called <a href="http://triceo.github.com/drooms/report/apidocs/org/drooms/impl/DefaultGame.html">DefaultGame</a>. Study the JavaDocs to find out the rules of that game.</p>
+        
+        <h3>Strategies</h3>
+        <p>Your strategies must implement the <a href="http://triceo.github.com/drooms/report/apidocs/org/drooms/api/Strategy.html">Strategy</a> interface. Using non-stable APIs in your strategies is at your own risk. The following APIs are considered to be stable:</p>
+        <ul>
+          <li>Everything in the <a href="http://triceo.github.com/drooms/report/apidocs/org/drooms/api/package-summary.html">API package</a>.</li>
+          <li>Everything in the <a href="http://triceo.github.com/drooms/report/apidocs/org/drooms/impl/logic/events/package-summary.html">Event package</a>.</li>
+          <li>Everything in the <a href="http://triceo.github.com/drooms/report/apidocs/org/drooms/impl/logic/facts/package-summary.html">Fact package</a>.</li>
+        </ul>
+        <p>For acceptance testing of your strategies, you would be well-advised to use <a href="http://triceo.github.com/drooms/report/apidocs/org/drooms/impl/util/DroomsTestHelper.html">DroomsTestHelper</a> class.</p>
+        
+        <h3>Public tournaments</h3>
+        <p>None are planned at the moment. Feel free to host your own.</p>
       </section>
       <footer>
         <p>This project is maintained by <a href="https://github.com/triceo">triceo</a></p>
