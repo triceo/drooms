@@ -58,7 +58,8 @@ public class XmlProgressListener implements GameProgressListener {
         for (int x = -1; x <= p.getWidth(); x++) {
             for (int y = -1; y <= p.getHeight(); y++) {
                 if (p.isAvailable(x, y)) {
-                    this.report.append(XmlProgressListener.nodeXml(Node.getNode(x, y)));
+                    this.report.append(XmlProgressListener.nodeXml(Node
+                            .getNode(x, y)));
                 }
             }
         }

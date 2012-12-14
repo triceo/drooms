@@ -6,7 +6,7 @@ package org.drooms.impl.logic.facts;
  */
 public class CurrentTurn {
 
-    private int number;
+    private final int number;
 
     public CurrentTurn(final int number) {
         this.number = number;

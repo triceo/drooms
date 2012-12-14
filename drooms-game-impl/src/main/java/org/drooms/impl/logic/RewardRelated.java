@@ -10,6 +10,7 @@ public interface RewardRelated {
 
     /**
      * How many points the {@link Player} should be rewarded.
+     * 
      * @return A number > 0.
      */
     public int getPoints();
