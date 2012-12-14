@@ -4,7 +4,7 @@
 
   <groupId>com.github.triceo.drooms</groupId>
   <artifactId>drooms</artifactId>
-  <version>0.1.Final</version>
+  <version>0.2-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>drooms</name>
