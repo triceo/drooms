@@ -1,16 +1,19 @@
 package org.drooms.strategy.random;
 
-import org.drools.builder.KnowledgeBuilder;
-import org.drools.builder.ResultSeverity;
-import org.junit.Assert;
-import org.junit.Test;
+import org.drooms.api.Strategy;
+import org.drooms.impl.util.DroomsTestHelper;
 
-public class SuicidalStrategyTest {
+public class SuicidalStrategyTest extends DroomsTestHelper {
 
-    @Test
-    public void test() {
-        final KnowledgeBuilder kb = new RandomSuicidalStrategy().getKnowledgeBuilder(this.getClass().getClassLoader());
-        Assert.assertFalse(kb.getResults(ResultSeverity.ERROR).toString(), kb.hasErrors()); 
+    private final Strategy strategy;
+    
+    public SuicidalStrategyTest() {
+        this.strategy = new RandomSuicidalStrategy();
+    }
+    
+    @Override
+    public Strategy getStrategy() {
+        return this.strategy;
     }
     
     

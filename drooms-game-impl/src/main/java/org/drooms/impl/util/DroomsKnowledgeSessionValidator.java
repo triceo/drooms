@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.drools.KnowledgeBase;
 import org.drools.runtime.StatefulKnowledgeSession;
 import org.drooms.impl.logic.PathTracker;
 import org.slf4j.Logger;
@@ -16,6 +17,16 @@ public class DroomsKnowledgeSessionValidator {
     private final KnowledgeSessionValidationHelper helper;
     private final List<String> errors = new LinkedList<String>();
     private final List<String> warnings = new LinkedList<String>();
+
+    /**
+     * Create validator for a new session obtained from a particular knowledge
+     * base.
+     * 
+     * @param kbase
+     */
+    public DroomsKnowledgeSessionValidator(final KnowledgeBase kbase) {
+        this(kbase.newStatefulKnowledgeSession());
+    }
 
     /**
      * Create validator for the particular session.
