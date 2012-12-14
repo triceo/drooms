@@ -10,13 +10,15 @@ public interface CollectibleRelated {
 
     /**
      * The collectible that this relates to.
-     * @return
+     * 
+     * @return Collectible in question.
      */
     public Collectible getCollectible();
 
     /**
      * The node where that collectible is placed.
-     * @return
+     * 
+     * @return Node in question.
      */
     public Node getNode();
 

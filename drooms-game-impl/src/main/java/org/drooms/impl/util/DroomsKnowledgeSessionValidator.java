@@ -47,7 +47,7 @@ public class DroomsKnowledgeSessionValidator {
      * Retrieve problems that are critical to the strategy and will result in
      * the strategy not being accepted for the game.
      * 
-     * @return
+     * @return An unmodifiable collection of error messages.
      */
     public List<String> getErrors() {
         return Collections.unmodifiableList(this.errors);
@@ -57,7 +57,7 @@ public class DroomsKnowledgeSessionValidator {
      * Retrieve problems that aren't critical to the strategy. The strategy may
      * be sub-optimal, but it will be allowed into the game.
      * 
-     * @return
+     * @return An unmodifiable collection of warnings.
      */
     public List<String> getWarnings() {
         return Collections.unmodifiableList(this.warnings);
@@ -67,7 +67,7 @@ public class DroomsKnowledgeSessionValidator {
      * Whether or not the strategy is both valid and leverages all the available
      * options.
      * 
-     * @return
+     * @return True if clean.
      */
     public boolean isClean() {
         return (this.isValid() && this.warnings.size() == 0);
@@ -77,7 +77,7 @@ public class DroomsKnowledgeSessionValidator {
      * Whether or not the strategy is valid. Invalid strategies may not be
      * accepted into the game.
      * 
-     * @return
+     * @return True if valid.
      */
     public boolean isValid() {
         return (this.errors.size() == 0);

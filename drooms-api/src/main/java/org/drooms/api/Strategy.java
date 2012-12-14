@@ -5,7 +5,7 @@ import org.drools.builder.KnowledgeBuilder;
 
 /**
  * Represents a {@link Player}'s strategy for a worm to move around on a {@link
- * Playground.} This strategy should be implemented as a set of Drools business
+ * Playground}. This strategy should be implemented as a set of Drools business
  * rules.
  * 
  * This is the interface that competitors should implement in order to enter in

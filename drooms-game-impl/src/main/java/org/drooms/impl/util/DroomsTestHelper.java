@@ -27,7 +27,7 @@ public abstract class DroomsTestHelper {
     /**
      * Provide the strategy under test.
      * 
-     * @return
+     * @return The strategy to test.
      */
     public abstract Strategy getStrategy();
 

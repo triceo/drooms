@@ -10,21 +10,21 @@ public interface Positioned {
     /**
      * The position.
      * 
-     * @return
+     * @return Node in question.
      */
     public Node getNode();
 
     /**
      * The horizontal co-ordinate of that position.
      * 
-     * @return
+     * @return X coordinate.
      */
     public int getX();
 
     /**
      * The vertical co-ordinate of that position.
      * 
-     * @return
+     * @return Y coordinate.
      */
     public int getY();
 

@@ -94,9 +94,9 @@ public class PathTracker {
      * 
      * @param start
      *            Beginning of the path.
-     * @param node1
-     *            Any of the other two nodes.
      * @param node2
+     *            Any of the other two nodes.
+     * @param node3
      *            Any of the other two nodes.
      * @return Unmodifiable list of nodes on the path, ordered from start to
      *         end. Empty if path cannot be found.
