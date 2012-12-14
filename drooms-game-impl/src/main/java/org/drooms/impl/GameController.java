@@ -166,21 +166,75 @@ public abstract class GameController implements Game {
         return this.positions.get(p);
     }
 
+    /**
+     * Decide which {@link Collectible}s should be considered collected by which
+     * worms.
+     * 
+     * @param players
+     *            Players still in the game.
+     * @return Which collectible is collected by which player.
+     */
     protected abstract Map<Collectible, Player> performCollectibleCollection(
             final Collection<Player> players);
 
+    /**
+     * Decide which new {@link Collectible}s should be distributed.
+     * 
+     * @param gameConfig
+     *            Game config with information about the {@link Collectible}
+     *            types.
+     * @param playground
+     *            Playground on which to distribute.
+     * @param players
+     *            Players still in the game.
+     * @param currentTurnNumber
+     *            Current turn number.
+     * @return Which collectibles should be put where.
+     */
     protected abstract Map<Collectible, Node> performCollectibleDistribution(
             final Properties gameConfig, final DefaultPlayground playground,
             final Collection<Player> players, final int currentTurnNumber);
 
+    /**
+     * Perform collision detection for worms.
+     * 
+     * @param playground
+     *            Playground on which to detect collisions.
+     * @param currentPlayers
+     *            Players still in the game.
+     * @return Which players should be considered crashed.
+     */
     protected abstract Set<Player> performCollisionDetection(
             final DefaultPlayground playground,
             final Collection<Player> currentPlayers);
 
+    /**
+     * Decide which worms should be considered inactive.
+     * 
+     * @param playground
+     *            Playground on which to detect collisions.
+     * @param currentPlayers
+     *            Players still in the game.
+     * @param currentTurnNumber
+     *            Current turn number.
+     * @param allowedInactiveTurns
+     *            How many turns a player can not move before considered
+     *            inactive.
+     * @return Which players should be considered inactive.
+     */
     protected abstract Set<Player> performInactivityDetection(
             final Collection<Player> currentPlayers,
             final int currentTurnNumber, final int allowedInactiveTurns);
 
+    /**
+     * Decide where the worm should be after it has moved.
+     * 
+     * @param player
+     *            The worm.
+     * @param decision
+     *            The move to perform.
+     * @return New positions for the worm, head-first.
+     */
     protected abstract Deque<Node> performPlayerMove(final Player player,
             final Move decision);
 
