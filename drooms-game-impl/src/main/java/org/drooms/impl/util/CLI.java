@@ -55,9 +55,6 @@ public class CLI {
     private String errorMessage = null;
     private boolean isError = false;
 
-    public String datasetLocation = null, solutionLocation = null;
-    public long solverSeed = -1;
-
     /**
      * The constructor is hidden, as should be with the singleton pattern.
      */
