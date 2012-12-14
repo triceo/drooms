@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
  * When asked (see {@link #decideNextMove()}), the strategy should make a
  * decision on the next move, based on the current state of the working memory.
  * This decision should be sent over the provided 'decision' channel. If not
- * sent, it will default to STAY. See @{link Move} for the various types of
+ * sent, it will default to STAY. See {@link Move} for the various types of
  * decisions.
  * </p>
  * <p>
