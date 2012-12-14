@@ -211,8 +211,6 @@ public abstract class GameController implements Game {
     /**
      * Decide which worms should be considered inactive.
      * 
-     * @param playground
-     *            Playground on which to detect collisions.
      * @param currentPlayers
      *            Players still in the game.
      * @param currentTurnNumber
