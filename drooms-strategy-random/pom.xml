@@ -10,9 +10,6 @@
   <artifactId>drooms-strategy-random</artifactId>
   <name>drooms-strategy-random</name>
   <url>http://maven.apache.org</url>
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
   <dependencies>
     <dependency>
       <groupId>com.github.triceo.drooms</groupId>
