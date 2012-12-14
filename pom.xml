@@ -7,8 +7,8 @@
   <version>0.2-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <name>drooms</name>
-  <url>http://maven.apache.org</url>
+  <name>Drooms: Competition in a snake-like game</name>
+  <url>http://triceo.github.com/drooms/</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -134,6 +134,15 @@
     <module>drooms-game-impl</module>
     <module>drooms-strategy-random</module>
   </modules>
+  <developers>
+    <developer>
+      <email>lukas@petrovicky.net</email>
+      <id>triceo</id>
+      <name>Lukáš Petrovický</name>
+      <timezone>+1</timezone>
+      <url>https://masterbranch.com/triceo/</url>
+    </developer>
+  </developers>
   <reporting>
     <plugins>
       <plugin>
@@ -157,4 +166,13 @@
       </plugin>
     </plugins>
   </reporting>
+  <scm>
+    <developerConnection>scm:git:git@github.com:triceo/ras12</developerConnection>
+    <connection>scm:git:git://github.com/triceo/drooms.git</connection>
+    <url>https://github.com/triceo/drooms</url>
+  </scm>
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/triceo/drooms/issues</url>
+  </issueManagement>
 </project>
