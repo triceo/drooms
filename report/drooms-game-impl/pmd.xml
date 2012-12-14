@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pmd version="4.3" timestamp="2012-12-14T17:39:08.592">
+<file name="/home/lpetrovi/Workspaces/Stuff/drooms/drooms-game-impl/src/main/java/org/drooms/impl/Drooms.java">
+<violation beginline="39" endline="39" begincolumn="31" endcolumn="44" rule="AvoidThreadGroup" ruleset="Basic Rules" package="org.drooms.impl" class="Drooms" method="getTimestamp" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#AvoidThreadGroup" priority="3">
+Avoid using java.lang.ThreadGroup; it is not thread safe
+</violation>
+</file>
+<file name="/home/lpetrovi/Workspaces/Stuff/drooms/drooms-game-impl/src/main/java/org/drooms/impl/logic/DecisionMaker.java">
+<violation beginline="112" endline="114" begincolumn="11" endcolumn="9" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.drooms.impl.logic" class="DecisionMaker" method="setGlobal" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+Avoid empty catch blocks
+</violation>
+<violation beginline="140" endline="141" begincolumn="13" endcolumn="9" rule="EmptyTryBlock" ruleset="Basic Rules" package="org.drooms.impl.logic" class="DecisionMaker" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyTryBlock" priority="3">
+Avoid empty try blocks
+</violation>
+</file>
+</pmd>
