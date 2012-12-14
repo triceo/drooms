@@ -16,9 +16,4 @@ public class CurrentTurn {
         return this.number;
     }
 
-    // TODO strategies shouldn't be allowed to call this
-    public void setNumber(final int number) {
-        this.number = number;
-    }
-
 }

@@ -207,8 +207,8 @@ public class DecisionMaker implements Channel {
         // increase turn number
         final CurrentTurn turn = (CurrentTurn) this.session
                 .getObject(this.currentTurn);
-        turn.setNumber(turn.getNumber() + 1);
-        this.session.update(this.currentTurn, turn);
+        this.session.update(this.currentTurn, new CurrentTurn(
+                turn.getNumber() + 1));
         // store the decision
         if (this.latestDecision == null) {
             DecisionMaker.LOGGER.warn(
