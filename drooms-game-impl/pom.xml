@@ -8,8 +8,7 @@
     <version>0.2-SNAPSHOT</version>
   </parent>
   <artifactId>drooms-game-impl</artifactId>
-  <name>drooms-game-impl</name>
-  <url>http://maven.apache.org</url>
+  <name>Drooms: Default Game Implementation</name>
   <dependencies>
     <dependency>
       <groupId>com.github.triceo.drooms</groupId>

@@ -8,8 +8,7 @@
     <version>0.2-SNAPSHOT</version>
   </parent>
   <artifactId>drooms-api</artifactId>
-  <name>drooms-api</name>
-  <url>http://maven.apache.org</url>
+  <name>Drooms: Stable Common APIs</name>
   <dependencies>
     <dependency>
        <groupId>org.drools</groupId>

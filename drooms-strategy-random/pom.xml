@@ -8,8 +8,7 @@
     <version>0.2-SNAPSHOT</version>
   </parent>
   <artifactId>drooms-strategy-random</artifactId>
-  <name>drooms-strategy-random</name>
-  <url>http://maven.apache.org</url>
+  <name>Drooms Strategy: Random</name>
   <dependencies>
     <dependency>
       <groupId>com.github.triceo.drooms</groupId>
