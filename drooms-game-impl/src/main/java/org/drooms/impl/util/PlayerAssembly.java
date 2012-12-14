@@ -1,6 +1,8 @@
 package org.drooms.impl.util;
 
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -27,11 +29,20 @@ public class PlayerAssembly {
 
     private static final Logger LOGGER = LoggerFactory
             .getLogger(PlayerAssembly.class);
+
+    private static URL uriToUrl(final URI uri) {
+        try {
+            return uri.toURL();
+        } catch (final MalformedURLException e) {
+            throw new IllegalArgumentException("Invalid URL: " + uri, e);
+        }
+    }
+
     private final Properties config;
 
-    private final Map<URL, ClassLoader> strategyClassloaders = new HashMap<URL, ClassLoader>();
+    private final Map<URI, ClassLoader> strategyClassloaders = new HashMap<>();
 
-    private final Map<String, Strategy> strategyInstances = new HashMap<String, Strategy>();
+    private final Map<String, Strategy> strategyInstances = new HashMap<>();
 
     /**
      * Initialize the class.
@@ -52,8 +63,8 @@ public class PlayerAssembly {
      */
     public List<Player> assemblePlayers() {
         // parse a list of players
-        final Map<String, String> playerStrategies = new HashMap<String, String>();
-        final Map<String, URL> strategyJars = new HashMap<String, URL>();
+        final Map<String, String> playerStrategies = new HashMap<>();
+        final Map<String, URI> strategyJars = new HashMap<>();
         for (final String playerName : this.config.stringPropertyNames()) {
             final String strategyDescr = this.config.getProperty(playerName);
             final String[] parts = strategyDescr.split("\\Q@\\E");
@@ -62,24 +73,23 @@ public class PlayerAssembly {
                         "Invalid strategy descriptor: " + strategyDescr);
             }
             final String strategyClass = parts[0];
-            URL strategyJar;
             try {
-                strategyJar = new URL(parts[1]);
-            } catch (final MalformedURLException e) {
+                final URI strategyJar = new URI(parts[1]);
+                playerStrategies.put(playerName, strategyClass);
+                strategyJars.put(strategyClass, strategyJar);
+            } catch (final URISyntaxException e) {
                 throw new IllegalArgumentException(
                         "Invalid URL in the strategy descriptor: "
                                 + strategyDescr, e);
             }
-            playerStrategies.put(playerName, strategyClass);
-            strategyJars.put(strategyClass, strategyJar);
         }
         // load strategies for players
-        final List<Player> players = new ArrayList<Player>();
+        final List<Player> players = new ArrayList<>();
         for (final Map.Entry<String, String> entry : playerStrategies
                 .entrySet()) {
             final String playerName = entry.getKey();
             final String strategyClass = entry.getValue();
-            final URL strategyJar = strategyJars.get(strategyClass);
+            final URI strategyJar = strategyJars.get(strategyClass);
             Strategy strategy;
             try {
                 strategy = this.loadStrategy(strategyClass, strategyJar);
@@ -112,19 +122,19 @@ public class PlayerAssembly {
      *            The JAR coming from the player config.
      * @return The class-loader used to load the strategy jar.
      */
-    private ClassLoader loadJar(final URL strategyJar) {
+    private ClassLoader loadJar(final URI strategyJar) {
         if (!this.strategyClassloaders.containsKey(strategyJar)) {
             @SuppressWarnings("resource")
-            final ClassLoader loader = URLClassLoader
-                    .newInstance(new URL[] { strategyJar }, this.getClass()
-                            .getClassLoader());
+            final ClassLoader loader = URLClassLoader.newInstance(
+                    new URL[] { PlayerAssembly.uriToUrl(strategyJar) }, this
+                            .getClass().getClassLoader());
             this.strategyClassloaders.put(strategyJar, loader);
         }
         return this.strategyClassloaders.get(strategyJar);
     }
 
     private Strategy loadStrategy(final String strategyClass,
-            final URL strategyJar) throws Exception {
+            final URI strategyJar) throws Exception {
         if (!this.strategyInstances.containsKey(strategyClass)) {
             final Class<?> clz = Class.forName(strategyClass, true,
                     this.loadJar(strategyJar));
