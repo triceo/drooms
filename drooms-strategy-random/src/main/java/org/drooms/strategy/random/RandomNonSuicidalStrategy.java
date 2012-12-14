@@ -7,8 +7,8 @@ import org.drools.io.ResourceFactory;
 import org.drooms.api.Strategy;
 
 /**
- * Hello world!
- * 
+ * This is an example strategy. It makes its moves by random choice, but makes
+ * sure it doesn't hit a wall.
  */
 public class RandomNonSuicidalStrategy implements Strategy {
 

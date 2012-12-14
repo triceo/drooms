@@ -7,8 +7,7 @@ import org.drools.io.ResourceFactory;
 import org.drooms.api.Strategy;
 
 /**
- * Hello world!
- * 
+ * This is an example strategy. It makes its moves completely by random choice.
  */
 public class RandomSuicidalStrategy implements Strategy {
 
