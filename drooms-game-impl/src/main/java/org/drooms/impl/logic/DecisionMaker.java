@@ -135,13 +135,6 @@ public class DecisionMaker implements Channel {
                         + "player-" + this.player.getName() + "-session");
         // this is where we listen for decisions
         this.session.registerChannel("decision", this);
-        // this is where the path tracker comes in
-        // this is where the logger comes in
-        try {
-        } catch (final RuntimeException ex) {
-            DecisionMaker.LOGGER.info("Player {} doesn't use a logger.",
-                    this.player.getName());
-        }
         // validate session
         final DroomsKnowledgeSessionValidator validator = new DroomsKnowledgeSessionValidator(
                 this.session);
@@ -163,7 +156,7 @@ public class DecisionMaker implements Channel {
         this.gameEvents = this.session.getWorkingMemoryEntryPoint("gameEvents");
         this.playerEvents = this.session
                 .getWorkingMemoryEntryPoint("playerEvents");
-        // configure the session
+        // configure the globals for the session
         DecisionMaker.setGlobal(this.session, "tracker", tracker);
         DecisionMaker.setGlobal(
                 this.session,
