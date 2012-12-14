@@ -81,7 +81,7 @@ import org.slf4j.LoggerFactory;
  * </p>
  * 
  * <ul>
- * <li>{@link CurrentPlayer}, once. Will change with every turn.</li>
+ * <li>{@link CurrentPlayer}, once. Will never change or be removed.</li>
  * <li>{@link CurrentTurn}, once. Will change with every turn.</li>
  * <li>{@link Wall}, many. Will remain constant over the whole game.</li>
  * <li>{@link Worm}, many. Will be added and removed as the worms will move, but
@@ -122,8 +122,6 @@ public class DecisionMaker implements Channel {
             rewardEvents;
     private Move latestDecision = null;
     private final FactHandle currentTurn;
-
-    private final FactHandle currentPlayer;
 
     private final Map<Player, Map<Node, FactHandle>> handles = new HashMap<Player, Map<Node, FactHandle>>();
 
@@ -185,9 +183,8 @@ public class DecisionMaker implements Channel {
             }
         }
         // insert info about the game status
-        this.currentPlayer = this.session.insert(new CurrentPlayer(p, Node
-                .getNode(0, 0)));
         this.currentTurn = this.session.insert(new CurrentTurn(0));
+        this.session.insert(new CurrentPlayer(p));
     }
 
     /**
@@ -261,7 +258,6 @@ public class DecisionMaker implements Channel {
     }
 
     public void notifyOfPlayerMove(final PlayerMoveEvent evt) {
-        final Node newHead = evt.getNodes().getFirst();
         final Player p = evt.getPlayer();
         this.playerEvents.insert(evt);
         // update player positions
@@ -282,13 +278,6 @@ public class DecisionMaker implements Channel {
                                                 // occupies a node
             final FactHandle fh = playerHandles.remove(n);
             this.session.retract(fh);
-        }
-        // update current player's head
-        if (p == this.getPlayer()) {
-            final CurrentPlayer cp = (CurrentPlayer) this.session
-                    .getObject(this.currentPlayer);
-            cp.setNode(newHead);
-            this.session.update(this.currentPlayer, cp);
         }
     }
 

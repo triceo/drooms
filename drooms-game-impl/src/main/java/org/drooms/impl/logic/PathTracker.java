@@ -47,6 +47,7 @@ public class PathTracker {
     private Graph<Node, Edge> currentGraph;
 
     private ShortestPath<Node, Edge> currentPath;
+    private Node currentPosition;
 
     /**
      * Initialize the class.
@@ -59,6 +60,17 @@ public class PathTracker {
     public PathTracker(final Playground playground, final Player p) {
         this.playground = playground;
         this.player = p;
+    }
+
+    /**
+     * Retrieve the current position of the player's worm's head, that is the
+     * one found during the last {@link #movePlayers(Map)} call.
+     * 
+     * @return The position, or null if {@link #movePlayers(Map)} had never been
+     *         called before.
+     */
+    public Node getCurrentPosition() {
+        return this.currentPosition;
     }
 
     /**
@@ -147,6 +159,7 @@ public class PathTracker {
                 unavailable);
         this.currentPath = new UnweightedShortestPath<Node, Edge>(
                 this.currentGraph);
+        this.currentPosition = newPositions.get(this.player).getFirst();
     }
 
 }
