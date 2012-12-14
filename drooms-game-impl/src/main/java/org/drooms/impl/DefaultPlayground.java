@@ -183,7 +183,7 @@ public class DefaultPlayground implements Playground {
      */
     public void write(final OutputStream s) throws IOException {
         try (final BufferedWriter bw = new BufferedWriter(
-                new OutputStreamWriter(s))) {
+                new OutputStreamWriter(s, "UTF-8"))) {
             for (final Node[] line : this.nodeLocations) {
                 for (final Node n : line) {
                     if (n == DefaultPlayground.WALL_NODE) {
