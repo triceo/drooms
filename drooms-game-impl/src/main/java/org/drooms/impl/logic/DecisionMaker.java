@@ -33,6 +33,7 @@ import org.drooms.impl.logic.facts.CurrentPlayer;
 import org.drooms.impl.logic.facts.CurrentTurn;
 import org.drooms.impl.logic.facts.Wall;
 import org.drooms.impl.logic.facts.Worm;
+import org.drooms.impl.util.DroomsKnowledgeSessionValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,6 +105,15 @@ public class DecisionMaker implements Channel {
     private static final Environment environment = KnowledgeBaseFactory
             .newEnvironment();
 
+    private static void setGlobal(final StatefulKnowledgeSession session,
+            final String global, final Object value) {
+        try {
+            session.setGlobal(global, value);
+        } catch (final RuntimeException ex) {
+            // do nothing, since the user has already been notified
+        }
+    }
+
     private final Player player;
     private final StatefulKnowledgeSession session;
     private final KnowledgeRuntimeLogger sessionAudit;
@@ -112,11 +122,11 @@ public class DecisionMaker implements Channel {
             rewardEvents;
     private Move latestDecision = null;
     private final FactHandle currentTurn;
+
     private final FactHandle currentPlayer;
 
     private final Map<Player, Map<Node, FactHandle>> handles = new HashMap<Player, Map<Node, FactHandle>>();
 
-    // FIXME separate the strategy validation into its own helper class
     public DecisionMaker(final Player p, final PathTracker tracker,
             final File reportFolder) {
         this.player = p;
@@ -128,42 +138,40 @@ public class DecisionMaker implements Channel {
         // this is where we listen for decisions
         this.session.registerChannel("decision", this);
         // this is where the path tracker comes in
-        try {
-            this.session.setGlobal("tracker", tracker);
-        } catch (final RuntimeException ex) {
-            DecisionMaker.LOGGER.info(
-                    "Player {} doesn't use a path tracker. Good luck! :-)",
-                    this.player.getName());
-        }
         // this is where the logger comes in
         try {
-            this.session.setGlobal(
-                    "logger",
-                    LoggerFactory.getLogger("org.drooms.players."
-                            + this.player.getName()));
         } catch (final RuntimeException ex) {
             DecisionMaker.LOGGER.info("Player {} doesn't use a logger.",
                     this.player.getName());
         }
+        // validate session
+        final DroomsKnowledgeSessionValidator validator = new DroomsKnowledgeSessionValidator(
+                this.session);
+        if (!validator.isValid()) {
+            throw new IllegalStateException("Player " + this.player.getName()
+                    + " has a malformed strategy: "
+                    + validator.getErrors().get(0));
+        }
+        if (!validator.isClean()) {
+            for (final String message : validator.getWarnings()) {
+                DecisionMaker.LOGGER.info(
+                        "Player {} has an incomplete strategy: {}",
+                        this.player.getName(), message);
+            }
+        }
         // this is where we will send events from the game
         this.rewardEvents = this.session
                 .getWorkingMemoryEntryPoint("rewardEvents");
-        if (this.rewardEvents == null) {
-            // FIXME output strategy name
-            throw new IllegalStateException(
-                    "Problem in your rule file: 'rewardEvents' entry point not declared.");
-        }
         this.gameEvents = this.session.getWorkingMemoryEntryPoint("gameEvents");
-        if (this.gameEvents == null) {
-            throw new IllegalStateException(
-                    "Problem in your rule file: 'gameEvents' entry point not declared.");
-        }
         this.playerEvents = this.session
                 .getWorkingMemoryEntryPoint("playerEvents");
-        if (this.playerEvents == null) {
-            throw new IllegalStateException(
-                    "Problem in your rule file: 'playerEvents' entry point not declared.");
-        }
+        // configure the session
+        DecisionMaker.setGlobal(this.session, "tracker", tracker);
+        DecisionMaker.setGlobal(
+                this.session,
+                "logger",
+                LoggerFactory.getLogger("org.drooms.players."
+                        + this.player.getName()));
         /*
          * insert playground walls; make sure the playground is always
          * surrounded with walls.
