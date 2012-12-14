@@ -175,4 +175,11 @@
     <system>GitHub Issues</system>
     <url>https://github.com/triceo/drooms/issues</url>
   </issueManagement>
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
 </project>
