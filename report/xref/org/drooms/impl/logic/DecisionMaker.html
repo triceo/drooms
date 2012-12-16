@@ -55,7 +55,7 @@
 <a class="jxr_linenumber" name="45" href="#45">45</a>  <em class="jxr_javadoccomment"> * When asked (see {@link #decideNextMove()}), the strategy should make a</em>
 <a class="jxr_linenumber" name="46" href="#46">46</a>  <em class="jxr_javadoccomment"> * decision on the next move, based on the current state of the working memory.</em>
 <a class="jxr_linenumber" name="47" href="#47">47</a>  <em class="jxr_javadoccomment"> * This decision should be sent over the provided 'decision' channel. If not</em>
-<a class="jxr_linenumber" name="48" href="#48">48</a>  <em class="jxr_javadoccomment"> * sent, it will default to STAY. See @{link Move} for the various types of</em>
+<a class="jxr_linenumber" name="48" href="#48">48</a>  <em class="jxr_javadoccomment"> * sent, it will default to STAY. See {@link Move} for the various types of</em>
 <a class="jxr_linenumber" name="49" href="#49">49</a>  <em class="jxr_javadoccomment"> * decisions.</em>
 <a class="jxr_linenumber" name="50" href="#50">50</a>  <em class="jxr_javadoccomment"> * &lt;/p&gt;</em>
 <a class="jxr_linenumber" name="51" href="#51">51</a>  <em class="jxr_javadoccomment"> * &lt;p&gt;</em>
@@ -145,203 +145,196 @@
 <a class="jxr_linenumber" name="135" href="#135">135</a>                         + <span class="jxr_string">"player-"</span> + <strong class="jxr_keyword">this</strong>.player.getName() + <span class="jxr_string">"-session"</span>);
 <a class="jxr_linenumber" name="136" href="#136">136</a>         <em class="jxr_comment">// this is where we listen for decisions</em>
 <a class="jxr_linenumber" name="137" href="#137">137</a>         <strong class="jxr_keyword">this</strong>.session.registerChannel(<span class="jxr_string">"decision"</span>, <strong class="jxr_keyword">this</strong>);
-<a class="jxr_linenumber" name="138" href="#138">138</a>         <em class="jxr_comment">// this is where the path tracker comes in</em>
-<a class="jxr_linenumber" name="139" href="#139">139</a>         <em class="jxr_comment">// this is where the logger comes in</em>
-<a class="jxr_linenumber" name="140" href="#140">140</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="141" href="#141">141</a>         } <strong class="jxr_keyword">catch</strong> (<strong class="jxr_keyword">final</strong> RuntimeException ex) {
-<a class="jxr_linenumber" name="142" href="#142">142</a>             DecisionMaker.LOGGER.info(<span class="jxr_string">"Player {} doesn't use a logger."</span>,
-<a class="jxr_linenumber" name="143" href="#143">143</a>                     <strong class="jxr_keyword">this</strong>.player.getName());
-<a class="jxr_linenumber" name="144" href="#144">144</a>         }
-<a class="jxr_linenumber" name="145" href="#145">145</a>         <em class="jxr_comment">// validate session</em>
-<a class="jxr_linenumber" name="146" href="#146">146</a>         <strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/impl/util/DroomsKnowledgeSessionValidator.html">DroomsKnowledgeSessionValidator</a> validator = <strong class="jxr_keyword">new</strong> <a href="../../../../org/drooms/impl/util/DroomsKnowledgeSessionValidator.html">DroomsKnowledgeSessionValidator</a>(
-<a class="jxr_linenumber" name="147" href="#147">147</a>                 <strong class="jxr_keyword">this</strong>.session);
-<a class="jxr_linenumber" name="148" href="#148">148</a>         <strong class="jxr_keyword">if</strong> (!validator.isValid()) {
-<a class="jxr_linenumber" name="149" href="#149">149</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(<span class="jxr_string">"Player "</span> + <strong class="jxr_keyword">this</strong>.player.getName()
-<a class="jxr_linenumber" name="150" href="#150">150</a>                     + <span class="jxr_string">" has a malformed strategy: "</span>
-<a class="jxr_linenumber" name="151" href="#151">151</a>                     + validator.getErrors().get(0));
+<a class="jxr_linenumber" name="138" href="#138">138</a>         <em class="jxr_comment">// validate session</em>
+<a class="jxr_linenumber" name="139" href="#139">139</a>         <strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/impl/util/DroomsKnowledgeSessionValidator.html">DroomsKnowledgeSessionValidator</a> validator = <strong class="jxr_keyword">new</strong> <a href="../../../../org/drooms/impl/util/DroomsKnowledgeSessionValidator.html">DroomsKnowledgeSessionValidator</a>(
+<a class="jxr_linenumber" name="140" href="#140">140</a>                 <strong class="jxr_keyword">this</strong>.session);
+<a class="jxr_linenumber" name="141" href="#141">141</a>         <strong class="jxr_keyword">if</strong> (!validator.isValid()) {
+<a class="jxr_linenumber" name="142" href="#142">142</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(<span class="jxr_string">"Player "</span> + <strong class="jxr_keyword">this</strong>.player.getName()
+<a class="jxr_linenumber" name="143" href="#143">143</a>                     + <span class="jxr_string">" has a malformed strategy: "</span>
+<a class="jxr_linenumber" name="144" href="#144">144</a>                     + validator.getErrors().get(0));
+<a class="jxr_linenumber" name="145" href="#145">145</a>         }
+<a class="jxr_linenumber" name="146" href="#146">146</a>         <strong class="jxr_keyword">if</strong> (!validator.isClean()) {
+<a class="jxr_linenumber" name="147" href="#147">147</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">final</strong> String message : validator.getWarnings()) {
+<a class="jxr_linenumber" name="148" href="#148">148</a>                 DecisionMaker.LOGGER.info(
+<a class="jxr_linenumber" name="149" href="#149">149</a>                         <span class="jxr_string">"Player {} has an incomplete strategy: {}"</span>,
+<a class="jxr_linenumber" name="150" href="#150">150</a>                         <strong class="jxr_keyword">this</strong>.player.getName(), message);
+<a class="jxr_linenumber" name="151" href="#151">151</a>             }
 <a class="jxr_linenumber" name="152" href="#152">152</a>         }
-<a class="jxr_linenumber" name="153" href="#153">153</a>         <strong class="jxr_keyword">if</strong> (!validator.isClean()) {
-<a class="jxr_linenumber" name="154" href="#154">154</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">final</strong> String message : validator.getWarnings()) {
-<a class="jxr_linenumber" name="155" href="#155">155</a>                 DecisionMaker.LOGGER.info(
-<a class="jxr_linenumber" name="156" href="#156">156</a>                         <span class="jxr_string">"Player {} has an incomplete strategy: {}"</span>,
-<a class="jxr_linenumber" name="157" href="#157">157</a>                         <strong class="jxr_keyword">this</strong>.player.getName(), message);
-<a class="jxr_linenumber" name="158" href="#158">158</a>             }
-<a class="jxr_linenumber" name="159" href="#159">159</a>         }
-<a class="jxr_linenumber" name="160" href="#160">160</a>         <em class="jxr_comment">// this is where we will send events from the game</em>
-<a class="jxr_linenumber" name="161" href="#161">161</a>         <strong class="jxr_keyword">this</strong>.rewardEvents = <strong class="jxr_keyword">this</strong>.session
-<a class="jxr_linenumber" name="162" href="#162">162</a>                 .getWorkingMemoryEntryPoint(<span class="jxr_string">"rewardEvents"</span>);
-<a class="jxr_linenumber" name="163" href="#163">163</a>         <strong class="jxr_keyword">this</strong>.gameEvents = <strong class="jxr_keyword">this</strong>.session.getWorkingMemoryEntryPoint(<span class="jxr_string">"gameEvents"</span>);
-<a class="jxr_linenumber" name="164" href="#164">164</a>         <strong class="jxr_keyword">this</strong>.playerEvents = <strong class="jxr_keyword">this</strong>.session
-<a class="jxr_linenumber" name="165" href="#165">165</a>                 .getWorkingMemoryEntryPoint(<span class="jxr_string">"playerEvents"</span>);
-<a class="jxr_linenumber" name="166" href="#166">166</a>         <em class="jxr_comment">// configure the session</em>
-<a class="jxr_linenumber" name="167" href="#167">167</a>         DecisionMaker.setGlobal(<strong class="jxr_keyword">this</strong>.session, <span class="jxr_string">"tracker"</span>, tracker);
-<a class="jxr_linenumber" name="168" href="#168">168</a>         DecisionMaker.setGlobal(
-<a class="jxr_linenumber" name="169" href="#169">169</a>                 <strong class="jxr_keyword">this</strong>.session,
-<a class="jxr_linenumber" name="170" href="#170">170</a>                 <span class="jxr_string">"logger"</span>,
-<a class="jxr_linenumber" name="171" href="#171">171</a>                 LoggerFactory.getLogger(<span class="jxr_string">"org.drooms.players."</span>
-<a class="jxr_linenumber" name="172" href="#172">172</a>                         + <strong class="jxr_keyword">this</strong>.player.getName()));
-<a class="jxr_linenumber" name="173" href="#173">173</a>         <em class="jxr_comment">/*</em>
-<a class="jxr_linenumber" name="174" href="#174">174</a> <em class="jxr_comment">         * insert playground walls; make sure the playground is always</em>
-<a class="jxr_linenumber" name="175" href="#175">175</a> <em class="jxr_comment">         * surrounded with walls.</em>
-<a class="jxr_linenumber" name="176" href="#176">176</a> <em class="jxr_comment">         */</em>
-<a class="jxr_linenumber" name="177" href="#177">177</a>         <strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/api/Playground.html">Playground</a> playground = tracker.getPlayground();
-<a class="jxr_linenumber" name="178" href="#178">178</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> x = -1; x &lt;= playground.getWidth(); x++) {
-<a class="jxr_linenumber" name="179" href="#179">179</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> y = -1; y &lt;= playground.getHeight(); y++) {
-<a class="jxr_linenumber" name="180" href="#180">180</a>                 <strong class="jxr_keyword">if</strong> (!playground.isAvailable(x, y)) {
-<a class="jxr_linenumber" name="181" href="#181">181</a>                     <strong class="jxr_keyword">this</strong>.session.insert(<strong class="jxr_keyword">new</strong> <a href="../../../../org/drooms/impl/logic/facts/Wall.html">Wall</a>(Node.getNode(x, y)));
-<a class="jxr_linenumber" name="182" href="#182">182</a>                 }
-<a class="jxr_linenumber" name="183" href="#183">183</a>             }
-<a class="jxr_linenumber" name="184" href="#184">184</a>         }
-<a class="jxr_linenumber" name="185" href="#185">185</a>         <em class="jxr_comment">// insert info about the game status</em>
-<a class="jxr_linenumber" name="186" href="#186">186</a>         <strong class="jxr_keyword">this</strong>.currentTurn = <strong class="jxr_keyword">this</strong>.session.insert(<strong class="jxr_keyword">new</strong> <a href="../../../../org/drooms/impl/logic/facts/CurrentTurn.html">CurrentTurn</a>(0));
-<a class="jxr_linenumber" name="187" href="#187">187</a>         <strong class="jxr_keyword">this</strong>.session.insert(<strong class="jxr_keyword">new</strong> <a href="../../../../org/drooms/impl/logic/facts/CurrentPlayer.html">CurrentPlayer</a>(p));
-<a class="jxr_linenumber" name="188" href="#188">188</a>     }
-<a class="jxr_linenumber" name="189" href="#189">189</a> 
-<a class="jxr_linenumber" name="190" href="#190">190</a>     <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="191" href="#191">191</a> <em class="jxr_javadoccomment">     * Call on the Drools engine to make the decision on worm's next move,</em>
-<a class="jxr_linenumber" name="192" href="#192">192</a> <em class="jxr_javadoccomment">     * according to the {@link Player}'s {@link Strategy}.</em>
-<a class="jxr_linenumber" name="193" href="#193">193</a> <em class="jxr_javadoccomment">     * </em>
-<a class="jxr_linenumber" name="194" href="#194">194</a> <em class="jxr_javadoccomment">     * @return The move. STAY will be chosen when the strategy doesn't respond.</em>
-<a class="jxr_linenumber" name="195" href="#195">195</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="196" href="#196">196</a>     <strong class="jxr_keyword">public</strong> <a href="../../../../org/drooms/api/Move.html">Move</a> decideNextMove() {
-<a class="jxr_linenumber" name="197" href="#197">197</a>         <strong class="jxr_keyword">this</strong>.validate();
-<a class="jxr_linenumber" name="198" href="#198">198</a>         DecisionMaker.LOGGER.trace(<span class="jxr_string">"Player {} advancing time. "</span>,
-<a class="jxr_linenumber" name="199" href="#199">199</a>                 <strong class="jxr_keyword">new</strong> Object[] { <strong class="jxr_keyword">this</strong>.player.getName() });
-<a class="jxr_linenumber" name="200" href="#200">200</a>         <strong class="jxr_keyword">final</strong> SessionPseudoClock clock = <strong class="jxr_keyword">this</strong>.session.getSessionClock();
-<a class="jxr_linenumber" name="201" href="#201">201</a>         clock.advanceTime(1, TimeUnit.MINUTES);
-<a class="jxr_linenumber" name="202" href="#202">202</a>         <em class="jxr_comment">// decide</em>
-<a class="jxr_linenumber" name="203" href="#203">203</a>         DecisionMaker.LOGGER.trace(<span class="jxr_string">"Player {} deciding. "</span>,
-<a class="jxr_linenumber" name="204" href="#204">204</a>                 <strong class="jxr_keyword">new</strong> Object[] { <strong class="jxr_keyword">this</strong>.player.getName() });
-<a class="jxr_linenumber" name="205" href="#205">205</a>         <strong class="jxr_keyword">this</strong>.latestDecision = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="206" href="#206">206</a>         <strong class="jxr_keyword">this</strong>.session.fireAllRules();
-<a class="jxr_linenumber" name="207" href="#207">207</a>         <em class="jxr_comment">// increase turn number</em>
-<a class="jxr_linenumber" name="208" href="#208">208</a>         <strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/impl/logic/facts/CurrentTurn.html">CurrentTurn</a> turn = (CurrentTurn) <strong class="jxr_keyword">this</strong>.session
-<a class="jxr_linenumber" name="209" href="#209">209</a>                 .getObject(<strong class="jxr_keyword">this</strong>.currentTurn);
-<a class="jxr_linenumber" name="210" href="#210">210</a>         <strong class="jxr_keyword">this</strong>.session.update(<strong class="jxr_keyword">this</strong>.currentTurn, <strong class="jxr_keyword">new</strong> <a href="../../../../org/drooms/impl/logic/facts/CurrentTurn.html">CurrentTurn</a>(
-<a class="jxr_linenumber" name="211" href="#211">211</a>                 turn.getNumber() + 1));
-<a class="jxr_linenumber" name="212" href="#212">212</a>         <em class="jxr_comment">// store the decision</em>
-<a class="jxr_linenumber" name="213" href="#213">213</a>         <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.latestDecision == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="214" href="#214">214</a>             DecisionMaker.LOGGER.warn(
-<a class="jxr_linenumber" name="215" href="#215">215</a>                     <span class="jxr_string">"Player {} didn't make a decision. STAY forced."</span>,
-<a class="jxr_linenumber" name="216" href="#216">216</a>                     <strong class="jxr_keyword">this</strong>.player.getName());
-<a class="jxr_linenumber" name="217" href="#217">217</a>             <strong class="jxr_keyword">return</strong> Move.STAY;
-<a class="jxr_linenumber" name="218" href="#218">218</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="219" href="#219">219</a>             DecisionMaker.LOGGER.info(<span class="jxr_string">"Player {} final decision is {}. "</span>,
-<a class="jxr_linenumber" name="220" href="#220">220</a>                     <strong class="jxr_keyword">this</strong>.player.getName(), <strong class="jxr_keyword">this</strong>.latestDecision);
-<a class="jxr_linenumber" name="221" href="#221">221</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">this</strong>.latestDecision;
-<a class="jxr_linenumber" name="222" href="#222">222</a>         }
-<a class="jxr_linenumber" name="223" href="#223">223</a>     }
-<a class="jxr_linenumber" name="224" href="#224">224</a> 
-<a class="jxr_linenumber" name="225" href="#225">225</a>     <strong class="jxr_keyword">public</strong> <a href="../../../../org/drooms/api/Player.html">Player</a> getPlayer() {
-<a class="jxr_linenumber" name="226" href="#226">226</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">this</strong>.player;
-<a class="jxr_linenumber" name="227" href="#227">227</a>     }
-<a class="jxr_linenumber" name="228" href="#228">228</a> 
-<a class="jxr_linenumber" name="229" href="#229">229</a>     <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="230" href="#230">230</a> <em class="jxr_javadoccomment">     * Whether or not this object can still be used for decision making.</em>
-<a class="jxr_linenumber" name="231" href="#231">231</a> <em class="jxr_javadoccomment">     * </em>
-<a class="jxr_linenumber" name="232" href="#232">232</a> <em class="jxr_javadoccomment">     * @return False when it can be used.</em>
-<a class="jxr_linenumber" name="233" href="#233">233</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="234" href="#234">234</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isTerminated() {
-<a class="jxr_linenumber" name="235" href="#235">235</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">this</strong>.isDisposed;
-<a class="jxr_linenumber" name="236" href="#236">236</a>     }
-<a class="jxr_linenumber" name="237" href="#237">237</a> 
-<a class="jxr_linenumber" name="238" href="#238">238</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> notifyOfCollectibleAddition(<strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/impl/logic/events/CollectibleAdditionEvent.html">CollectibleAdditionEvent</a> evt) {
-<a class="jxr_linenumber" name="239" href="#239">239</a>         <strong class="jxr_keyword">this</strong>.gameEvents.insert(evt);
-<a class="jxr_linenumber" name="240" href="#240">240</a>     }
-<a class="jxr_linenumber" name="241" href="#241">241</a> 
-<a class="jxr_linenumber" name="242" href="#242">242</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> notifyOfCollectibleRemoval(<strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/impl/logic/events/CollectibleRemovalEvent.html">CollectibleRemovalEvent</a> evt) {
-<a class="jxr_linenumber" name="243" href="#243">243</a>         <strong class="jxr_keyword">this</strong>.gameEvents.insert(evt);
-<a class="jxr_linenumber" name="244" href="#244">244</a>     }
-<a class="jxr_linenumber" name="245" href="#245">245</a> 
-<a class="jxr_linenumber" name="246" href="#246">246</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> notifyOfCollectibleReward(<strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/impl/logic/events/CollectibleRewardEvent.html">CollectibleRewardEvent</a> evt) {
-<a class="jxr_linenumber" name="247" href="#247">247</a>         <strong class="jxr_keyword">this</strong>.rewardEvents.insert(evt);
-<a class="jxr_linenumber" name="248" href="#248">248</a>     }
-<a class="jxr_linenumber" name="249" href="#249">249</a> 
-<a class="jxr_linenumber" name="250" href="#250">250</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> notifyOfDeath(<strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/impl/logic/events/PlayerDeathEvent.html">PlayerDeathEvent</a> evt) {
-<a class="jxr_linenumber" name="251" href="#251">251</a>         <strong class="jxr_keyword">this</strong>.playerEvents.insert(evt);
-<a class="jxr_linenumber" name="252" href="#252">252</a>         <strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/api/Player.html">Player</a> p = evt.getPlayer();
-<a class="jxr_linenumber" name="253" href="#253">253</a>         <em class="jxr_comment">// remove player from the WM</em>
-<a class="jxr_linenumber" name="254" href="#254">254</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">final</strong> Map.Entry&lt;Node, FactHandle&gt; entry : <strong class="jxr_keyword">this</strong>.handles.remove(p)
-<a class="jxr_linenumber" name="255" href="#255">255</a>                 .entrySet()) {
-<a class="jxr_linenumber" name="256" href="#256">256</a>             <strong class="jxr_keyword">this</strong>.session.retract(entry.getValue());
-<a class="jxr_linenumber" name="257" href="#257">257</a>         }
-<a class="jxr_linenumber" name="258" href="#258">258</a>     }
-<a class="jxr_linenumber" name="259" href="#259">259</a> 
-<a class="jxr_linenumber" name="260" href="#260">260</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> notifyOfPlayerMove(<strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/impl/logic/events/PlayerMoveEvent.html">PlayerMoveEvent</a> evt) {
-<a class="jxr_linenumber" name="261" href="#261">261</a>         <strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/api/Player.html">Player</a> p = evt.getPlayer();
-<a class="jxr_linenumber" name="262" href="#262">262</a>         <strong class="jxr_keyword">this</strong>.playerEvents.insert(evt);
-<a class="jxr_linenumber" name="263" href="#263">263</a>         <em class="jxr_comment">// update player positions</em>
-<a class="jxr_linenumber" name="264" href="#264">264</a>         <strong class="jxr_keyword">if</strong> (!<strong class="jxr_keyword">this</strong>.handles.containsKey(p)) {
-<a class="jxr_linenumber" name="265" href="#265">265</a>             <strong class="jxr_keyword">this</strong>.handles.put(p, <strong class="jxr_keyword">new</strong> HashMap&lt;Node, FactHandle&gt;());
-<a class="jxr_linenumber" name="266" href="#266">266</a>         }
-<a class="jxr_linenumber" name="267" href="#267">267</a>         <strong class="jxr_keyword">final</strong> Map&lt;Node, FactHandle&gt; playerHandles = <strong class="jxr_keyword">this</strong>.handles.get(p);
-<a class="jxr_linenumber" name="268" href="#268">268</a>         <strong class="jxr_keyword">final</strong> Set&lt;Node&gt; untraversedNodes = <strong class="jxr_keyword">new</strong> HashSet&lt;Node&gt;(
-<a class="jxr_linenumber" name="269" href="#269">269</a>                 playerHandles.keySet());
-<a class="jxr_linenumber" name="270" href="#270">270</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">final</strong> Node n : evt.getNodes()) {
-<a class="jxr_linenumber" name="271" href="#271">271</a>             <strong class="jxr_keyword">if</strong> (!playerHandles.containsKey(n)) { <em class="jxr_comment">// worm occupies a new node</em>
-<a class="jxr_linenumber" name="272" href="#272">272</a>                 <strong class="jxr_keyword">final</strong> FactHandle fh = <strong class="jxr_keyword">this</strong>.session.insert(<strong class="jxr_keyword">new</strong> <a href="../../../../org/drooms/impl/logic/facts/Worm.html">Worm</a>(p, n));
-<a class="jxr_linenumber" name="273" href="#273">273</a>                 playerHandles.put(n, fh);
-<a class="jxr_linenumber" name="274" href="#274">274</a>             }
-<a class="jxr_linenumber" name="275" href="#275">275</a>             untraversedNodes.remove(n);
-<a class="jxr_linenumber" name="276" href="#276">276</a>         }
-<a class="jxr_linenumber" name="277" href="#277">277</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">final</strong> Node n : untraversedNodes) { <em class="jxr_comment">// worm no longer</em>
-<a class="jxr_linenumber" name="278" href="#278">278</a>                                                 <em class="jxr_comment">// occupies a node</em>
-<a class="jxr_linenumber" name="279" href="#279">279</a>             <strong class="jxr_keyword">final</strong> FactHandle fh = playerHandles.remove(n);
-<a class="jxr_linenumber" name="280" href="#280">280</a>             <strong class="jxr_keyword">this</strong>.session.retract(fh);
-<a class="jxr_linenumber" name="281" href="#281">281</a>         }
-<a class="jxr_linenumber" name="282" href="#282">282</a>     }
-<a class="jxr_linenumber" name="283" href="#283">283</a> 
-<a class="jxr_linenumber" name="284" href="#284">284</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> notifyOfSurvivalReward(<strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/impl/logic/events/SurvivalRewardEvent.html">SurvivalRewardEvent</a> evt) {
-<a class="jxr_linenumber" name="285" href="#285">285</a>         <strong class="jxr_keyword">this</strong>.rewardEvents.insert(evt);
-<a class="jxr_linenumber" name="286" href="#286">286</a>     }
-<a class="jxr_linenumber" name="287" href="#287">287</a> 
-<a class="jxr_linenumber" name="288" href="#288">288</a>     @Override
-<a class="jxr_linenumber" name="289" href="#289">289</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> send(<strong class="jxr_keyword">final</strong> Object object) {
-<a class="jxr_linenumber" name="290" href="#290">290</a>         <strong class="jxr_keyword">this</strong>.validate();
-<a class="jxr_linenumber" name="291" href="#291">291</a>         <strong class="jxr_keyword">if</strong> (object instanceof Move) {
-<a class="jxr_linenumber" name="292" href="#292">292</a>             <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.latestDecision != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="293" href="#293">293</a>                 DecisionMaker.LOGGER.debug(
-<a class="jxr_linenumber" name="294" href="#294">294</a>                         <span class="jxr_string">"Player {} has changed the decision from {} to {}."</span>,
-<a class="jxr_linenumber" name="295" href="#295">295</a>                         <strong class="jxr_keyword">new</strong> Object[] { <strong class="jxr_keyword">this</strong>.player.getName(),
-<a class="jxr_linenumber" name="296" href="#296">296</a>                                 <strong class="jxr_keyword">this</strong>.latestDecision, object });
-<a class="jxr_linenumber" name="297" href="#297">297</a>             }
-<a class="jxr_linenumber" name="298" href="#298">298</a>             <strong class="jxr_keyword">this</strong>.latestDecision = (Move) object;
-<a class="jxr_linenumber" name="299" href="#299">299</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="300" href="#300">300</a>             DecisionMaker.LOGGER.warn(
-<a class="jxr_linenumber" name="301" href="#301">301</a>                     <span class="jxr_string">"Player {} indicated an invalid move {}."</span>, <strong class="jxr_keyword">new</strong> Object[] {
-<a class="jxr_linenumber" name="302" href="#302">302</a>                             <strong class="jxr_keyword">this</strong>.player.getName(), <strong class="jxr_keyword">this</strong>.latestDecision });
-<a class="jxr_linenumber" name="303" href="#303">303</a>         }
-<a class="jxr_linenumber" name="304" href="#304">304</a>     }
-<a class="jxr_linenumber" name="305" href="#305">305</a> 
-<a class="jxr_linenumber" name="306" href="#306">306</a>     <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="307" href="#307">307</a> <em class="jxr_javadoccomment">     * Clean up after this Drools instance. Will terminate the session and leave</em>
-<a class="jxr_linenumber" name="308" href="#308">308</a> <em class="jxr_javadoccomment">     * all the objects up for garbage collection. Only call once and then don't</em>
-<a class="jxr_linenumber" name="309" href="#309">309</a> <em class="jxr_javadoccomment">     * use this object anymore.</em>
-<a class="jxr_linenumber" name="310" href="#310">310</a> <em class="jxr_javadoccomment">     * </em>
-<a class="jxr_linenumber" name="311" href="#311">311</a> <em class="jxr_javadoccomment">     * @return False if already terminated.</em>
-<a class="jxr_linenumber" name="312" href="#312">312</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="313" href="#313">313</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> terminate() {
-<a class="jxr_linenumber" name="314" href="#314">314</a>         <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.isDisposed) {
-<a class="jxr_linenumber" name="315" href="#315">315</a>             DecisionMaker.LOGGER.warn(<span class="jxr_string">"Player {} already terminated."</span>,
-<a class="jxr_linenumber" name="316" href="#316">316</a>                     <strong class="jxr_keyword">new</strong> Object[] { <strong class="jxr_keyword">this</strong>.player.getName() });
-<a class="jxr_linenumber" name="317" href="#317">317</a>             <strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="318" href="#318">318</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="319" href="#319">319</a>             DecisionMaker.LOGGER.info(<span class="jxr_string">"Terminating player {}."</span>,
-<a class="jxr_linenumber" name="320" href="#320">320</a>                     <strong class="jxr_keyword">new</strong> Object[] { <strong class="jxr_keyword">this</strong>.player.getName() });
-<a class="jxr_linenumber" name="321" href="#321">321</a>             <strong class="jxr_keyword">this</strong>.sessionAudit.close();
-<a class="jxr_linenumber" name="322" href="#322">322</a>             <strong class="jxr_keyword">this</strong>.session.dispose();
-<a class="jxr_linenumber" name="323" href="#323">323</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="153" href="#153">153</a>         <em class="jxr_comment">// this is where we will send events from the game</em>
+<a class="jxr_linenumber" name="154" href="#154">154</a>         <strong class="jxr_keyword">this</strong>.rewardEvents = <strong class="jxr_keyword">this</strong>.session
+<a class="jxr_linenumber" name="155" href="#155">155</a>                 .getWorkingMemoryEntryPoint(<span class="jxr_string">"rewardEvents"</span>);
+<a class="jxr_linenumber" name="156" href="#156">156</a>         <strong class="jxr_keyword">this</strong>.gameEvents = <strong class="jxr_keyword">this</strong>.session.getWorkingMemoryEntryPoint(<span class="jxr_string">"gameEvents"</span>);
+<a class="jxr_linenumber" name="157" href="#157">157</a>         <strong class="jxr_keyword">this</strong>.playerEvents = <strong class="jxr_keyword">this</strong>.session
+<a class="jxr_linenumber" name="158" href="#158">158</a>                 .getWorkingMemoryEntryPoint(<span class="jxr_string">"playerEvents"</span>);
+<a class="jxr_linenumber" name="159" href="#159">159</a>         <em class="jxr_comment">// configure the globals for the session</em>
+<a class="jxr_linenumber" name="160" href="#160">160</a>         DecisionMaker.setGlobal(<strong class="jxr_keyword">this</strong>.session, <span class="jxr_string">"tracker"</span>, tracker);
+<a class="jxr_linenumber" name="161" href="#161">161</a>         DecisionMaker.setGlobal(
+<a class="jxr_linenumber" name="162" href="#162">162</a>                 <strong class="jxr_keyword">this</strong>.session,
+<a class="jxr_linenumber" name="163" href="#163">163</a>                 <span class="jxr_string">"logger"</span>,
+<a class="jxr_linenumber" name="164" href="#164">164</a>                 LoggerFactory.getLogger(<span class="jxr_string">"org.drooms.players."</span>
+<a class="jxr_linenumber" name="165" href="#165">165</a>                         + <strong class="jxr_keyword">this</strong>.player.getName()));
+<a class="jxr_linenumber" name="166" href="#166">166</a>         <em class="jxr_comment">/*</em>
+<a class="jxr_linenumber" name="167" href="#167">167</a> <em class="jxr_comment">         * insert playground walls; make sure the playground is always</em>
+<a class="jxr_linenumber" name="168" href="#168">168</a> <em class="jxr_comment">         * surrounded with walls.</em>
+<a class="jxr_linenumber" name="169" href="#169">169</a> <em class="jxr_comment">         */</em>
+<a class="jxr_linenumber" name="170" href="#170">170</a>         <strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/api/Playground.html">Playground</a> playground = tracker.getPlayground();
+<a class="jxr_linenumber" name="171" href="#171">171</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> x = -1; x &lt;= playground.getWidth(); x++) {
+<a class="jxr_linenumber" name="172" href="#172">172</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> y = -1; y &lt;= playground.getHeight(); y++) {
+<a class="jxr_linenumber" name="173" href="#173">173</a>                 <strong class="jxr_keyword">if</strong> (!playground.isAvailable(x, y)) {
+<a class="jxr_linenumber" name="174" href="#174">174</a>                     <strong class="jxr_keyword">this</strong>.session.insert(<strong class="jxr_keyword">new</strong> <a href="../../../../org/drooms/impl/logic/facts/Wall.html">Wall</a>(Node.getNode(x, y)));
+<a class="jxr_linenumber" name="175" href="#175">175</a>                 }
+<a class="jxr_linenumber" name="176" href="#176">176</a>             }
+<a class="jxr_linenumber" name="177" href="#177">177</a>         }
+<a class="jxr_linenumber" name="178" href="#178">178</a>         <em class="jxr_comment">// insert info about the game status</em>
+<a class="jxr_linenumber" name="179" href="#179">179</a>         <strong class="jxr_keyword">this</strong>.currentTurn = <strong class="jxr_keyword">this</strong>.session.insert(<strong class="jxr_keyword">new</strong> <a href="../../../../org/drooms/impl/logic/facts/CurrentTurn.html">CurrentTurn</a>(0));
+<a class="jxr_linenumber" name="180" href="#180">180</a>         <strong class="jxr_keyword">this</strong>.session.insert(<strong class="jxr_keyword">new</strong> <a href="../../../../org/drooms/impl/logic/facts/CurrentPlayer.html">CurrentPlayer</a>(p));
+<a class="jxr_linenumber" name="181" href="#181">181</a>     }
+<a class="jxr_linenumber" name="182" href="#182">182</a> 
+<a class="jxr_linenumber" name="183" href="#183">183</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="184" href="#184">184</a> <em class="jxr_javadoccomment">     * Call on the Drools engine to make the decision on worm's next move,</em>
+<a class="jxr_linenumber" name="185" href="#185">185</a> <em class="jxr_javadoccomment">     * according to the {@link Player}'s {@link Strategy}.</em>
+<a class="jxr_linenumber" name="186" href="#186">186</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="187" href="#187">187</a> <em class="jxr_javadoccomment">     * @return The move. STAY will be chosen when the strategy doesn't respond.</em>
+<a class="jxr_linenumber" name="188" href="#188">188</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="189" href="#189">189</a>     <strong class="jxr_keyword">public</strong> <a href="../../../../org/drooms/api/Move.html">Move</a> decideNextMove() {
+<a class="jxr_linenumber" name="190" href="#190">190</a>         <strong class="jxr_keyword">this</strong>.validate();
+<a class="jxr_linenumber" name="191" href="#191">191</a>         DecisionMaker.LOGGER.trace(<span class="jxr_string">"Player {} advancing time. "</span>,
+<a class="jxr_linenumber" name="192" href="#192">192</a>                 <strong class="jxr_keyword">new</strong> Object[] { <strong class="jxr_keyword">this</strong>.player.getName() });
+<a class="jxr_linenumber" name="193" href="#193">193</a>         <strong class="jxr_keyword">final</strong> SessionPseudoClock clock = <strong class="jxr_keyword">this</strong>.session.getSessionClock();
+<a class="jxr_linenumber" name="194" href="#194">194</a>         clock.advanceTime(1, TimeUnit.MINUTES);
+<a class="jxr_linenumber" name="195" href="#195">195</a>         <em class="jxr_comment">// decide</em>
+<a class="jxr_linenumber" name="196" href="#196">196</a>         DecisionMaker.LOGGER.trace(<span class="jxr_string">"Player {} deciding. "</span>,
+<a class="jxr_linenumber" name="197" href="#197">197</a>                 <strong class="jxr_keyword">new</strong> Object[] { <strong class="jxr_keyword">this</strong>.player.getName() });
+<a class="jxr_linenumber" name="198" href="#198">198</a>         <strong class="jxr_keyword">this</strong>.latestDecision = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="199" href="#199">199</a>         <strong class="jxr_keyword">this</strong>.session.fireAllRules();
+<a class="jxr_linenumber" name="200" href="#200">200</a>         <em class="jxr_comment">// increase turn number</em>
+<a class="jxr_linenumber" name="201" href="#201">201</a>         <strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/impl/logic/facts/CurrentTurn.html">CurrentTurn</a> turn = (CurrentTurn) <strong class="jxr_keyword">this</strong>.session
+<a class="jxr_linenumber" name="202" href="#202">202</a>                 .getObject(<strong class="jxr_keyword">this</strong>.currentTurn);
+<a class="jxr_linenumber" name="203" href="#203">203</a>         <strong class="jxr_keyword">this</strong>.session.update(<strong class="jxr_keyword">this</strong>.currentTurn, <strong class="jxr_keyword">new</strong> <a href="../../../../org/drooms/impl/logic/facts/CurrentTurn.html">CurrentTurn</a>(
+<a class="jxr_linenumber" name="204" href="#204">204</a>                 turn.getNumber() + 1));
+<a class="jxr_linenumber" name="205" href="#205">205</a>         <em class="jxr_comment">// store the decision</em>
+<a class="jxr_linenumber" name="206" href="#206">206</a>         <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.latestDecision == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="207" href="#207">207</a>             DecisionMaker.LOGGER.warn(
+<a class="jxr_linenumber" name="208" href="#208">208</a>                     <span class="jxr_string">"Player {} didn't make a decision. STAY forced."</span>,
+<a class="jxr_linenumber" name="209" href="#209">209</a>                     <strong class="jxr_keyword">this</strong>.player.getName());
+<a class="jxr_linenumber" name="210" href="#210">210</a>             <strong class="jxr_keyword">return</strong> Move.STAY;
+<a class="jxr_linenumber" name="211" href="#211">211</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="212" href="#212">212</a>             DecisionMaker.LOGGER.info(<span class="jxr_string">"Player {} final decision is {}. "</span>,
+<a class="jxr_linenumber" name="213" href="#213">213</a>                     <strong class="jxr_keyword">this</strong>.player.getName(), <strong class="jxr_keyword">this</strong>.latestDecision);
+<a class="jxr_linenumber" name="214" href="#214">214</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">this</strong>.latestDecision;
+<a class="jxr_linenumber" name="215" href="#215">215</a>         }
+<a class="jxr_linenumber" name="216" href="#216">216</a>     }
+<a class="jxr_linenumber" name="217" href="#217">217</a> 
+<a class="jxr_linenumber" name="218" href="#218">218</a>     <strong class="jxr_keyword">public</strong> <a href="../../../../org/drooms/api/Player.html">Player</a> getPlayer() {
+<a class="jxr_linenumber" name="219" href="#219">219</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">this</strong>.player;
+<a class="jxr_linenumber" name="220" href="#220">220</a>     }
+<a class="jxr_linenumber" name="221" href="#221">221</a> 
+<a class="jxr_linenumber" name="222" href="#222">222</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="223" href="#223">223</a> <em class="jxr_javadoccomment">     * Whether or not this object can still be used for decision making.</em>
+<a class="jxr_linenumber" name="224" href="#224">224</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="225" href="#225">225</a> <em class="jxr_javadoccomment">     * @return False when it can be used.</em>
+<a class="jxr_linenumber" name="226" href="#226">226</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="227" href="#227">227</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isTerminated() {
+<a class="jxr_linenumber" name="228" href="#228">228</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">this</strong>.isDisposed;
+<a class="jxr_linenumber" name="229" href="#229">229</a>     }
+<a class="jxr_linenumber" name="230" href="#230">230</a> 
+<a class="jxr_linenumber" name="231" href="#231">231</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> notifyOfCollectibleAddition(<strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/impl/logic/events/CollectibleAdditionEvent.html">CollectibleAdditionEvent</a> evt) {
+<a class="jxr_linenumber" name="232" href="#232">232</a>         <strong class="jxr_keyword">this</strong>.gameEvents.insert(evt);
+<a class="jxr_linenumber" name="233" href="#233">233</a>     }
+<a class="jxr_linenumber" name="234" href="#234">234</a> 
+<a class="jxr_linenumber" name="235" href="#235">235</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> notifyOfCollectibleRemoval(<strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/impl/logic/events/CollectibleRemovalEvent.html">CollectibleRemovalEvent</a> evt) {
+<a class="jxr_linenumber" name="236" href="#236">236</a>         <strong class="jxr_keyword">this</strong>.gameEvents.insert(evt);
+<a class="jxr_linenumber" name="237" href="#237">237</a>     }
+<a class="jxr_linenumber" name="238" href="#238">238</a> 
+<a class="jxr_linenumber" name="239" href="#239">239</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> notifyOfCollectibleReward(<strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/impl/logic/events/CollectibleRewardEvent.html">CollectibleRewardEvent</a> evt) {
+<a class="jxr_linenumber" name="240" href="#240">240</a>         <strong class="jxr_keyword">this</strong>.rewardEvents.insert(evt);
+<a class="jxr_linenumber" name="241" href="#241">241</a>     }
+<a class="jxr_linenumber" name="242" href="#242">242</a> 
+<a class="jxr_linenumber" name="243" href="#243">243</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> notifyOfDeath(<strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/impl/logic/events/PlayerDeathEvent.html">PlayerDeathEvent</a> evt) {
+<a class="jxr_linenumber" name="244" href="#244">244</a>         <strong class="jxr_keyword">this</strong>.playerEvents.insert(evt);
+<a class="jxr_linenumber" name="245" href="#245">245</a>         <strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/api/Player.html">Player</a> p = evt.getPlayer();
+<a class="jxr_linenumber" name="246" href="#246">246</a>         <em class="jxr_comment">// remove player from the WM</em>
+<a class="jxr_linenumber" name="247" href="#247">247</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">final</strong> Map.Entry&lt;Node, FactHandle&gt; entry : <strong class="jxr_keyword">this</strong>.handles.remove(p)
+<a class="jxr_linenumber" name="248" href="#248">248</a>                 .entrySet()) {
+<a class="jxr_linenumber" name="249" href="#249">249</a>             <strong class="jxr_keyword">this</strong>.session.retract(entry.getValue());
+<a class="jxr_linenumber" name="250" href="#250">250</a>         }
+<a class="jxr_linenumber" name="251" href="#251">251</a>     }
+<a class="jxr_linenumber" name="252" href="#252">252</a> 
+<a class="jxr_linenumber" name="253" href="#253">253</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> notifyOfPlayerMove(<strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/impl/logic/events/PlayerMoveEvent.html">PlayerMoveEvent</a> evt) {
+<a class="jxr_linenumber" name="254" href="#254">254</a>         <strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/api/Player.html">Player</a> p = evt.getPlayer();
+<a class="jxr_linenumber" name="255" href="#255">255</a>         <strong class="jxr_keyword">this</strong>.playerEvents.insert(evt);
+<a class="jxr_linenumber" name="256" href="#256">256</a>         <em class="jxr_comment">// update player positions</em>
+<a class="jxr_linenumber" name="257" href="#257">257</a>         <strong class="jxr_keyword">if</strong> (!<strong class="jxr_keyword">this</strong>.handles.containsKey(p)) {
+<a class="jxr_linenumber" name="258" href="#258">258</a>             <strong class="jxr_keyword">this</strong>.handles.put(p, <strong class="jxr_keyword">new</strong> HashMap&lt;Node, FactHandle&gt;());
+<a class="jxr_linenumber" name="259" href="#259">259</a>         }
+<a class="jxr_linenumber" name="260" href="#260">260</a>         <strong class="jxr_keyword">final</strong> Map&lt;Node, FactHandle&gt; playerHandles = <strong class="jxr_keyword">this</strong>.handles.get(p);
+<a class="jxr_linenumber" name="261" href="#261">261</a>         <strong class="jxr_keyword">final</strong> Set&lt;Node&gt; untraversedNodes = <strong class="jxr_keyword">new</strong> HashSet&lt;Node&gt;(
+<a class="jxr_linenumber" name="262" href="#262">262</a>                 playerHandles.keySet());
+<a class="jxr_linenumber" name="263" href="#263">263</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">final</strong> Node n : evt.getNodes()) {
+<a class="jxr_linenumber" name="264" href="#264">264</a>             <strong class="jxr_keyword">if</strong> (!playerHandles.containsKey(n)) { <em class="jxr_comment">// worm occupies a new node</em>
+<a class="jxr_linenumber" name="265" href="#265">265</a>                 <strong class="jxr_keyword">final</strong> FactHandle fh = <strong class="jxr_keyword">this</strong>.session.insert(<strong class="jxr_keyword">new</strong> <a href="../../../../org/drooms/impl/logic/facts/Worm.html">Worm</a>(p, n));
+<a class="jxr_linenumber" name="266" href="#266">266</a>                 playerHandles.put(n, fh);
+<a class="jxr_linenumber" name="267" href="#267">267</a>             }
+<a class="jxr_linenumber" name="268" href="#268">268</a>             untraversedNodes.remove(n);
+<a class="jxr_linenumber" name="269" href="#269">269</a>         }
+<a class="jxr_linenumber" name="270" href="#270">270</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">final</strong> Node n : untraversedNodes) { <em class="jxr_comment">// worm no longer</em>
+<a class="jxr_linenumber" name="271" href="#271">271</a>                                                 <em class="jxr_comment">// occupies a node</em>
+<a class="jxr_linenumber" name="272" href="#272">272</a>             <strong class="jxr_keyword">final</strong> FactHandle fh = playerHandles.remove(n);
+<a class="jxr_linenumber" name="273" href="#273">273</a>             <strong class="jxr_keyword">this</strong>.session.retract(fh);
+<a class="jxr_linenumber" name="274" href="#274">274</a>         }
+<a class="jxr_linenumber" name="275" href="#275">275</a>     }
+<a class="jxr_linenumber" name="276" href="#276">276</a> 
+<a class="jxr_linenumber" name="277" href="#277">277</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> notifyOfSurvivalReward(<strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/impl/logic/events/SurvivalRewardEvent.html">SurvivalRewardEvent</a> evt) {
+<a class="jxr_linenumber" name="278" href="#278">278</a>         <strong class="jxr_keyword">this</strong>.rewardEvents.insert(evt);
+<a class="jxr_linenumber" name="279" href="#279">279</a>     }
+<a class="jxr_linenumber" name="280" href="#280">280</a> 
+<a class="jxr_linenumber" name="281" href="#281">281</a>     @Override
+<a class="jxr_linenumber" name="282" href="#282">282</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> send(<strong class="jxr_keyword">final</strong> Object object) {
+<a class="jxr_linenumber" name="283" href="#283">283</a>         <strong class="jxr_keyword">this</strong>.validate();
+<a class="jxr_linenumber" name="284" href="#284">284</a>         <strong class="jxr_keyword">if</strong> (object instanceof Move) {
+<a class="jxr_linenumber" name="285" href="#285">285</a>             <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.latestDecision != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="286" href="#286">286</a>                 DecisionMaker.LOGGER.debug(
+<a class="jxr_linenumber" name="287" href="#287">287</a>                         <span class="jxr_string">"Player {} has changed the decision from {} to {}."</span>,
+<a class="jxr_linenumber" name="288" href="#288">288</a>                         <strong class="jxr_keyword">new</strong> Object[] { <strong class="jxr_keyword">this</strong>.player.getName(),
+<a class="jxr_linenumber" name="289" href="#289">289</a>                                 <strong class="jxr_keyword">this</strong>.latestDecision, object });
+<a class="jxr_linenumber" name="290" href="#290">290</a>             }
+<a class="jxr_linenumber" name="291" href="#291">291</a>             <strong class="jxr_keyword">this</strong>.latestDecision = (Move) object;
+<a class="jxr_linenumber" name="292" href="#292">292</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="293" href="#293">293</a>             DecisionMaker.LOGGER.warn(
+<a class="jxr_linenumber" name="294" href="#294">294</a>                     <span class="jxr_string">"Player {} indicated an invalid move {}."</span>, <strong class="jxr_keyword">new</strong> Object[] {
+<a class="jxr_linenumber" name="295" href="#295">295</a>                             <strong class="jxr_keyword">this</strong>.player.getName(), <strong class="jxr_keyword">this</strong>.latestDecision });
+<a class="jxr_linenumber" name="296" href="#296">296</a>         }
+<a class="jxr_linenumber" name="297" href="#297">297</a>     }
+<a class="jxr_linenumber" name="298" href="#298">298</a> 
+<a class="jxr_linenumber" name="299" href="#299">299</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="300" href="#300">300</a> <em class="jxr_javadoccomment">     * Clean up after this Drools instance. Will terminate the session and leave</em>
+<a class="jxr_linenumber" name="301" href="#301">301</a> <em class="jxr_javadoccomment">     * all the objects up for garbage collection. Only call once and then don't</em>
+<a class="jxr_linenumber" name="302" href="#302">302</a> <em class="jxr_javadoccomment">     * use this object anymore.</em>
+<a class="jxr_linenumber" name="303" href="#303">303</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="304" href="#304">304</a> <em class="jxr_javadoccomment">     * @return False if already terminated.</em>
+<a class="jxr_linenumber" name="305" href="#305">305</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="306" href="#306">306</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> terminate() {
+<a class="jxr_linenumber" name="307" href="#307">307</a>         <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.isDisposed) {
+<a class="jxr_linenumber" name="308" href="#308">308</a>             DecisionMaker.LOGGER.warn(<span class="jxr_string">"Player {} already terminated."</span>,
+<a class="jxr_linenumber" name="309" href="#309">309</a>                     <strong class="jxr_keyword">new</strong> Object[] { <strong class="jxr_keyword">this</strong>.player.getName() });
+<a class="jxr_linenumber" name="310" href="#310">310</a>             <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="311" href="#311">311</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="312" href="#312">312</a>             DecisionMaker.LOGGER.info(<span class="jxr_string">"Terminating player {}."</span>,
+<a class="jxr_linenumber" name="313" href="#313">313</a>                     <strong class="jxr_keyword">new</strong> Object[] { <strong class="jxr_keyword">this</strong>.player.getName() });
+<a class="jxr_linenumber" name="314" href="#314">314</a>             <strong class="jxr_keyword">this</strong>.sessionAudit.close();
+<a class="jxr_linenumber" name="315" href="#315">315</a>             <strong class="jxr_keyword">this</strong>.session.dispose();
+<a class="jxr_linenumber" name="316" href="#316">316</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="317" href="#317">317</a>         }
+<a class="jxr_linenumber" name="318" href="#318">318</a>     }
+<a class="jxr_linenumber" name="319" href="#319">319</a> 
+<a class="jxr_linenumber" name="320" href="#320">320</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> validate() {
+<a class="jxr_linenumber" name="321" href="#321">321</a>         <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.isDisposed) {
+<a class="jxr_linenumber" name="322" href="#322">322</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(<span class="jxr_string">"Player "</span> + <strong class="jxr_keyword">this</strong>.player.getName()
+<a class="jxr_linenumber" name="323" href="#323">323</a>                     + <span class="jxr_string">" already terminated!"</span>);
 <a class="jxr_linenumber" name="324" href="#324">324</a>         }
 <a class="jxr_linenumber" name="325" href="#325">325</a>     }
 <a class="jxr_linenumber" name="326" href="#326">326</a> 
-<a class="jxr_linenumber" name="327" href="#327">327</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> validate() {
-<a class="jxr_linenumber" name="328" href="#328">328</a>         <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.isDisposed) {
-<a class="jxr_linenumber" name="329" href="#329">329</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(<span class="jxr_string">"Player "</span> + <strong class="jxr_keyword">this</strong>.player.getName()
-<a class="jxr_linenumber" name="330" href="#330">330</a>                     + <span class="jxr_string">" already terminated!"</span>);
-<a class="jxr_linenumber" name="331" href="#331">331</a>         }
-<a class="jxr_linenumber" name="332" href="#332">332</a>     }
-<a class="jxr_linenumber" name="333" href="#333">333</a> 
-<a class="jxr_linenumber" name="334" href="#334">334</a> }
+<a class="jxr_linenumber" name="327" href="#327">327</a> }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>
