@@ -19,6 +19,10 @@ public class Player {
      *            Rules that implement the player's strategy.
      */
     public Player(final String name, final KnowledgeBase knowledgeBase) {
+        if (name == null || knowledgeBase == null) {
+            throw new IllegalArgumentException(
+                    "Neither of the parameters can be null.");
+        }
         this.name = name;
         this.kbase = knowledgeBase;
     }
