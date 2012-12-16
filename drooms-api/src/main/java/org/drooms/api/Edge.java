@@ -1,5 +1,7 @@
 package org.drooms.api;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
+
 /**
  * Represents a connection (a route) between two immediately adjacent
  * {@link Node}s in a {@link Playground}. Worms can move from one {@link Node}
@@ -8,7 +10,7 @@ package org.drooms.api;
  */
 public class Edge {
 
-    private final Node firstNode, secondNode;
+    private final ImmutablePair<Node, Node> nodes;
 
     /**
      * Make two nodes immediately adjacent.
@@ -19,8 +21,17 @@ public class Edge {
      *            The other.
      */
     public Edge(final Node firstNode, final Node secondNode) {
-        this.firstNode = firstNode;
-        this.secondNode = secondNode;
+        if (firstNode == null || secondNode == null) {
+            throw new IllegalArgumentException("Neither nodes can be null.");
+        } else if (firstNode.equals(secondNode)) {
+            throw new IllegalArgumentException(
+                    "Edges between the same node make no sense.");
+        }
+        if (firstNode.compareTo(secondNode) < 0) {
+            this.nodes = ImmutablePair.of(firstNode, secondNode);
+        } else {
+            this.nodes = ImmutablePair.of(secondNode, firstNode);
+        }
     }
 
     @Override
@@ -31,33 +42,28 @@ public class Edge {
         if (obj == null) {
             return false;
         }
-        if (this.getClass() != obj.getClass()) {
+        if (!(obj instanceof Edge)) {
             return false;
         }
         final Edge other = (Edge) obj;
-        if (this.firstNode == null) {
-            if (other.firstNode != null) {
+        if (this.nodes == null) {
+            if (other.nodes != null) {
                 return false;
             }
-        } else if (!this.firstNode.equals(other.firstNode)) {
-            return false;
-        }
-        if (this.secondNode == null) {
-            if (other.secondNode != null) {
-                return false;
-            }
-        } else if (!this.secondNode.equals(other.secondNode)) {
+        } else if (!this.nodes.equals(other.nodes)) {
             return false;
         }
         return true;
     }
 
-    public Node getFirstNode() {
-        return this.firstNode;
-    }
-
-    public Node getSecondNode() {
-        return this.secondNode;
+    /**
+     * Retrieve nodes in this edge.
+     * 
+     * @return A pair of nodes. First node is always the least of the two. (See
+     *         @{link Node#compareTo(Node)}.)
+     */
+    public ImmutablePair<Node, Node> getNodes() {
+        return this.nodes;
     }
 
     @Override
@@ -65,15 +71,15 @@ public class Edge {
         final int prime = 31;
         int result = 1;
         result = prime * result
-                + (this.firstNode == null ? 0 : this.firstNode.hashCode());
-        result = prime * result
-                + (this.secondNode == null ? 0 : this.secondNode.hashCode());
+                + ((this.nodes == null) ? 0 : this.nodes.hashCode());
         return result;
     }
 
     @Override
     public String toString() {
-        return "Edge [" + this.firstNode + "<->" + this.secondNode + "]";
+        final StringBuilder builder = new StringBuilder();
+        builder.append("Edge [nodes=").append(this.nodes).append("]");
+        return builder.toString();
     }
 
 }

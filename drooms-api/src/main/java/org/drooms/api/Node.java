@@ -7,7 +7,7 @@ import java.util.TreeMap;
  * A single indivisible place on the {@link Playground}, where (part of) a worm
  * or a wall can be located.
  */
-public class Node {
+public class Node implements Comparable<Node> {
 
     private final int x, y;
 
@@ -36,6 +36,29 @@ public class Node {
     private Node(final int x, final int y) {
         this.x = x;
         this.y = y;
+    }
+
+    /**
+     * A {@link Node} is considered larger than the other if it has a bigger
+     * {@link #getY()}. In case these equal, larger {@link #getX()} wins.
+     * Otherwise the nodes are equal.
+     */
+    @Override
+    public int compareTo(final Node arg0) {
+        if (this.getY() > arg0.getY()) {
+            return 1;
+        } else if (this.getY() == arg0.getY()) {
+            if (this.getX() > arg0.getX()) {
+                return 1;
+            } else if (this.getX() == arg0.getY()) {
+                return 0;
+            } else {
+                return -1;
+            }
+        } else {
+            return -1;
+        }
+
     }
 
     @Override
