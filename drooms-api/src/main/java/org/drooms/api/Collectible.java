@@ -4,6 +4,8 @@ package org.drooms.api;
  * Represents an item that occasionally pops up on the {@link Playground}. When
  * a worm's head reaches this item, the {@link Player} in question will be
  * rewarded by a specific amount of points.
+ * 
+ * No two instances ever {@link #equals(Object)}.
  */
 public class Collectible {
 
@@ -16,6 +18,10 @@ public class Collectible {
      *            How many points to award. Must be > 0.
      */
     public Collectible(final int points) {
+        if (points <= 0) {
+            throw new IllegalArgumentException(
+                    "Collectible must have a positive amount of points.");
+        }
         this.expiresInTurn = -1;
         this.points = points;
     }
@@ -29,9 +35,12 @@ public class Collectible {
      *            At which turn the item expires. Must be > 0.
      */
     public Collectible(final int points, final int expiresInTurn) {
-        if (expiresInTurn < 0) {
+        if (expiresInTurn <= 0) {
             throw new IllegalArgumentException(
                     "Expiration must be a positive number.");
+        } else if (points <= 0) {
+            throw new IllegalArgumentException(
+                    "Collectible must have a positive amount of points.");
         }
         this.expiresInTurn = expiresInTurn;
         this.points = points;
