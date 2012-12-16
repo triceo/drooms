@@ -62,11 +62,13 @@ public class CollectibleTest {
         new Collectible(0);
     }
 
+    @Test
     public void testEqualsSame() {
         final Collectible c = new Collectible(5, 2);
         Assert.assertEquals(c, c);
     }
 
+    @Test
     public void testEqualsSameParameters() {
         final Collectible c1 = new Collectible(5, 2);
         final Collectible c2 = new Collectible(5, 2);
