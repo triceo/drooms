@@ -1,5 +1,6 @@
 package org.drooms.impl.logic;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
@@ -105,7 +106,7 @@ public class CommandDistributor {
      *            move decisions.
      */
     public CommandDistributor(final DefaultPlayground playground,
-            final List<Player> players, final GameProgressListener report,
+            final Collection<Player> players, final GameProgressListener report,
             final int playerTimeoutInSeconds) {
         for (final Player player : players) {
             final PathTracker tracker = new PathTracker(playground, player);

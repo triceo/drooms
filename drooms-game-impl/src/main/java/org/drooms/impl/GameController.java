@@ -259,7 +259,7 @@ public abstract class GameController implements Game {
         final int wormTimeout = Integer.valueOf(gameConfig.getProperty(
                 "worm.timeout.seconds", "1"));
         // prepare players and their starting positions
-        final List<Player> players = new PlayerAssembly(playerConfig)
+        final Collection<Player> players = new PlayerAssembly(playerConfig)
                 .assemblePlayers();
         final List<Node> startingPositions = playground.getStartingPositions();
         final int playersSupported = startingPositions.size();

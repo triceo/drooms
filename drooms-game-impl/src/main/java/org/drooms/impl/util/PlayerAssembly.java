@@ -5,7 +5,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -59,9 +61,10 @@ public class PlayerAssembly {
      * Perform all the strategy resolution and return a list of fully
      * initialized players.
      * 
-     * @return The unmodifiable list of players.
+     * @return The unmodifiable collection of players, in a totally randomized
+     *         order.
      */
-    public List<Player> assemblePlayers() {
+    public Collection<Player> assemblePlayers() {
         // parse a list of players
         final Map<String, String> playerStrategies = new HashMap<>();
         final Map<String, URI> strategyJars = new HashMap<>();
@@ -115,6 +118,7 @@ public class PlayerAssembly {
                                 + strategy.getName(), ex);
             }
         }
+        Collections.shuffle(players, new SecureRandom());
         return Collections.unmodifiableList(players);
     }
 
