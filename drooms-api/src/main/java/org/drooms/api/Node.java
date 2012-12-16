@@ -50,7 +50,7 @@ public class Node implements Comparable<Node> {
         } else if (this.getY() == arg0.getY()) {
             if (this.getX() > arg0.getX()) {
                 return 1;
-            } else if (this.getX() == arg0.getY()) {
+            } else if (this.getX() == arg0.getX()) {
                 return 0;
             } else {
                 return -1;
@@ -61,42 +61,12 @@ public class Node implements Comparable<Node> {
 
     }
 
-    @Override
-    public boolean equals(final Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (this.getClass() != obj.getClass()) {
-            return false;
-        }
-        final Node other = (Node) obj;
-        if (this.x != other.x) {
-            return false;
-        }
-        if (this.y != other.y) {
-            return false;
-        }
-        return true;
-    }
-
     public int getX() {
         return this.x;
     }
 
     public int getY() {
         return this.y;
-    }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + this.x;
-        result = prime * result + this.y;
-        return result;
     }
 
     @Override
