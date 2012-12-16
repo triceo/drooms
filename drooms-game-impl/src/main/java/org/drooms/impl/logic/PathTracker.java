@@ -133,7 +133,6 @@ public class PathTracker {
      * @param newPositions
      *            New current positions of all the worms.
      */
-    // TODO Strategies should never be able to call this method.
     protected void movePlayers(final Map<Player, Deque<Node>> newPositions) {
         final Set<Node> unavailable = new HashSet<>();
         for (final Map.Entry<Player, Deque<Node>> entry : newPositions

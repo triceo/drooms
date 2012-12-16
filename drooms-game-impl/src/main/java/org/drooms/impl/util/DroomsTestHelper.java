@@ -57,13 +57,6 @@ public abstract class DroomsTestHelper {
                 kbase);
         Assert.assertTrue(validator.getErrors().isEmpty() ? "Cannot happen!"
                 : validator.getErrors().get(0), validator.isValid());
-        if (validator.isClean()) {
-            return;
-        }
-        for (final String message : validator.getWarnings()) {
-            DroomsTestHelper.LOGGER.info("A strategy is incomplete: {}",
-                    message);
-        }
     }
 
     /**
@@ -85,6 +78,18 @@ public abstract class DroomsTestHelper {
             DroomsTestHelper.LOGGER.info("A strategy is incomplete: {}",
                     message);
         }
+    }
+
+    /**
+     * Make sure the strategy comes from its own package.
+     */
+    @Test
+    public void testVisibility() {
+        final String name = this.getStrategy().getClass().getPackage()
+                .getName();
+        Assert.assertFalse(
+                "Strategy cannot belong to the game implementation package.",
+                name.startsWith("org.drooms.impl"));
     }
 
 }

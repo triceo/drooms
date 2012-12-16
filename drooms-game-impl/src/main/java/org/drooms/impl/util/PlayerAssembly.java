@@ -73,6 +73,10 @@ public class PlayerAssembly {
                         "Invalid strategy descriptor: " + strategyDescr);
             }
             final String strategyClass = parts[0];
+            if (strategyClass.startsWith("org.drooms.impl.")) {
+                throw new IllegalStateException(
+                        "Strategy musn't belong to the game implementation package.");
+            }
             try {
                 final URI strategyJar = new URI(parts[1]);
                 playerStrategies.put(playerName, strategyClass);
