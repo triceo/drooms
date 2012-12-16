@@ -60,7 +60,7 @@ public class Edge {
      * Retrieve nodes in this edge.
      * 
      * @return A pair of nodes. First node is always the least of the two. (See
-     *         @{link Node#compareTo(Node)}.)
+     *         {@link Node#compareTo(Node)}.)
      */
     public ImmutablePair<Node, Node> getNodes() {
         return this.nodes;
