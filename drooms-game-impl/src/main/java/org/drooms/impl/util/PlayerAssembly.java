@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.drools.KnowledgeBase;
+import org.drools.KnowledgeBaseConfiguration;
+import org.drools.KnowledgeBaseFactory;
 import org.drools.builder.KnowledgeBuilder;
 import org.drools.builder.KnowledgeBuilderError;
 import org.drooms.api.Player;
@@ -104,10 +106,12 @@ public class PlayerAssembly {
                 throw new IllegalArgumentException("Failed loading: "
                         + strategyClass, e);
             }
-            final KnowledgeBuilder kb = strategy.getKnowledgeBuilder(this
-                    .loadJar(strategyJar));
+            final ClassLoader cl = this.loadJar(strategyJar);
+            final KnowledgeBuilder kb = strategy.getKnowledgeBuilder(cl);
             try {
-                final KnowledgeBase kbase = kb.newKnowledgeBase();
+                KnowledgeBaseConfiguration kbconf = KnowledgeBaseFactory.newKnowledgeBaseConfiguration(null, cl);
+                final KnowledgeBase kbase = KnowledgeBaseFactory.newKnowledgeBase(kbconf);
+                kbase.addKnowledgePackages(kb.getKnowledgePackages());
                 players.add(new Player(playerName, kbase));
             } catch (final Exception ex) {
                 for (final KnowledgeBuilderError error : kb.getErrors()) {
