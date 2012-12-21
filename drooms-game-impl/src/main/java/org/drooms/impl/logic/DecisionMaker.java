@@ -34,6 +34,7 @@ import org.drooms.impl.logic.facts.CurrentTurn;
 import org.drooms.impl.logic.facts.Wall;
 import org.drooms.impl.logic.facts.Worm;
 import org.drooms.impl.util.DroomsKnowledgeSessionValidator;
+import org.drooms.impl.util.DroomsTestHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,6 +76,11 @@ import org.slf4j.LoggerFactory;
  * <li>'tracker' instance of the {@link PathTracker}, to facilitate path-finding
  * in the rules.</li>
  * </ul>
+ * 
+ * <p>
+ * Your strategies can be validated for all these - just make your tests extend 
+ * {@link DroomsTestHelper}.
+ * </p>
  * 
  * <p>
  * The working memory will contain instances of the various helper fact types:
