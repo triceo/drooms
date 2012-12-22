@@ -131,6 +131,7 @@
     <module>drooms-api</module>
     <module>drooms-game-impl</module>
     <module>drooms-strategy-random</module>
+    <module>drooms-swing-gui</module>
   </modules>
   <developers>
     <developer>
