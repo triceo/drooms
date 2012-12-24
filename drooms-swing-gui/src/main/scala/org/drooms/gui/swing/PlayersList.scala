@@ -6,20 +6,36 @@ import scala.swing.Component
 import scala.swing.BorderPanel
 import scala.swing.Label
 import java.awt.Color
+import scala.swing.ListView.Renderer
+import scala.swing.Alignment
+import javax.swing.BorderFactory
 
-class PlayersList(var players: List[String]) extends BorderPanel {
+class PlayersList(var players: List[Player]) extends BorderPanel {
 
   var playersListView = new ListView(players) {
-    // TODO create custom renderer so that the player name has colored background
-    //renderer = 
+    renderer = new PlayersListRenderer
   }
 
   import BorderPanel.Position._
   layout(new Label("Players")) = North
   layout(playersListView) = Center
 
-  def addPlayer(name: String) {
-    playersListView.listData = playersListView.listData ++ Seq(name)
+  def addPlayer(player: Player) {
+    playersListView.listData = playersListView.listData ++ Seq(player)
+  }
+}
+
+class PlayersListRenderer extends Renderer {
+  override def componentFor(list: ListView[_], isSelected: Boolean, focused: Boolean, a: Any, index: Int): Component = {
+    val player = a.asInstanceOf[Player]
+    new Label(player.name) {
+      horizontalAlignment = Alignment.Left
+      opaque = true
+      background = player.color
+      if (isSelected) {
+        border = BorderFactory.createLineBorder(Color.BLACK)
+      }
+    }
   }
 }
 
