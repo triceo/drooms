@@ -13,7 +13,7 @@ class PlaygroundModel(val height: Int, val width: Int) extends Publisher {
     nodes(node.row)(node.col) = node
     publish(new NodeChanged(node))
   }
-
+  def getTodes: Array[Array[Node]] = nodes
   case class NodeChanged(val node: Node) extends Event
 }
 
