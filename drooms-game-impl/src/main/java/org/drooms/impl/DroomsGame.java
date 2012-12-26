@@ -11,14 +11,16 @@ import java.io.Writer;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Map;
 import java.util.Properties;
 
 import org.drooms.api.Game;
-import org.drooms.api.GameProgressListener;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
 import org.drooms.impl.util.GameCLI;
 import org.drooms.impl.util.PlayerAssembly;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Main class of the application, used to launch a particular game.
@@ -71,6 +73,9 @@ public class DroomsGame {
     private final File f;
     private final Class<? extends Game> cls;
 
+    private static final Logger LOGGER = LoggerFactory
+            .getLogger(DroomsGame.class);
+
     public DroomsGame(final String name, final Class<? extends Game> game,
             final Playground p, final Collection<Player> players,
             final Properties gameConfig, final File reportFolder) {
@@ -82,7 +87,7 @@ public class DroomsGame {
         this.players = players;
     }
 
-    public boolean play() {
+    public Map<Player, Integer> play() {
         Game g;
         try {
             g = this.cls.newInstance();
@@ -94,15 +99,16 @@ public class DroomsGame {
         if (!f.exists()) {
             f.mkdirs();
         }
-        final GameProgressListener gpl = g
-                .play(this.p, this.c, this.players, f);
+        final Map<Player, Integer> result = g.play(this.p, this.c,
+                this.players, f);
         // report
         try (Writer w = new FileWriter(new File(f, "report.xml"))) {
-            gpl.write(w);
-            return true;
+            g.getReport().write(w);
         } catch (final IOException e) {
-            return false;
+            DroomsGame.LOGGER.info("Failed writing report for game: {}.",
+                    this.n);
         }
+        return result;
     }
 
 }

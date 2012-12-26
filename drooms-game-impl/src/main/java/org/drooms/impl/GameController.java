@@ -3,6 +3,7 @@ package org.drooms.impl;
 import java.io.File;
 import java.security.SecureRandom;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -13,6 +14,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.drooms.api.Collectible;
 import org.drooms.api.Game;
@@ -97,8 +99,12 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class GameController implements Game {
 
+    private final AtomicBoolean played = new AtomicBoolean(false);
+
     private static final Logger LOGGER = LoggerFactory
             .getLogger(GameController.class);
+
+    private GameProgressListener reporter;
 
     protected static final SecureRandom RANDOM = new SecureRandom();
 
@@ -157,6 +163,11 @@ public abstract class GameController implements Game {
                     "Player doesn't have any position assigned: " + p);
         }
         return this.positions.get(p);
+    }
+
+    @Override
+    public GameProgressListener getReport() {
+        return this.reporter;
     }
 
     /**
@@ -229,9 +240,15 @@ public abstract class GameController implements Game {
             final Move decision);
 
     @Override
-    public GameProgressListener play(final Playground playground,
+    public Map<Player, Integer> play(final Playground playground,
             final Properties gameConfig, final Collection<Player> players,
             final File reportFolder) {
+        // make sure a game isn't played more than once
+        if (this.played.get()) {
+            throw new IllegalStateException(
+                    "This game had already been played.");
+        }
+        this.played.set(true);
         // prepare the playground
         final int wormLength = Integer.valueOf(gameConfig.getProperty(
                 "worm.length.start", "3"));
@@ -263,9 +280,9 @@ public abstract class GameController implements Game {
             i++;
         }
         // prepare situation
+        this.reporter = new XmlProgressListener(playground, gameConfig);
         final CommandDistributor playerControl = new CommandDistributor(
-                playground, players, new XmlProgressListener(playground,
-                        gameConfig), reportFolder, wormTimeout);
+                playground, players, this.reporter, reportFolder, wormTimeout);
         final Set<Player> currentPlayers = new HashSet<Player>(players);
         Map<Player, Move> decisions = new HashMap<Player, Move>();
         for (final Player p : currentPlayers) { // initialize players
@@ -356,7 +373,7 @@ public abstract class GameController implements Game {
             GameController.LOGGER.info("Player {} earned {} points.", entry
                     .getKey().getName(), entry.getValue());
         }
-        return playerControl.getReport();
+        return Collections.unmodifiableMap(this.playerPoints);
     }
 
     private void removeCollectible(final Collectible c) {

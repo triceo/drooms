@@ -2,6 +2,7 @@ package org.drooms.api;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -10,7 +11,16 @@ import java.util.Properties;
 public interface Game {
 
     /**
-     * Initialize the game and play it through.
+     * Retrieve the main report of this game, detailing the progress of the
+     * game.
+     * 
+     * @return The report. Null when game not played before.
+     */
+    public GameProgressListener getReport();
+
+    /**
+     * Initialize the game and play it through. Will throw an exception in case
+     * of a repeated call of this method on the same class instance.
      * 
      * @param playground
      *            The playground on which this game will be played out.
@@ -20,9 +30,9 @@ public interface Game {
      *            A list of players to participate in the game.
      * @param reportFolder
      *            Where to output data, if necessary.
-     * @return A complete account of the game's progress.
+     * @return Points gained by each player.
      */
-    public GameProgressListener play(Playground p, Properties config,
+    public Map<Player, Integer> play(Playground p, Properties config,
             Collection<Player> players, File reportFolder);
 
 }
