@@ -1,0 +1,104 @@
+package org.drooms.impl;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.Timestamp;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Properties;
+
+import org.drooms.api.Game;
+import org.drooms.api.Player;
+import org.drooms.api.Playground;
+import org.drooms.impl.util.PlayerAssembly;
+import org.drooms.impl.util.TournamentCLI;
+
+public class DroomsTournament {
+
+    @SuppressWarnings("unchecked")
+    private static Class<? extends Game> getGameImpl(final String id) {
+        try {
+            return (Class<? extends Game>) Class.forName(id);
+        } catch (final ClassNotFoundException e) {
+            throw new IllegalArgumentException(
+                    "Cannot instantiate game class.", e);
+        }
+    }
+
+    private static String getTimestamp() {
+        final Date date = new java.util.Date();
+        return new Timestamp(date.getTime()).toString();
+    }
+
+    private static Properties loadFromFile(final File f) {
+        try (InputStream is = new FileInputStream(f)) {
+            final Properties props = new Properties();
+            props.load(is);
+            return props;
+        } catch (final IOException e) {
+            return null;
+        }
+    }
+
+    public static void main(final String[] args) {
+        // load the CLI
+        final TournamentCLI cli = TournamentCLI.getInstance();
+        final File config = cli.process(args);
+        if (config == null) {
+            cli.printHelp();
+            System.exit(-1);
+        }
+        // load players
+        final Properties props = DroomsTournament.loadFromFile(config);
+        if (props == null) {
+            throw new IllegalStateException(
+                    "Failed reading tournament config file.");
+        }
+        final File playerConfigFile = new File(props.getProperty("players"));
+        final Collection<Player> players = new PlayerAssembly(playerConfigFile)
+                .assemblePlayers();
+        // load report folder
+        final File reports = new File("target/reports/tournaments/"
+                + DroomsTournament.getTimestamp());
+        if (!reports.exists()) {
+            reports.mkdirs();
+        }
+        // load game class
+        final Class<? extends Game> game = DroomsTournament.getGameImpl(props
+                .getProperty("game.class"));
+        // FOR EACH playground
+        final String[] playgroundNames = props.getProperty("playgrounds")
+                .split("\\Q,\\E");
+        for (final String playgroundName : playgroundNames) {
+            // load playground
+            final File playgroundFile = new File("src/main/resources",
+                    playgroundName + ".playground");
+            Playground p = null;
+            try (InputStream is = new FileInputStream(playgroundFile)) {
+                p = DefaultPlayground.read(is);
+            } catch (final IOException e) {
+                throw new IllegalStateException("Cannot read playground file "
+                        + playgroundFile, e);
+            }
+            // load game properties
+            final File propsFile = new File("src/main/resources",
+                    playgroundName + ".playground");
+            final Properties gameProps = DroomsTournament
+                    .loadFromFile(propsFile);
+            if (gameProps == null) {
+                throw new IllegalStateException(
+                        "Failed reading game config file for playgrond: "
+                                + playgroundName);
+            }
+            // run N games on the playground
+            for (int i = 0; i < Integer.valueOf(props.getProperty("runs")); i++) {
+                final DroomsGame dg = new DroomsGame(playgroundName + "_" + i,
+                        game, p, players, gameProps, reports);
+                dg.play();
+            }
+        }
+    }
+
+}

@@ -50,16 +50,13 @@ public class DroomsGame {
         final Properties gameConfig = new Properties();
         // FIXME standardize on InputStream or Reader
         try (InputStream playgroundFile = new FileInputStream(configs[0]);
-                Reader gameConfigFile = new FileReader(configs[1]);
-                Reader playerConfigFile = new FileReader(configs[2])) {
+                Reader gameConfigFile = new FileReader(configs[1])) {
             // prepare configs
             gameConfig.load(gameConfigFile);
-            final Properties playerConfig = new Properties();
-            playerConfig.load(playerConfigFile);
             // play and report
             final DroomsGame d = new DroomsGame(configs[0].getName(),
                     DefaultGame.class, DefaultPlayground.read(playgroundFile),
-                    new PlayerAssembly(playerConfig).assemblePlayers(),
+                    new PlayerAssembly(configs[2]).assemblePlayers(),
                     gameConfig, reportFolder);
             d.play();
         } catch (final IOException e) {

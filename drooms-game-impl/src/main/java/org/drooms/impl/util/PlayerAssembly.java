@@ -1,5 +1,7 @@
 package org.drooms.impl.util;
 
+import java.io.File;
+import java.io.FileReader;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -50,10 +52,15 @@ public class PlayerAssembly {
      * 
      * @param config
      *            Game config as described in
-     *            {@link GameController#play(String, Properties, Properties)}.
+     *            {@link GameController#play(org.drooms.api.Playground, Properties, Collection, File)}.
      */
-    public PlayerAssembly(final Properties config) {
-        this.config = config;
+    public PlayerAssembly(final File f) {
+        try (FileReader fr = new FileReader(f)) {
+            this.config = new Properties();
+            this.config.load(fr);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Cannot read player config file.", e);
+        }
     }
 
     /**
