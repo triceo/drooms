@@ -1,9 +1,5 @@
 package org.drooms.impl;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.security.SecureRandom;
 import java.util.Collection;
 import java.util.Deque;
@@ -78,9 +74,6 @@ import org.slf4j.LoggerFactory;
  * </p>
  * 
  * <dl>
- * <dt>playground.file</dt>
- * <dd>From where the {@link Playground} should be read. Will be passed to
- * {@link DefaultPlayground#read(InputStream)}.</dd>
  * <dt>worm.length.start (defaults to 3)</dt>
  * <dd>Length of the worm at the start of the game. Actually, initially each
  * worm will only have a length of 1. But as it first moves its head, the tail
@@ -192,7 +185,7 @@ public abstract class GameController implements Game {
      * @return Which collectibles should be put where.
      */
     protected abstract Map<Collectible, Node> performCollectibleDistribution(
-            final Properties gameConfig, final DefaultPlayground playground,
+            final Properties gameConfig, final Playground playground,
             final Collection<Player> players, final int currentTurnNumber);
 
     /**
@@ -205,8 +198,7 @@ public abstract class GameController implements Game {
      * @return Which players should be considered crashed.
      */
     protected abstract Set<Player> performCollisionDetection(
-            final DefaultPlayground playground,
-            final Collection<Player> currentPlayers);
+            final Playground playground, final Collection<Player> currentPlayers);
 
     /**
      * Decide which worms should be considered inactive.
@@ -238,16 +230,9 @@ public abstract class GameController implements Game {
 
     @Override
     public GameProgressListener play(final String id,
-            final Properties gameConfig, final Properties playerConfig) {
+            final Playground playground, final Properties gameConfig,
+            final Properties playerConfig) {
         // prepare the playground
-        DefaultPlayground playground;
-        try (final InputStream fis = new FileInputStream(new File(
-                gameConfig.getProperty("playground.file")))) {
-            playground = DefaultPlayground.read(fis);
-        } catch (final IOException e) {
-            throw new IllegalArgumentException(
-                    "Playground file cannot be read!", e);
-        }
         final int wormLength = Integer.valueOf(gameConfig.getProperty(
                 "worm.length.start", "3"));
         final int allowedInactiveTurns = Integer.valueOf(gameConfig

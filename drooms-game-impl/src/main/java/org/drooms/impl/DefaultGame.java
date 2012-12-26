@@ -16,6 +16,7 @@ import org.drooms.api.Collectible;
 import org.drooms.api.Move;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
+import org.drooms.api.Playground;
 
 /**
  * On top of the rules implemented by {@link GameController}, this game
@@ -97,7 +98,7 @@ public class DefaultGame extends GameController {
 
     @Override
     protected Map<Collectible, Node> performCollectibleDistribution(
-            final Properties gameConfig, final DefaultPlayground playground,
+            final Properties gameConfig, final Playground playground,
             final Collection<Player> players, final int currentTurnNumber) {
         final Map<Collectible, Node> collectibles = new HashMap<Collectible, Node>();
         for (final CollectibleType ct : CollectibleType.values()) {
@@ -119,8 +120,7 @@ public class DefaultGame extends GameController {
 
     @Override
     protected Set<Player> performCollisionDetection(
-            final DefaultPlayground playground,
-            final Collection<Player> currentPlayers) {
+            final Playground playground, final Collection<Player> currentPlayers) {
         final Set<Player> collisions = new HashSet<Player>();
         for (final Player p1 : currentPlayers) {
             final Deque<Node> position = this.getPlayerPosition(p1);
@@ -225,7 +225,7 @@ public class DefaultGame extends GameController {
         return newPosition;
     }
 
-    private Node pickRandomUnusedNode(final DefaultPlayground p,
+    private Node pickRandomUnusedNode(final Playground p,
             final Collection<Player> players) {
         final List<Node> nodes = new LinkedList<Node>();
         // locate available nodes

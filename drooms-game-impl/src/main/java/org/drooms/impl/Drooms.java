@@ -1,19 +1,20 @@
 package org.drooms.impl;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Properties;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.drooms.api.Game;
 import org.drooms.api.GameProgressListener;
-import org.drooms.impl.util.CLI;
+import org.drooms.impl.util.GameCLI;
 
 /**
  * Main class of the application, used to launch a particular game.
@@ -42,10 +43,10 @@ public class Drooms {
 
     /**
      * Run the application from the command-line. For a description of the
-     * command line interface, see {@link CLI}.
+     * command line interface, see {@link GameCLI}.
      * 
      * This method expects couple properties to come out of
-     * {@link CLI#process(String[])}'s game config {@link Properties}:
+     * {@link GameCLI#process(String[])}'s game config {@link Properties}:
      * 
      * <dl>
      * <dt>game.class</dt>
@@ -66,8 +67,8 @@ public class Drooms {
      *            Command-line arguments.
      */
     public static void main(final String[] args) {
-        final CLI cli = CLI.getInstance();
-        final Pair<File, File> configs = cli.process(args);
+        final GameCLI cli = GameCLI.getInstance();
+        final File[] configs = cli.process(args);
         if (configs == null) {
             cli.printHelp();
             System.exit(-1);
@@ -75,8 +76,10 @@ public class Drooms {
         // play the game
         GameProgressListener report = null;
         final Properties gameConfig = new Properties();
-        try (Reader gameConfigFile = new FileReader(configs.getLeft());
-                Reader playerConfigFile = new FileReader(configs.getRight())) {
+        // FIXME standardize on InputStream or Reader
+        try (InputStream playgroundFile = new FileInputStream(configs[0]);
+                Reader gameConfigFile = new FileReader(configs[1]);
+                Reader playerConfigFile = new FileReader(configs[2])) {
             // prepare configs
             gameConfig.load(gameConfigFile);
             final Properties playerConfig = new Properties();
@@ -84,7 +87,9 @@ public class Drooms {
             // play and report
             final Game g = Drooms.getGameImpl(gameConfig.getProperty(
                     "game.class", "org.drooms.impl.DefaultGame"));
-            report = g.play(Drooms.getTimestamp(), gameConfig, playerConfig);
+            report = g.play(Drooms.getTimestamp(),
+                    DefaultPlayground.read(playgroundFile), gameConfig,
+                    playerConfig);
         } catch (final IOException e) {
             throw new IllegalStateException("Failed reading config files.", e);
         }

@@ -12,13 +12,15 @@ public interface Game {
      * 
      * @param id
      *            Unique identifier of the game, use any arbitrary string.
+     * @param playground
+     *            The playground on which this game will be played out.
      * @param config
      *            Game configuration.
      * @param players
      *            Configuration of players that enter the game.
      * @return A complete account of the game's progress.
      */
-    public GameProgressListener play(String id, Properties config,
-            Properties players);
+    public GameProgressListener play(String id, Playground p,
+            Properties config, Properties players);
 
 }

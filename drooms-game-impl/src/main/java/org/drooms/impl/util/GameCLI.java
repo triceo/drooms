@@ -9,15 +9,17 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
+import org.drooms.api.Playground;
 import org.drooms.impl.GameController;
 
 /**
- * Command-line interface for the application. It enforces two options on the
- * command line:
+ * Command-line interface for the application. It enforces following options on
+ * the command line:
  * 
  * <dl>
+ * <dt>-s &lt;scenario&gt;</dt>
+ * <dd>Provides a {@link Playground} description on which the game is to be
+ * played out..</dd>
  * <dt>-p &lt;file&gt;</dt>
  * <dd>Provides a player configuration file, as described in
  * {@link GameController#play(String, java.util.Properties, java.util.Properties)}
@@ -32,21 +34,23 @@ import org.drooms.impl.GameController;
  * should result in a help message being printed out and the application being
  * terminated.
  */
-public class CLI {
+public class GameCLI {
 
-    private static final CLI INSTANCE = new CLI();
+    private static final GameCLI INSTANCE = new GameCLI();
 
     /**
      * Return the single instance of this class.
      * 
      * @return The instance.
      */
-    public static CLI getInstance() {
-        return CLI.INSTANCE;
+    public static GameCLI getInstance() {
+        return GameCLI.INSTANCE;
     }
 
     private final Options options = new Options();
 
+    private final Option playground = new Option("s", "scenario", true,
+            "A path to the playground config file.");
     private final Option players = new Option("p", "players", true,
             "A path to the player config file.");
     private final Option game = new Option("g", "game", true,
@@ -58,7 +62,9 @@ public class CLI {
     /**
      * The constructor is hidden, as should be with the singleton pattern.
      */
-    private CLI() {
+    private GameCLI() {
+        this.playground.setRequired(true);
+        this.options.addOption(this.playground);
         this.game.setRequired(true);
         this.options.addOption(this.game);
         this.players.setRequired(true);
@@ -85,10 +91,17 @@ public class CLI {
      * @return A pair of config files. Game config is the first, player config
      *         the second.
      */
-    public Pair<File, File> process(final String[] args) {
+    public File[] process(final String[] args) {
+        this.isError = false;
         final CommandLineParser parser = new GnuParser();
         try {
             final CommandLine cli = parser.parse(this.options, args);
+            final File scenario = new File(cli.getOptionValue(this.playground
+                    .getOpt()));
+            if (!scenario.exists() || !scenario.canRead()) {
+                this.setError("Provided scenario file cannot be read!");
+                return null;
+            }
             final File gameConfig = new File(cli.getOptionValue(this.game
                     .getOpt()));
             if (!gameConfig.exists() || !gameConfig.canRead()) {
@@ -101,7 +114,7 @@ public class CLI {
                 this.setError("Provided player config file cannot be read!");
                 return null;
             }
-            return ImmutablePair.of(gameConfig, playerConfig);
+            return new File[] { scenario, gameConfig, playerConfig };
         } catch (final ParseException e) {
             this.setError(e.getMessage());
             return null;

@@ -20,7 +20,7 @@ import org.drooms.api.GameProgressListener;
 import org.drooms.api.Move;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
-import org.drooms.impl.DefaultPlayground;
+import org.drooms.api.Playground;
 import org.drooms.impl.GameController;
 import org.drooms.impl.logic.commands.Command;
 import org.drooms.impl.logic.commands.DeactivatePlayerCommand;
@@ -105,7 +105,7 @@ public class CommandDistributor {
      *            How much time the player strategies should be given to make
      *            move decisions.
      */
-    public CommandDistributor(final DefaultPlayground playground,
+    public CommandDistributor(final Playground playground,
             final Collection<Player> players, final GameProgressListener report,
             final int playerTimeoutInSeconds) {
         for (final Player player : players) {
