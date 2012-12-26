@@ -31,7 +31,6 @@ import org.drooms.impl.logic.commands.DeactivatePlayerCommand;
 import org.drooms.impl.logic.commands.MovePlayerCommand;
 import org.drooms.impl.logic.commands.RemoveCollectibleCommand;
 import org.drooms.impl.logic.commands.RewardSurvivalCommand;
-import org.drooms.impl.util.PlayerAssembly;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -232,7 +231,7 @@ public abstract class GameController implements Game {
     @Override
     public GameProgressListener play(final String id,
             final Playground playground, final Properties gameConfig,
-            final Properties playerConfig, final File reportFolder) {
+            final Collection<Player> players, final File reportFolder) {
         // prepare the playground
         final int wormLength = Integer.valueOf(gameConfig.getProperty(
                 "worm.length.start", "3"));
@@ -245,8 +244,6 @@ public abstract class GameController implements Game {
         final int wormTimeout = Integer.valueOf(gameConfig.getProperty(
                 "worm.timeout.seconds", "1"));
         // prepare players and their starting positions
-        final Collection<Player> players = new PlayerAssembly(playerConfig)
-                .assemblePlayers();
         final List<Node> startingPositions = playground.getStartingPositions();
         final int playersSupported = startingPositions.size();
         final int playersAvailable = players.size();

@@ -15,6 +15,7 @@ import java.util.Properties;
 import org.drooms.api.Game;
 import org.drooms.api.GameProgressListener;
 import org.drooms.impl.util.GameCLI;
+import org.drooms.impl.util.PlayerAssembly;
 
 /**
  * Main class of the application, used to launch a particular game.
@@ -83,7 +84,8 @@ public class Drooms {
                     "game.class", "org.drooms.impl.DefaultGame"));
             report = g.play(Drooms.getTimestamp(),
                     DefaultPlayground.read(playgroundFile), gameConfig,
-                    playerConfig, reportFolder);
+                    new PlayerAssembly(playerConfig).assemblePlayers(),
+                    reportFolder);
         } catch (final IOException e) {
             throw new IllegalStateException("Failed reading config files.", e);
         }

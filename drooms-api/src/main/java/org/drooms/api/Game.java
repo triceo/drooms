@@ -1,6 +1,7 @@
 package org.drooms.api;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Properties;
 
 /**
@@ -18,12 +19,12 @@ public interface Game {
      * @param config
      *            Game configuration.
      * @param players
-     *            Configuration of players that enter the game.
+     *            A list of players to participate in the game.
      * @param reportFolder
      *            Where to output data, if necessary.
      * @return A complete account of the game's progress.
      */
     public GameProgressListener play(String id, Playground p,
-            Properties config, Properties players, File reportFolder);
+            Properties config, Collection<Player> players, File reportFolder);
 
 }
