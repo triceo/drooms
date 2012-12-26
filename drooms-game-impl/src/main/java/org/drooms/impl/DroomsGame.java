@@ -25,39 +25,14 @@ import org.drooms.impl.util.PlayerAssembly;
  */
 public class DroomsGame {
 
-    private static Game getGameImpl(final String id) {
-        try {
-            @SuppressWarnings("unchecked")
-            final Class<? extends Game> cls = (Class<? extends Game>) Class
-                    .forName(id);
-            return cls.newInstance();
-        } catch (final ClassNotFoundException e) {
-            throw new IllegalStateException("Cannot find game implementation: "
-                    + id);
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new IllegalStateException(
-                    "Cannot instantiate game implementation: " + id, e);
-        }
-    }
-
     private static String getTimestamp() {
         final Date date = new java.util.Date();
         return new Timestamp(date.getTime()).toString();
     }
 
     /**
-     * Run the game from the command-line. For a description of the command line
-     * interface, see {@link GameCLI}.
-     * 
-     * This method expects couple properties to come out of
-     * {@link GameCLI#process(String[])}'s game config {@link Properties}:
-     * 
-     * <dl>
-     * <dt>game.class</dt>
-     * <dd>A fully qualified name of a class on the classpath that will be used
-     * as the game implementation. If not specified, {@link DefaultGame} will be
-     * used.</dd>
-     * </dl>
+     * Run the {@link DefaultGame} from the command-line. For a description of
+     * the command line interface, see {@link GameCLI}.
      * 
      * @param args
      *            Command-line arguments.
@@ -83,9 +58,9 @@ public class DroomsGame {
             playerConfig.load(playerConfigFile);
             // play and report
             final DroomsGame d = new DroomsGame(configs[0].getName(),
-                    DefaultPlayground.read(playgroundFile), new PlayerAssembly(
-                            playerConfig).assemblePlayers(), gameConfig,
-                    reportFolder);
+                    DefaultGame.class, DefaultPlayground.read(playgroundFile),
+                    new PlayerAssembly(playerConfig).assemblePlayers(),
+                    gameConfig, reportFolder);
             d.play();
         } catch (final IOException e) {
             throw new IllegalStateException("Failed reading config files.", e);
@@ -97,20 +72,26 @@ public class DroomsGame {
     private final Properties c;
     private final Collection<Player> players;
     private final File f;
+    private final Class<? extends Game> cls;
 
-    public DroomsGame(final String name, final Playground p,
-            final Collection<Player> players, final Properties gameConfig,
-            final File reportFolder) {
+    public DroomsGame(final String name, final Class<? extends Game> game,
+            final Playground p, final Collection<Player> players,
+            final Properties gameConfig, final File reportFolder) {
         this.c = gameConfig;
         this.p = p;
         this.f = reportFolder;
         this.n = name;
+        this.cls = game;
         this.players = players;
     }
 
     public boolean play() {
-        final Game g = DroomsGame.getGameImpl(this.c.getProperty("game.class",
-                "org.drooms.impl.DefaultGame"));
+        Game g;
+        try {
+            g = this.cls.newInstance();
+        } catch (InstantiationException | IllegalAccessException e1) {
+            throw new IllegalStateException("Cannot find game class.", e1);
+        }
         final File f = new File(this.f, this.n + "-"
                 + DroomsGame.getTimestamp());
         if (!f.exists()) {
