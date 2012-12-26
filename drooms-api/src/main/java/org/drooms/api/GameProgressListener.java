@@ -1,6 +1,5 @@
 package org.drooms.api;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 
@@ -16,8 +15,6 @@ public interface GameProgressListener {
             int points);
 
     public void collectibleRemoved(Collectible c, Node where);
-
-    public File getTargetFolder();
 
     public void nextTurn();
 

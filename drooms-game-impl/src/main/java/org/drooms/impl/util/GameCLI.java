@@ -49,6 +49,8 @@ public class GameCLI {
 
     private final Options options = new Options();
 
+    private final Option reports = new Option("r", "reports", true,
+            "A folder to store reports in.");
     private final Option playground = new Option("s", "scenario", true,
             "A path to the playground config file.");
     private final Option players = new Option("p", "players", true,
@@ -63,6 +65,7 @@ public class GameCLI {
      * The constructor is hidden, as should be with the singleton pattern.
      */
     private GameCLI() {
+        this.options.addOption(this.reports);
         this.playground.setRequired(true);
         this.options.addOption(this.playground);
         this.game.setRequired(true);
@@ -88,8 +91,9 @@ public class GameCLI {
      * 
      * @param args
      *            The arguments.
-     * @return A pair of config files. Game config is the first, player config
-     *         the second.
+     * @return Files passed from the command line. First is the scenario, second
+     *         is the game config, third is the player config, fourth
+     *         (optionally) the directory in which to store reports.
      */
     public File[] process(final String[] args) {
         this.isError = false;
@@ -114,7 +118,15 @@ public class GameCLI {
                 this.setError("Provided player config file cannot be read!");
                 return null;
             }
-            return new File[] { scenario, gameConfig, playerConfig };
+            final String reports = cli.getOptionValue(this.reports.getOpt());
+            if (reports == null) {
+                return new File[] { scenario, gameConfig, playerConfig };
+            } else {
+                final File reportsDir = new File(reports + File.separator);
+                reportsDir.mkdirs();
+                return new File[] { scenario, gameConfig, playerConfig,
+                        reportsDir };
+            }
         } catch (final ParseException e) {
             this.setError(e.getMessage());
             return null;

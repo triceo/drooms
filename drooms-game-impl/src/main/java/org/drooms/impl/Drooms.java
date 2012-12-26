@@ -53,14 +53,6 @@ public class Drooms {
      * <dd>A fully qualified name of a class on the classpath that will be used
      * as the game implementation. If not specified, {@link DefaultGame} will be
      * used.</dd>
-     * <dt>reports.dir</dt>
-     * <dd>A directory in which to write the report file of that game. If not
-     * specified, it will be "reports". A subdirectory will be created, named as
-     * a timestamp for the current game, and that is the effective target
-     * directory for reports.</dd>
-     * <dt>report.file</dt>
-     * <dd>Where to write the report file at the end of that game. If not
-     * specified, it will be "${reports.dir}/report.xml".</dd>
      * </dl>
      * 
      * @param args
@@ -74,6 +66,8 @@ public class Drooms {
             System.exit(-1);
         }
         // play the game
+        final File reportFolder = (configs.length == 4) ? configs[3]
+                : new File("reports/");
         GameProgressListener report = null;
         final Properties gameConfig = new Properties();
         // FIXME standardize on InputStream or Reader
@@ -89,14 +83,12 @@ public class Drooms {
                     "game.class", "org.drooms.impl.DefaultGame"));
             report = g.play(Drooms.getTimestamp(),
                     DefaultPlayground.read(playgroundFile), gameConfig,
-                    playerConfig);
+                    playerConfig, reportFolder);
         } catch (final IOException e) {
             throw new IllegalStateException("Failed reading config files.", e);
         }
         // report
-        final File reportFolder = report.getTargetFolder();
-        try (Writer w = new FileWriter(new File(reportFolder,
-                gameConfig.getProperty("report.file", "report.xml")))) {
+        try (Writer w = new FileWriter(new File(reportFolder, "report.xml"))) {
             report.write(w);
         } catch (final IOException e) {
             throw new IllegalStateException("Failed writing report file.", e);

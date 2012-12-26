@@ -1,5 +1,6 @@
 package org.drooms.impl;
 
+import java.io.File;
 import java.security.SecureRandom;
 import java.util.Collection;
 import java.util.Deque;
@@ -231,7 +232,7 @@ public abstract class GameController implements Game {
     @Override
     public GameProgressListener play(final String id,
             final Playground playground, final Properties gameConfig,
-            final Properties playerConfig) {
+            final Properties playerConfig, final File reportFolder) {
         // prepare the playground
         final int wormLength = Integer.valueOf(gameConfig.getProperty(
                 "worm.length.start", "3"));
@@ -267,7 +268,7 @@ public abstract class GameController implements Game {
         // prepare situation
         final CommandDistributor playerControl = new CommandDistributor(
                 playground, players, new XmlProgressListener(playground,
-                        gameConfig, id), wormTimeout);
+                        gameConfig, id), reportFolder, wormTimeout);
         final Set<Player> currentPlayers = new HashSet<Player>(players);
         Map<Player, Move> decisions = new HashMap<Player, Move>();
         for (final Player p : currentPlayers) { // initialize players

@@ -1,6 +1,5 @@
 package org.drooms.impl;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.HashMap;
@@ -34,15 +33,9 @@ public class XmlProgressListener implements GameProgressListener {
     private int turnNumber = 0;
 
     private final Map<Player, Integer> playerPoints = new HashMap<>();
-    private final File reportFolder;
 
     public XmlProgressListener(final Playground p, final Properties gameConfig,
             final String gameId) {
-        this.reportFolder = new File(gameConfig.getProperty("reports.dir",
-                "reports"), gameId);
-        if (!this.reportFolder.exists()) {
-            this.reportFolder.mkdirs();
-        }
         this.report.append("<game id='" + gameId + "'>");
         // report game config
         this.report.append("<config>");
@@ -100,11 +93,6 @@ public class XmlProgressListener implements GameProgressListener {
         this.report.append(XmlProgressListener.collectibleXml(c));
         this.report.append(XmlProgressListener.nodeXml(where));
         this.report.append("</removedCollectible>");
-    }
-
-    @Override
-    public File getTargetFolder() {
-        return this.reportFolder;
     }
 
     @Override

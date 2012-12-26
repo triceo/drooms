@@ -1,5 +1,6 @@
 package org.drooms.impl.logic;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
@@ -101,20 +102,21 @@ public class CommandDistributor {
      *            The players taking part in the game.
      * @param report
      *            The game listener.
+     * @param reportFolder
+     *            Where to report to.
      * @param playerTimeoutInSeconds
      *            How much time the player strategies should be given to make
      *            move decisions.
      */
     public CommandDistributor(final Playground playground,
-            final Collection<Player> players, final GameProgressListener report,
+            final Collection<Player> players,
+            final GameProgressListener report, final File reportFolder,
             final int playerTimeoutInSeconds) {
         for (final Player player : players) {
             final PathTracker tracker = new PathTracker(playground, player);
             this.trackers.put(player, tracker);
-            this.players
-                    .put(player,
-                            new DecisionMaker(player, tracker, report
-                                    .getTargetFolder()));
+            this.players.put(player, new DecisionMaker(player, tracker,
+                    reportFolder));
         }
         this.listeners.add(report);
         this.playerTimeoutInSeconds = playerTimeoutInSeconds;
