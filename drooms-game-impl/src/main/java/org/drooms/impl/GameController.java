@@ -229,9 +229,9 @@ public abstract class GameController implements Game {
             final Move decision);
 
     @Override
-    public GameProgressListener play(final String id,
-            final Playground playground, final Properties gameConfig,
-            final Collection<Player> players, final File reportFolder) {
+    public GameProgressListener play(final Playground playground,
+            final Properties gameConfig, final Collection<Player> players,
+            final File reportFolder) {
         // prepare the playground
         final int wormLength = Integer.valueOf(gameConfig.getProperty(
                 "worm.length.start", "3"));
@@ -265,7 +265,7 @@ public abstract class GameController implements Game {
         // prepare situation
         final CommandDistributor playerControl = new CommandDistributor(
                 playground, players, new XmlProgressListener(playground,
-                        gameConfig, id), reportFolder, wormTimeout);
+                        gameConfig), reportFolder, wormTimeout);
         final Set<Player> currentPlayers = new HashSet<Player>(players);
         Map<Player, Move> decisions = new HashMap<Player, Move>();
         for (final Player p : currentPlayers) { // initialize players

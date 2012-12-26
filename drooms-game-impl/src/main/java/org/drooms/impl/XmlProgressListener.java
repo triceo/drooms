@@ -34,9 +34,8 @@ public class XmlProgressListener implements GameProgressListener {
 
     private final Map<Player, Integer> playerPoints = new HashMap<>();
 
-    public XmlProgressListener(final Playground p, final Properties gameConfig,
-            final String gameId) {
-        this.report.append("<game id='" + gameId + "'>");
+    public XmlProgressListener(final Playground p, final Properties gameConfig) {
+        this.report.append("<game>");
         // report game config
         this.report.append("<config>");
         for (final Map.Entry<Object, Object> pair : gameConfig.entrySet()) {

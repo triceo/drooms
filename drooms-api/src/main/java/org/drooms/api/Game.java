@@ -12,8 +12,6 @@ public interface Game {
     /**
      * Initialize the game and play it through.
      * 
-     * @param id
-     *            Unique identifier of the game, use any arbitrary string.
      * @param playground
      *            The playground on which this game will be played out.
      * @param config
@@ -24,7 +22,7 @@ public interface Game {
      *            Where to output data, if necessary.
      * @return A complete account of the game's progress.
      */
-    public GameProgressListener play(String id, Playground p,
-            Properties config, Collection<Player> players, File reportFolder);
+    public GameProgressListener play(Playground p, Properties config,
+            Collection<Player> players, File reportFolder);
 
 }

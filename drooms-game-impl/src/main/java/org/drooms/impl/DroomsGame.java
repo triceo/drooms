@@ -72,7 +72,6 @@ public class DroomsGame {
         // play the game
         final File reportFolder = (configs.length == 4) ? configs[3]
                 : new File("reports/");
-        GameProgressListener report = null;
         final Properties gameConfig = new Properties();
         // FIXME standardize on InputStream or Reader
         try (InputStream playgroundFile = new FileInputStream(configs[0]);
@@ -83,39 +82,49 @@ public class DroomsGame {
             final Properties playerConfig = new Properties();
             playerConfig.load(playerConfigFile);
             // play and report
-            final DroomsGame d = new DroomsGame(DefaultPlayground.read(playgroundFile),
-                    new PlayerAssembly(playerConfig).assemblePlayers(),
-                    gameConfig, reportFolder);
-            report = d.play();
+            final DroomsGame d = new DroomsGame(configs[0].getName(),
+                    DefaultPlayground.read(playgroundFile), new PlayerAssembly(
+                            playerConfig).assemblePlayers(), gameConfig,
+                    reportFolder);
+            d.play();
         } catch (final IOException e) {
             throw new IllegalStateException("Failed reading config files.", e);
-        }
-        // report
-        try (Writer w = new FileWriter(new File(reportFolder, "report.xml"))) {
-            report.write(w);
-        } catch (final IOException e) {
-            throw new IllegalStateException("Failed writing report file.", e);
         }
     }
 
     private final Playground p;
+    private final String n;
     private final Properties c;
     private final Collection<Player> players;
     private final File f;
 
-    public DroomsGame(final Playground p, final Collection<Player> players,
-            final Properties gameConfig, final File reportFolder) {
+    public DroomsGame(final String name, final Playground p,
+            final Collection<Player> players, final Properties gameConfig,
+            final File reportFolder) {
         this.c = gameConfig;
         this.p = p;
         this.f = reportFolder;
+        this.n = name;
         this.players = players;
     }
 
-    public GameProgressListener play() {
+    public boolean play() {
         final Game g = DroomsGame.getGameImpl(this.c.getProperty("game.class",
                 "org.drooms.impl.DefaultGame"));
-        return g.play(DroomsGame.getTimestamp(), this.p, this.c, this.players,
-                this.f);
+        final File f = new File(this.f, this.n + "-"
+                + DroomsGame.getTimestamp());
+        if (!f.exists()) {
+            f.mkdirs();
+        }
+        final GameProgressListener gpl = g
+                .play(this.p, this.c, this.players, f);
+        // report
+        try (Writer w = new FileWriter(new File(f, "report.xml"))) {
+            gpl.write(w);
+            return true;
+        } catch (final IOException e) {
+            return false;
+        }
     }
 
 }
