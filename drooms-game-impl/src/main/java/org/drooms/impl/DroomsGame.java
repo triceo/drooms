@@ -9,18 +9,21 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.sql.Timestamp;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Properties;
 
 import org.drooms.api.Game;
 import org.drooms.api.GameProgressListener;
+import org.drooms.api.Player;
+import org.drooms.api.Playground;
 import org.drooms.impl.util.GameCLI;
 import org.drooms.impl.util.PlayerAssembly;
 
 /**
  * Main class of the application, used to launch a particular game.
  */
-public class Drooms {
+public class DroomsGame {
 
     private static Game getGameImpl(final String id) {
         try {
@@ -43,8 +46,8 @@ public class Drooms {
     }
 
     /**
-     * Run the application from the command-line. For a description of the
-     * command line interface, see {@link GameCLI}.
+     * Run the game from the command-line. For a description of the command line
+     * interface, see {@link GameCLI}.
      * 
      * This method expects couple properties to come out of
      * {@link GameCLI#process(String[])}'s game config {@link Properties}:
@@ -80,12 +83,10 @@ public class Drooms {
             final Properties playerConfig = new Properties();
             playerConfig.load(playerConfigFile);
             // play and report
-            final Game g = Drooms.getGameImpl(gameConfig.getProperty(
-                    "game.class", "org.drooms.impl.DefaultGame"));
-            report = g.play(Drooms.getTimestamp(),
-                    DefaultPlayground.read(playgroundFile), gameConfig,
+            final DroomsGame d = new DroomsGame(DefaultPlayground.read(playgroundFile),
                     new PlayerAssembly(playerConfig).assemblePlayers(),
-                    reportFolder);
+                    gameConfig, reportFolder);
+            report = d.play();
         } catch (final IOException e) {
             throw new IllegalStateException("Failed reading config files.", e);
         }
@@ -95,6 +96,26 @@ public class Drooms {
         } catch (final IOException e) {
             throw new IllegalStateException("Failed writing report file.", e);
         }
+    }
+
+    private final Playground p;
+    private final Properties c;
+    private final Collection<Player> players;
+    private final File f;
+
+    public DroomsGame(final Playground p, final Collection<Player> players,
+            final Properties gameConfig, final File reportFolder) {
+        this.c = gameConfig;
+        this.p = p;
+        this.f = reportFolder;
+        this.players = players;
+    }
+
+    public GameProgressListener play() {
+        final Game g = DroomsGame.getGameImpl(this.c.getProperty("game.class",
+                "org.drooms.impl.DefaultGame"));
+        return g.play(DroomsGame.getTimestamp(), this.p, this.c, this.players,
+                this.f);
     }
 
 }
