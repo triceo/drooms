@@ -19,8 +19,13 @@ import org.drooms.impl.util.DroomsTournamentResults;
 import org.drooms.impl.util.PlayerAssembly;
 import org.drooms.impl.util.TournamentCLI;
 import org.drooms.impl.util.TournamentResults;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DroomsTournament {
+
+    private static final Logger LOGGER = LoggerFactory
+            .getLogger(DroomsTournament.class);
 
     @SuppressWarnings("unchecked")
     private static Class<? extends Game> getGameImpl(final String id) {
@@ -92,7 +97,7 @@ public class DroomsTournament {
             }
             // load game properties
             final File propsFile = new File("src/main/resources",
-                    playgroundName + ".playground");
+                    playgroundName + ".cfg");
             final Properties gameProps = DroomsTournament
                     .loadFromFile(propsFile);
             if (gameProps == null) {
@@ -101,7 +106,12 @@ public class DroomsTournament {
                                 + playgroundName);
             }
             // run N games on the playground
-            for (int i = 0; i < Integer.valueOf(props.getProperty("runs")); i++) {
+            DroomsTournament.LOGGER.info("Starting games on playground {}.",
+                    playgroundName);
+            for (int i = 1; i < Integer.valueOf(props.getProperty("runs")); i++) {
+                DroomsTournament.LOGGER.info(
+                        "Starting game #{} on playground {}.", i,
+                        playgroundName);
                 final DroomsGame dg = new DroomsGame(playgroundName + "_" + i,
                         game, p, players, gameProps, reports);
                 result.addResults(playgroundName, dg.play());
