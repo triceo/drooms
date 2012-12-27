@@ -8,12 +8,14 @@ import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Properties;
+import java.util.SortedMap;
 
 import org.drooms.api.Game;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
 import org.drooms.impl.util.PlayerAssembly;
 import org.drooms.impl.util.TournamentCLI;
+import org.drooms.impl.util.TournamentResults;
 
 public class DroomsTournament {
 
@@ -68,7 +70,9 @@ public class DroomsTournament {
         // load game class
         final Class<? extends Game> game = DroomsTournament.getGameImpl(props
                 .getProperty("game.class"));
-        // FOR EACH playground
+        // prepare a result tracker
+        final TournamentResults result = new TournamentResults(players);
+        // for each playground...
         final String[] playgroundNames = props.getProperty("playgrounds")
                 .split("\\Q,\\E");
         for (final String playgroundName : playgroundNames) {
@@ -96,8 +100,14 @@ public class DroomsTournament {
             for (int i = 0; i < Integer.valueOf(props.getProperty("runs")); i++) {
                 final DroomsGame dg = new DroomsGame(playgroundName + "_" + i,
                         game, p, players, gameProps, reports);
-                dg.play();
+                result.addResults(playgroundName, dg.play());
             }
+        }
+        System.out.println("Tournament results:");
+        int i = 1;
+        for (SortedMap.Entry<Long, Collection<Player>> entry: result.evaluate().entrySet()) {
+            System.out.println("#" + i + " with " + entry.getKey() + " points: " + entry.getValue());
+            i++;
         }
     }
 
