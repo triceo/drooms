@@ -17,21 +17,15 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.drools.builder.KnowledgeBuilder;
-import org.drools.builder.KnowledgeBuilderError;
 import org.drooms.api.Player;
 import org.drooms.api.Strategy;
 import org.drooms.impl.GameController;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A helper class to load {@link Strategy} implementations. for all requested
  * {@link Player}s.
  */
 public class PlayerAssembly {
-
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(PlayerAssembly.class);
 
     private static URL uriToUrl(final URI uri) {
         try {
@@ -114,16 +108,7 @@ public class PlayerAssembly {
             }
             final ClassLoader cl = this.loadJar(strategyJar);
             final KnowledgeBuilder kb = strategy.getKnowledgeBuilder(cl);
-            try {
-                players.add(new Player(playerName, kb.getKnowledgePackages(), cl));
-            } catch (final Exception ex) {
-                for (final KnowledgeBuilderError error : kb.getErrors()) {
-                    PlayerAssembly.LOGGER.error(error.toString());
-                }
-                throw new IllegalStateException(
-                        "Cannot create knowledge base for strategy: "
-                                + strategy.getName(), ex);
-            }
+            players.add(new Player(playerName, kb.getKnowledgePackages(), cl));
         }
         Collections.shuffle(players, new SecureRandom());
         return Collections.unmodifiableList(players);
