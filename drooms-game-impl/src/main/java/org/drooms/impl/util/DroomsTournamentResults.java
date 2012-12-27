@@ -17,8 +17,9 @@ import org.drooms.api.Player;
 
 public class DroomsTournamentResults extends TournamentResults {
 
-    public DroomsTournamentResults(final Collection<Player> players) {
-        super(players);
+    public DroomsTournamentResults(final String name,
+            final Collection<Player> players) {
+        super(name, players);
     }
 
     @Override

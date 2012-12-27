@@ -1,7 +1,9 @@
 package org.drooms.impl;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Timestamp;
@@ -63,8 +65,8 @@ public class DroomsTournament {
         final Collection<Player> players = new PlayerAssembly(playerConfigFile)
                 .assemblePlayers();
         // load report folder
-        final File reports = new File("target/reports/tournaments/"
-                + DroomsTournament.getTimestamp());
+        final String id = DroomsTournament.getTimestamp();
+        final File reports = new File("target/reports/tournaments/" + id);
         if (!reports.exists()) {
             reports.mkdirs();
         }
@@ -72,7 +74,8 @@ public class DroomsTournament {
         final Class<? extends Game> game = DroomsTournament.getGameImpl(props
                 .getProperty("game.class"));
         // prepare a result tracker
-        final TournamentResults result = new DroomsTournamentResults(players);
+        final TournamentResults result = new DroomsTournamentResults(id,
+                players);
         // for each playground...
         final String[] playgroundNames = props.getProperty("playgrounds")
                 .split("\\Q,\\E");
@@ -111,6 +114,12 @@ public class DroomsTournament {
             System.out.println("#" + i + " with " + entry.getKey()
                     + " points: " + entry.getValue());
             i++;
+        }
+        try (BufferedWriter w = new BufferedWriter(new FileWriter(new File(
+                reports, "report.html")))) {
+            result.write(w);
+        } catch (final IOException e) {
+            // FIXME do something here
         }
     }
 
