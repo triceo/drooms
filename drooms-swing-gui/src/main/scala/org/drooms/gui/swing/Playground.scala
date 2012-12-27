@@ -2,19 +2,17 @@ package org.drooms.gui.swing
 
 import java.awt.Color
 import java.awt.Dimension
-
 import scala.swing.Component
 import scala.swing.GridBagPanel
 import scala.swing.Label
 import scala.swing.Reactor
 import scala.swing.ScrollPane
 import scala.swing.Table
-
 import org.drooms.gui.swing.event.PlaygroundGridDisabled
 import org.drooms.gui.swing.event.PlaygroundGridEnabled
-
 import javax.swing.BorderFactory
 import javax.swing.ImageIcon
+import org.drooms.gui.swing.event.NewGameLogChosen
 
 class Playground extends ScrollPane with Reactor {
   val CELL_SIZE = 15
@@ -26,7 +24,14 @@ class Playground extends ScrollPane with Reactor {
   reactions += {
     case PlaygroundGridEnabled() => showGrid
     case PlaygroundGridDisabled() => hideGrid
+    case NewGameLogChosen(gameLog, file) => {
+      createNew(gameLog.playgroundHeight, gameLog.playgroundWidth)
+      for (node <- gameLog.playgroundInit)
+        nodeModel.updateNode(node)
+      nodeModel.gatherWorms()
+    }
   }
+
   def createNew(height: Int, width: Int): Unit = {
     nodeModel = new PlaygroundModel(height, width)
     table = new Table(height, width) {
@@ -44,7 +49,7 @@ class Playground extends ScrollPane with Reactor {
         val node = nodeModel.nodes(row)(col)
         val cell = node match {
           case Empty(_, _) => new Label("")
-          case Worm(_, _, wormType, player) => new Label() {
+          case WormPiece(_, _, wormType, player) => new Label() {
             opaque = true
             background = player.color
             if (wormType == "Head") {
@@ -55,7 +60,7 @@ class Playground extends ScrollPane with Reactor {
             icon = wallIcon
             //border = BorderFactory.createLineBorder(Color.BLACK)
           }
-          case Collectible(_, _, _) => new Label("B")
+          case Collectible(_, _, _, _) => new Label("B")
         }
         if (isSelected) {
           cell.border = BorderFactory.createLineBorder(Color.black)
@@ -72,6 +77,19 @@ class Playground extends ScrollPane with Reactor {
     viewportView = new GridBagPanel {
       layout(table) = new Constraints
     }
+  }
+
+  def removeWorm(worm: Worm): Unit = {
+
+  }
+
+  def moveWorm(worm: Worm): Unit = {
+    nodeModel.moveWorm(worm)
+  }
+
+  def updateNodes(nodes: List[Node]): Unit = {
+    for (node <- nodes)
+      updateNode(node)
   }
 
   def updateNode(node: Node) {

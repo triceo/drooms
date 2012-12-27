@@ -12,13 +12,18 @@ import javax.swing.BorderFactory
 
 class PlayersList(var players: List[Player]) extends BorderPanel {
 
-  var playersListView = new ListView(players) {
+  val playersListView = new ListView(players) {
     renderer = new PlayersListRenderer
   }
 
   import BorderPanel.Position._
   layout(new Label("Players")) = North
   layout(playersListView) = Center
+
+  def addPlayers(players: Seq[Player]): Unit = {
+    for (player <- players)
+      addPlayer(player)
+  }
 
   def addPlayer(player: Player) {
     playersListView.listData = playersListView.listData ++ Seq(player)

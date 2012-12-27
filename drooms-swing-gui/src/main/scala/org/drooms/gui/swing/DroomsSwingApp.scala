@@ -1,76 +1,138 @@
 package org.drooms.gui.swing
 
 import java.awt.Dimension
+import java.io.File
+import scala.swing.Action
 import scala.swing.BorderPanel
-import scala.swing.BorderPanel.Position.Center
-import scala.swing.BorderPanel.Position.South
 import scala.swing.BoxPanel
 import scala.swing.Button
+import scala.swing.CheckMenuItem
+import scala.swing.FileChooser
+import scala.swing.FlowPanel
 import scala.swing.MainFrame
 import scala.swing.Menu
 import scala.swing.MenuBar
 import scala.swing.MenuItem
 import scala.swing.Orientation
+import scala.swing.Publisher
+import scala.swing.Reactor
 import scala.swing.SimpleSwingApplication
 import scala.swing.SplitPane
 import scala.swing.event.ButtonClicked
-import scala.swing.CheckMenuItem
-import scala.swing.Action
-import scala.swing.ScrollPane
-import scala.swing.event.ButtonClicked
-import java.awt.Color
-import scala.swing.FlowPanel
-import scala.swing.Alignment
-import scala.swing.Publisher
-import org.drooms.gui.swing.event.PlaygroundGridEnabled
+import org.drooms.gui.swing.event.NewGameLogChosen
+import org.drooms.gui.swing.event.NextTurnInitiated
 import org.drooms.gui.swing.event.PlaygroundGridDisabled
+import org.drooms.gui.swing.event.PlaygroundGridEnabled
+import org.drooms.gui.swing.event.NewGameLogChosen
+import org.drooms.gui.swing.event.GameFinished
 
 object DroomsSwingApp extends SimpleSwingApplication {
-  // TODO leftPane here and own class for leftPane?
-  //  var players = List[Player]()
   val leftPane = new LeftPane
   val rightPane = new RightPane
+  var gameController: GameController = _
 
   def top = new MainFrame {
-    //UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
     title = "Drooms"
     minimumSize = new Dimension(1200, 700)
     menuBar = new MainMenu()
+    menuBar.listenTo()
+    leftPane.listenTo(rightPane)
+    leftPane.playground.listenTo(leftPane.controlPanel)
     leftPane.playground.listenTo(menuBar)
+    leftPane.controlPanel.listenTo(menuBar)
+    leftPane.controlPanel.listenTo(this)
+    rightPane.listenTo(leftPane)
+    rightPane.listenTo(menuBar)
+
+    listenTo(menuBar)
+    listenTo(leftPane.controlPanel)
+
     contents = new SplitPane(Orientation.Vertical, leftPane, rightPane) {
       resizeWeight = 1.0
       rightComponent.minimumSize = new Dimension(200, 500)
       leftComponent.minimumSize = new Dimension(500, 500)
     }
+    val playground = leftPane.playground
+    reactions += {
+      case NewGameLogChosen(gameLog, file) =>
+        gameController = new ReplayGameController(gameLog)
+      case NextTurnInitiated() =>
+        val turn = gameController.nextTurn
+        for (step <- turn.steps) {
+          step match {
+            case WormMoved(worm) =>
+              playground.moveWorm(worm)
+            case WormDied(worm) =>
+              playground.removeWorm(worm)
+            case CollectibeAdded(collectible) =>
+              playground.updateNode(collectible)
+            case CollectibleRemoved(collectible) =>
+              playground.updateNode(collectible)
+          }
 
+        }
+        if (!gameController.hasNextTurn()) {
+          publish(new GameFinished)
+        }
+    }
     centerOnScreen()
+    // dummy game
+    menuBar.publish(new NewGameLogChosen(GameLog.loadFromXml(new File("/home/psiroky/work/git-repos/drooms/drooms-game-impl/target/drooms-reports/2012-12-23 10:46:57.12/report.xml")), new File(".")))
   }
- 
-  class MainMenu extends MenuBar with Publisher {
+
+  class MainMenu extends MenuBar {
+    // file menu
     contents += new Menu("File") {
-      contents += new MenuItem("Open game log...")
+      contents += new MenuItem(Action("Open game log...") {
+        openGameLog()
+      })
+    }
+    // game menu
+    val startGameItem = new MenuItem("Start") {
+      enabled = false
+    }
+    val restartGameItem = new MenuItem("Restart") {
+      enabled = false
     }
     contents += new Menu("Game") {
-      contents += new MenuItem("Start")
-      contents += new MenuItem("Restart")
+      contents += startGameItem
+      contents += restartGameItem
     }
+    // players menu
     contents += new Menu("Players") {
       contents += new MenuItem("Settings...")
     }
     val showGridBtn = new CheckMenuItem("Show grid")
+    // playground menu
     contents += new Menu("Playground") {
       contents += showGridBtn
     }
+    // help menu
     contents += new Menu("Help") {
       contents += new MenuItem("About Drooms")
     }
     listenTo(showGridBtn)
+    listenTo(this)
     reactions += {
       case ButtonClicked(`showGridBtn`) => {
         if (showGridBtn.selected)
           publish(new PlaygroundGridEnabled)
         else
           publish(new PlaygroundGridDisabled)
+      }
+      case NewGameLogChosen(_, _) => {
+        startGameItem.enabled = true
+        restartGameItem.enabled = true
+      }
+    }
+
+    def openGameLog(): Unit = {
+      val fileChooser = new FileChooser(new File(System.getProperty("user.dir")))
+      val res = fileChooser.showOpenDialog(this)
+      if (res == FileChooser.Result.Approve) {
+        val selectedFile = fileChooser.selectedFile
+        val gameLog = GameLog.loadFromXml(selectedFile)
+        publish(new NewGameLogChosen(gameLog, selectedFile))
       }
     }
   }
@@ -83,58 +145,38 @@ class LeftPane extends BorderPanel {
   layout(playground) = BorderPanel.Position.Center
   layout(controlPanel) = BorderPanel.Position.South
 
-  class ControlPanel extends FlowPanel(FlowPanel.Alignment.Right)() {
-    val startBtn = new Button("Start game")
-    val nextTurnBtn = new Button("Next turn")
+  class ControlPanel extends FlowPanel(FlowPanel.Alignment.Right)() with Reactor with Publisher {
+    val startBtn = new Button("Start game") {
+      enabled = false
+    }
+    val nextTurnBtn = new Button("Next turn") {
+      enabled = false
+    }
     contents += nextTurnBtn
     contents += startBtn
-
+    listenTo(nextTurnBtn)
     listenTo(startBtn)
+
     reactions += {
-      case ButtonClicked(`startBtn`) =>
-        playground.createNew(40, 60)
-        createDummyPlayground
-    }
-
-    private def createDummyPlayground: Unit = {
-      val p = new Player("", Color.CYAN)
-      val p2 = new Player("", Color.YELLOW)
-      playground.updateNode(new Worm(20, 20, "Body", p))
-      playground.updateNode(new Worm(21, 20, "Body", p))
-      playground.updateNode(new Worm(22, 20, "Body", p))
-      playground.updateNode(new Worm(23, 20, "Body", p))
-      playground.updateNode(new Worm(24, 20, "Body", p))
-      playground.updateNode(new Worm(25, 20, "Body", p))
-      playground.updateNode(new Worm(20, 19, "Body", p))
-      playground.updateNode(new Worm(20, 18, "Body", p))
-      playground.updateNode(new Worm(20, 17, "Body", p))
-      playground.updateNode(new Worm(19, 17, "Head", p))
-
-      playground.updateNode(new Worm(20, 50, "Body", p2))
-      playground.updateNode(new Worm(21, 50, "Body", p2))
-      playground.updateNode(new Worm(22, 50, "Head", p2))
-
-      playground.updateNode(new Wall(22, 30))
-      playground.updateNode(new Wall(22, 31))
-      playground.updateNode(new Wall(23, 30))
-      playground.updateNode(new Wall(23, 31))
-      playground.updateNode(new Wall(24, 30))
-      playground.updateNode(new Wall(24, 31))
-      playground.updateNode(new Wall(25, 30))
-      playground.updateNode(new Wall(25, 31))
-
-      playground.updateNode(new Collectible(10, 10, 20))
+      case NewGameLogChosen(_, _) => {
+        nextTurnBtn.enabled = true
+        startBtn.enabled = true
+      }
+      case ButtonClicked(`nextTurnBtn`) =>
+        publish(new NextTurnInitiated)
+      case GameFinished() =>
+        nextTurnBtn.enabled = false
     }
   }
 }
 
-class RightPane extends BoxPanel(Orientation.Horizontal) {
-  val playersList = new PlayersList(
-    List(
-      new Player("Player 1", Color.CYAN),
-      new Player("Player 2", Color.GREEN),
-      new Player("Player 3", Color.GRAY),
-      new Player("Player 4", Color.PINK),
-      new Player("Player 5", Color.YELLOW)))
+class RightPane extends BoxPanel(Orientation.Horizontal) with Reactor {
+  val playersList = new PlayersList(List())
   contents += playersList
+
+  reactions += {
+    case NewGameLogChosen(gameLog, file) => {
+      playersList.addPlayers(gameLog.players)
+    }
+  }
 }
