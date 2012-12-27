@@ -108,13 +108,14 @@ public class DroomsTournament {
             // run N games on the playground
             DroomsTournament.LOGGER.info("Starting games on playground {}.",
                     playgroundName);
+            final DroomsGame dg = new DroomsGame(game, p, players, gameProps,
+                    reports);
             for (int i = 1; i < Integer.valueOf(props.getProperty("runs")); i++) {
                 DroomsTournament.LOGGER.info(
                         "Starting game #{} on playground {}.", i,
                         playgroundName);
-                final DroomsGame dg = new DroomsGame(playgroundName + "_" + i,
-                        game, p, players, gameProps, reports);
-                result.addResults(playgroundName, dg.play());
+                result.addResults(playgroundName,
+                        dg.play(playgroundName + "_" + i));
             }
         }
         System.out.println("Tournament results:");

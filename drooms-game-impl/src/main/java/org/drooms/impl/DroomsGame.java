@@ -56,18 +56,17 @@ public class DroomsGame {
             // prepare configs
             gameConfig.load(gameConfigFile);
             // play and report
-            final DroomsGame d = new DroomsGame(configs[0].getName(),
-                    DefaultGame.class, DefaultPlayground.read(playgroundFile),
-                    new PlayerAssembly(configs[2]).assemblePlayers(),
-                    gameConfig, reportFolder);
-            d.play();
+            final DroomsGame d = new DroomsGame(DefaultGame.class,
+                    DefaultPlayground.read(playgroundFile), new PlayerAssembly(
+                            configs[2]).assemblePlayers(), gameConfig,
+                    reportFolder);
+            d.play(configs[0].getName());
         } catch (final IOException e) {
             throw new IllegalStateException("Failed reading config files.", e);
         }
     }
 
     private final Playground p;
-    private final String n;
     private final Properties c;
     private final Collection<Player> players;
     private final File f;
@@ -76,26 +75,24 @@ public class DroomsGame {
     private static final Logger LOGGER = LoggerFactory
             .getLogger(DroomsGame.class);
 
-    public DroomsGame(final String name, final Class<? extends Game> game,
-            final Playground p, final Collection<Player> players,
-            final Properties gameConfig, final File reportFolder) {
+    public DroomsGame(final Class<? extends Game> game, final Playground p,
+            final Collection<Player> players, final Properties gameConfig,
+            final File reportFolder) {
         this.c = gameConfig;
         this.p = p;
         this.f = reportFolder;
-        this.n = name;
         this.cls = game;
         this.players = players;
     }
 
-    public Map<Player, Integer> play() {
+    public Map<Player, Integer> play(final String name) {
         Game g;
         try {
             g = this.cls.newInstance();
         } catch (InstantiationException | IllegalAccessException e1) {
             throw new IllegalStateException("Cannot find game class.", e1);
         }
-        final File f = new File(this.f, this.n + "-"
-                + DroomsGame.getTimestamp());
+        final File f = new File(this.f, name + "-" + DroomsGame.getTimestamp());
         if (!f.exists()) {
             f.mkdirs();
         }
@@ -105,8 +102,7 @@ public class DroomsGame {
         try (Writer w = new FileWriter(new File(f, "report.xml"))) {
             g.getReport().write(w);
         } catch (final IOException e) {
-            DroomsGame.LOGGER.info("Failed writing report for game: {}.",
-                    this.n);
+            DroomsGame.LOGGER.info("Failed writing report for game: {}.", name);
         }
         return result;
     }
