@@ -13,6 +13,7 @@ import java.util.SortedMap;
 import org.drooms.api.Game;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
+import org.drooms.impl.util.DroomsTournamentResults;
 import org.drooms.impl.util.PlayerAssembly;
 import org.drooms.impl.util.TournamentCLI;
 import org.drooms.impl.util.TournamentResults;
@@ -71,7 +72,7 @@ public class DroomsTournament {
         final Class<? extends Game> game = DroomsTournament.getGameImpl(props
                 .getProperty("game.class"));
         // prepare a result tracker
-        final TournamentResults result = new TournamentResults(players);
+        final TournamentResults result = new DroomsTournamentResults(players);
         // for each playground...
         final String[] playgroundNames = props.getProperty("playgrounds")
                 .split("\\Q,\\E");
@@ -105,8 +106,10 @@ public class DroomsTournament {
         }
         System.out.println("Tournament results:");
         int i = 1;
-        for (SortedMap.Entry<Long, Collection<Player>> entry: result.evaluate().entrySet()) {
-            System.out.println("#" + i + " with " + entry.getKey() + " points: " + entry.getValue());
+        for (final SortedMap.Entry<Long, Collection<Player>> entry : result
+                .evaluate().entrySet()) {
+            System.out.println("#" + i + " with " + entry.getKey()
+                    + " points: " + entry.getValue());
             i++;
         }
     }
