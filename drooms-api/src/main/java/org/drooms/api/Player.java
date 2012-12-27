@@ -1,6 +1,11 @@
 package org.drooms.api;
 
+import java.util.Collection;
+
 import org.drools.KnowledgeBase;
+import org.drools.KnowledgeBaseConfiguration;
+import org.drools.KnowledgeBaseFactory;
+import org.drools.definition.KnowledgePackage;
 
 /**
  * Represents a worm in the {@link Game} on the {@link Playground}.
@@ -8,23 +13,27 @@ import org.drools.KnowledgeBase;
 public class Player {
 
     private final String name;
-    private final KnowledgeBase kbase;
+    private final Collection<KnowledgePackage> packages;
+    private final ClassLoader classLoader;
 
     /**
      * Create a player instance.
      * 
      * @param name
      *            Name of the player.
-     * @param knowledgeBase
+     * @param knowledgePackages
      *            Rules that implement the player's strategy.
+     * @param strategyClassLoader
+     *            Class loader used to load player's strategy.
      */
-    public Player(final String name, final KnowledgeBase knowledgeBase) {
-        if (name == null || knowledgeBase == null) {
+    public Player(final String name, final Collection<KnowledgePackage> knowledgePackages, final ClassLoader strategyClassLoader) {
+        if (name == null || knowledgePackages == null || strategyClassLoader == null) {
             throw new IllegalArgumentException(
-                    "Neither of the parameters can be null.");
+                    "None of the parameters can be null.");
         }
         this.name = name;
-        this.kbase = knowledgeBase;
+        this.packages = knowledgePackages;
+        this.classLoader = strategyClassLoader;
     }
 
     @Override
@@ -54,8 +63,11 @@ public class Player {
      * 
      * @return The strategy.
      */
-    public KnowledgeBase getKnowledgeBase() {
-        return this.kbase;
+    public KnowledgeBase constructKnowledgeBase() {
+        KnowledgeBaseConfiguration kbconf = KnowledgeBaseFactory.newKnowledgeBaseConfiguration(null, classLoader);
+        KnowledgeBase kbase = KnowledgeBaseFactory.newKnowledgeBase(kbconf);
+        kbase.addKnowledgePackages(packages);
+        return kbase;
     }
 
     /**
