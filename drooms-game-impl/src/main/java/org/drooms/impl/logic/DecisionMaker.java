@@ -128,7 +128,7 @@ public class DecisionMaker implements Channel {
     public DecisionMaker(final Player p, final PathTracker tracker,
             final File reportFolder) {
         this.player = p;
-        this.session = p.getKnowledgeBase().newStatefulKnowledgeSession(
+        this.session = p.constructKnowledgeBase().newStatefulKnowledgeSession(
                 DecisionMaker.config, DecisionMaker.environment);
         this.sessionAudit = KnowledgeRuntimeLoggerFactory.newFileLogger(
                 this.session, reportFolder.getAbsolutePath() + File.separator
