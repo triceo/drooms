@@ -7,7 +7,7 @@
       <level>WARN</level>
     </filter>
     <encoder>
-      <pattern>[%d] %-5p- %m%n</pattern>
+      <pattern>%d [%thread] %-5p [%c] - %m%n</pattern>
     </encoder>
   </appender>
   <appender name="asyncConsoleAppender" class="ch.qos.logback.classic.AsyncAppender">
@@ -22,7 +22,7 @@
     <file>game-complete.log</file>
     <append>false</append>
     <encoder>
-      <pattern>%d %-5p [%c] - %m%n</pattern>
+      <pattern>%d [%thread] %-5p [%c] - %m%n</pattern>
     </encoder>
   </appender>
   <appender name="asyncCompleteFileAppender" class="ch.qos.logback.classic.AsyncAppender">
@@ -37,7 +37,7 @@
     <file>game-brief.log</file>
     <append>false</append>
     <encoder>
-      <pattern>%d %-5p [%c] - %m%n</pattern>
+      <pattern>%d [%thread] %-5p [%c] - %m%n</pattern>
     </encoder>
   </appender>
   <appender name="asyncFileAppender" class="ch.qos.logback.classic.AsyncAppender">
