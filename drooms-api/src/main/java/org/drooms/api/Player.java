@@ -21,8 +21,10 @@ public class Player {
      * 
      * @param name
      *            Name of the player.
-     * @param knowledgeBase
+     * @param knowledgePackages
      *            Rules that implement the player's strategy.
+     * @param strategyClassLoader
+     *            Class loader used to load player's strategy.
      */
     public Player(final String name, final Collection<KnowledgePackage> knowledgePackages, final ClassLoader strategyClassLoader) {
         if (name == null || knowledgePackages == null || strategyClassLoader == null) {
