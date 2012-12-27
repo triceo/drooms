@@ -14,9 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.drools.KnowledgeBase;
-import org.drools.KnowledgeBaseConfiguration;
-import org.drools.KnowledgeBaseFactory;
 import org.drools.builder.KnowledgeBuilder;
 import org.drools.builder.KnowledgeBuilderError;
 import org.drooms.api.Player;
@@ -109,10 +106,7 @@ public class PlayerAssembly {
             final ClassLoader cl = this.loadJar(strategyJar);
             final KnowledgeBuilder kb = strategy.getKnowledgeBuilder(cl);
             try {
-                KnowledgeBaseConfiguration kbconf = KnowledgeBaseFactory.newKnowledgeBaseConfiguration(null, cl);
-                final KnowledgeBase kbase = KnowledgeBaseFactory.newKnowledgeBase(kbconf);
-                kbase.addKnowledgePackages(kb.getKnowledgePackages());
-                players.add(new Player(playerName, kbase));
+                players.add(new Player(playerName, kb.getKnowledgePackages(), cl));
             } catch (final Exception ex) {
                 for (final KnowledgeBuilderError error : kb.getErrors()) {
                     PlayerAssembly.LOGGER.error(error.toString());
