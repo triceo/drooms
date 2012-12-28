@@ -110,7 +110,7 @@ public class DroomsTournament {
                     playgroundName);
             final DroomsGame dg = new DroomsGame(game, p, players, gameProps,
                     reports);
-            for (int i = 1; i < Integer.valueOf(props.getProperty("runs")); i++) {
+            for (int i = 1; i <= Integer.valueOf(props.getProperty("runs")); i++) {
                 DroomsTournament.LOGGER.info(
                         "Starting game #{} on playground {}.", i,
                         playgroundName);
