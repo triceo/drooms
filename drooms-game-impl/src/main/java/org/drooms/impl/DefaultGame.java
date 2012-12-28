@@ -166,9 +166,8 @@ public class DefaultGame extends GameController {
             for (final Player p : currentPlayers) {
                 final List<Move> allMoves = this.getDecisionRecord(p);
                 final int size = allMoves.size();
-                final List<Move> relevantMoves = this.getDecisionRecord(p)
-                        .subList(Math.max(0, size - allowedInactiveTurns - 1),
-                                size);
+                final List<Move> relevantMoves = allMoves.subList(
+                        Math.max(0, size - allowedInactiveTurns - 1), size);
                 if (!relevantMoves.contains(Move.STAY)) {
                     continue;
                 }
