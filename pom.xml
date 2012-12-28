@@ -34,12 +34,6 @@
          <artifactId>drooms-strategy-random</artifactId>
          <version>${project.version}</version>
       </dependency>
-      <!--  Drools dependencies -->
-      <dependency>
-         <groupId>org.drools</groupId>
-         <artifactId>drools-decisiontables</artifactId>
-         <version>5.5.0.Final</version>
-      </dependency>
       <!--  Other dependencies -->
       <dependency>
         <groupId>commons-io</groupId>
@@ -186,4 +180,9 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
+  <parent>
+  	<groupId>org.drools</groupId>
+  	<artifactId>droolsjbpm-parent</artifactId>
+  	<version>5.5.0.Final</version>
+  </parent>
 </project>
