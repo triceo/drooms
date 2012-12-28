@@ -3,22 +3,28 @@
   <head>
     <title>Drooms: Results of tournament '${name}'</title>
     <meta charset='utf-8'>
+    <script src='http://html5slides.googlecode.com/svn/trunk/slides.js'></script>
   </head>
   
-  <body>
-    <header>
-        <h1>Drooms: Results of tournament '${name}'</h1>
-        <p>Find below results of the tournament and of particular games.</p>
+  <body style='display: none'>
+    <section class='slides layout-regular template-default'>
+      <article>
+        <h1>Drooms: '${name}'</h1>
+        <p>Results of the tournament and of particular games.</p>
+      </article>
+      <article>
+        <h3>Players in the tournament</h3>
         <table>
-          <caption>Players in the tournament</caption>
           <tbody>
 <#list players as player> 
           <tr><td>${player.getName()}</td></tr>
 </#list>
           </tbody>
         </table>
+      </article>
+      <article>
+        <h3>Games played</h3>
         <table>
-          <caption>Games played</caption>
           <thead>
             <tr><th>Playground</th><th>Played</th></tr>
           </thead>
@@ -28,9 +34,9 @@
 </#list>
           </tbody>
         </table>
-    </header>
-    <section>
-        <h2>Overall results</h2>
+      </article>
+      <article>
+        <h3>Overall results</h3>
         <table>
           <thead>
             <tr><th>Position</th><th>Player</th><th>Score</th></tr>
@@ -46,12 +52,12 @@
 </#list>
           </tbody>
         </table>
-    </section>
+      </article>
 <#list gameScore.entrySet() as entry>
     <#assign gameName = entry.key> 
     <#assign gameResult = gameResults.get(gameName)> 
-    <section>
-        <h2>Results of games on playground '${gameName}'</h2>
+      <article>
+        <h3>Results of games on playground '${gameName}'</h3>
         <table>
           <thead>
             <tr><th>Position</th><th>Player</th><th>Median</th><th>Max</th><th>Min</th></tr>
@@ -70,10 +76,7 @@
 </#list>
           </tbody>
         </table>
-    </section>
+      </article>
 </#list>
-    <footer>
-      <p>Congratulations to the winners, and better luck next time to others!</p>
-    </footer>
   </body>
 </html>
