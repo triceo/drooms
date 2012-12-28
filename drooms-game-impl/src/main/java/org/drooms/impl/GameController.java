@@ -136,7 +136,7 @@ public abstract class GameController implements Game {
         return this.collectiblesByNode.get(n);
     }
 
-    protected Deque<Move> getDecisionRecord(final Player p) {
+    protected List<Move> getDecisionRecord(final Player p) {
         final LinkedList<Move> moves = new LinkedList<Move>();
         for (final SortedMap.Entry<Integer, Move> entry : this.decisionRecord
                 .get(p).entrySet()) {
@@ -298,6 +298,9 @@ public abstract class GameController implements Game {
                     currentPlayers, turnNumber, allowedInactiveTurns)) {
                 currentPlayers.remove(player);
                 commands.add(new DeactivatePlayerCommand(player));
+                GameController.LOGGER.info(
+                        "Player {} will be removed for inactivity.",
+                        player.getName());
             }
             // move the worms
             for (final Player p : currentPlayers) {

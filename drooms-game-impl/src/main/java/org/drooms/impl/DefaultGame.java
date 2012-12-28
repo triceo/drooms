@@ -164,17 +164,16 @@ public class DefaultGame extends GameController {
         final Set<Player> inactiveWorms = new HashSet<Player>();
         if (currentTurnNumber > allowedInactiveTurns) {
             for (final Player p : currentPlayers) {
-                final Move[] moves = this.getDecisionRecord(p).toArray(
-                        new Move[] {});
-                boolean active = false;
-                for (int i = moves.length - allowedInactiveTurns - 1; i < moves.length; i++) {
-                    if (moves[i] != Move.STAY) {
-                        // the worm has been active
-                        active = true;
-                        break;
-                    }
+                final List<Move> allMoves = this.getDecisionRecord(p);
+                final int size = allMoves.size();
+                final List<Move> relevantMoves = this.getDecisionRecord(p)
+                        .subList(Math.max(0, size - allowedInactiveTurns - 1),
+                                size);
+                if (!relevantMoves.contains(Move.STAY)) {
+                    continue;
                 }
-                if (!active) {
+                final Set<Move> uniqueMoves = new HashSet<Move>(relevantMoves);
+                if (uniqueMoves.size() == 1) {
                     inactiveWorms.add(p);
                 }
             }

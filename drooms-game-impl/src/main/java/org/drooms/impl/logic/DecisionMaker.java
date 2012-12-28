@@ -205,7 +205,7 @@ public class DecisionMaker implements Channel {
                 turn.getNumber() + 1));
         // store the decision
         if (this.latestDecision == null) {
-            DecisionMaker.LOGGER.warn(
+            DecisionMaker.LOGGER.info(
                     "Player {} didn't make a decision. STAY forced.",
                     this.player.getName());
             return Move.STAY;
