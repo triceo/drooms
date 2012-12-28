@@ -71,11 +71,6 @@
         <version>${jung.version}</version>
       </dependency>
       <dependency>
-        <groupId>ch.qos.logback</groupId>
-        <artifactId>logback-classic</artifactId>
-        <version>1.0.9</version>
-      </dependency>
-      <dependency>
         <groupId>org.freemarker</groupId>
         <artifactId>freemarker</artifactId>
         <version>2.3.19</version>
@@ -84,6 +79,20 @@
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <version>4.11</version>
+      </dependency>
+      <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-parent</artifactId>
+        <version>1.0.9</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.drools</groupId>
+        <artifactId>droolsjbpm-parent</artifactId>
+        <version>5.5.0.Final</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -180,9 +189,4 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
-  <parent>
-  	<groupId>org.drools</groupId>
-  	<artifactId>droolsjbpm-parent</artifactId>
-  	<version>5.5.0.Final</version>
-  </parent>
 </project>
