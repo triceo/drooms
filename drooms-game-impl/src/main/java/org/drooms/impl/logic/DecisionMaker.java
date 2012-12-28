@@ -11,7 +11,6 @@ import org.drools.KnowledgeBaseFactory;
 import org.drools.logger.KnowledgeRuntimeLogger;
 import org.drools.logger.KnowledgeRuntimeLoggerFactory;
 import org.drools.runtime.Channel;
-import org.drools.runtime.Environment;
 import org.drools.runtime.KnowledgeSessionConfiguration;
 import org.drools.runtime.StatefulKnowledgeSession;
 import org.drools.runtime.conf.ClockTypeOption;
@@ -78,7 +77,7 @@ import org.slf4j.LoggerFactory;
  * </ul>
  * 
  * <p>
- * Your strategies can be validated for all these - just make your tests extend 
+ * Your strategies can be validated for all these - just make your tests extend
  * {@link DroomsTestHelper}.
  * </p>
  * 
@@ -100,16 +99,12 @@ public class DecisionMaker implements Channel {
     private static final Logger LOGGER = LoggerFactory
             .getLogger(DecisionMaker.class);
 
-    // initialize the shared knowledge session config
-    private static final KnowledgeSessionConfiguration config;
-    static {
-        config = KnowledgeBaseFactory.newKnowledgeSessionConfiguration();
-        DecisionMaker.config.setOption(ClockTypeOption.get("pseudo"));
+    private static KnowledgeSessionConfiguration getSessionConfiguration() {
+        final KnowledgeSessionConfiguration config = KnowledgeBaseFactory
+                .newKnowledgeSessionConfiguration();
+        config.setOption(ClockTypeOption.get("pseudo"));
+        return config;
     }
-
-    // initialize the shared environment
-    private static final Environment environment = KnowledgeBaseFactory
-            .newEnvironment();
 
     private static void setGlobal(final StatefulKnowledgeSession session,
             final String global, final Object value) {
@@ -135,7 +130,7 @@ public class DecisionMaker implements Channel {
             final File reportFolder) {
         this.player = p;
         this.session = p.constructKnowledgeBase().newStatefulKnowledgeSession(
-                DecisionMaker.config, DecisionMaker.environment);
+                DecisionMaker.getSessionConfiguration(), null);
         this.sessionAudit = KnowledgeRuntimeLoggerFactory.newFileLogger(
                 this.session, reportFolder.getAbsolutePath() + File.separator
                         + "player-" + this.player.getName() + "-session");
