@@ -1,7 +1,7 @@
 package org.drooms.gui.swing
 
 trait GameController {
-  def nextTurn: GameTurn
+  def nextTurn(): GameTurn
   def hasNextTurn(): Boolean
 }
 
@@ -10,7 +10,7 @@ class ReplayGameController(val gameLog: GameLog) extends GameController {
   var turnNumber = 0
 
   // should return set of steps within that turn
-  override def nextTurn: GameTurn = {
+  override def nextTurn(): GameTurn = {
     if (!hasNextTurn())
       throw new RuntimeException("Can't get next turn, game already finished!")
     else {

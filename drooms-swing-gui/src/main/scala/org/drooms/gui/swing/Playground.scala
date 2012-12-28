@@ -13,28 +13,48 @@ import org.drooms.gui.swing.event.PlaygroundGridEnabled
 import javax.swing.BorderFactory
 import javax.swing.ImageIcon
 import org.drooms.gui.swing.event.NewGameLogChosen
+import java.awt.Font
+import org.drooms.gui.swing.event.TurnStepPerformed
+import org.drooms.gui.swing.event.DroomsEventPublisher
 
 class Playground extends ScrollPane with Reactor {
   val CELL_SIZE = 15
-  var nodeModel: PlaygroundModel = _
-  var table: Table = _
+  val eventPublisher = DroomsEventPublisher.get()
+  var cellModel: PlaygroundModel = _
+  var table: Option[Table] = None
+  val worms: collection.mutable.Set[Worm] = collection.mutable.Set()
 
   lazy val wallIcon = createImageIcon("/images/brick-wall-small.png", "Wall")
-
+  listenTo(eventPublisher)
   reactions += {
     case PlaygroundGridEnabled() => showGrid
     case PlaygroundGridDisabled() => hideGrid
     case NewGameLogChosen(gameLog, file) => {
-      createNew(gameLog.playgroundHeight, gameLog.playgroundWidth)
+      createNew(gameLog.playgroundWidth, gameLog.playgroundHeight)
       for (node <- gameLog.playgroundInit)
-        nodeModel.updateNode(node)
-      nodeModel.gatherWorms()
+        cellModel.updatePosition(Empty(node))
+      println("worm init: " + gameLog.wormInitPositions)
+      initWorms(gameLog.wormInitPositions)
     }
+    case TurnStepPerformed(step) =>
+      step match {
+        case WormMoved(ownerName, nodes) =>
+          moveWorm(ownerName, nodes)
+        case WormCrashed(ownerName) =>
+          removeWorm(ownerName)
+        case WormDeactivated(ownerName) =>
+          removeWorm(ownerName)
+        case CollectibleAdded(collectible) =>
+          updatePosition(collectible)
+        case CollectibleRemoved(collectible) =>
+          updatePosition(Empty(collectible.node))
+        case _ =>
+      }
   }
 
-  def createNew(height: Int, width: Int): Unit = {
-    nodeModel = new PlaygroundModel(height, width)
-    table = new Table(height, width) {
+  def createNew(width: Int, height: Int): Unit = {
+    cellModel = new PlaygroundModel(width, height)
+    table = Some(new Table(height, width) {
       val widthPixels = CELL_SIZE * width - 1
       val heightPixels = CELL_SIZE * height - 1
       preferredSize = new Dimension(widthPixels, heightPixels)
@@ -44,73 +64,130 @@ class Playground extends ScrollPane with Reactor {
       peer.setTableHeader(null)
       showGrid = false
       peer.setIntercellSpacing(new Dimension(0, 0))
-
+      listenTo(eventPublisher)
       override def rendererComponent(isSelected: Boolean, hasFocus: Boolean, row: Int, col: Int): Component = {
-        val node = nodeModel.nodes(row)(col)
+        val node = cellModel.positions(col)(row)
         val cell = node match {
-          case Empty(_, _) => new Label("")
-          case WormPiece(_, _, wormType, player) => new Label() {
+          case Empty(_) => new Label("")
+          case WormPiece(_, wormType, playerName) => new Label() {
             opaque = true
-            background = player.color
+            background = PlayersList.getPlayer(playerName).color
             if (wormType == "Head") {
               border = BorderFactory.createLineBorder(Color.BLACK)
             }
           }
-          case Wall(_, _) => new Label("") {
+          case Wall(_) => new Label("") {
             icon = wallIcon
-            //border = BorderFactory.createLineBorder(Color.BLACK)
           }
-          case Collectible(_, _, _, _) => new Label("B")
+          case Collectible(_, _, p) => new Label(p + "") {
+            font = new Font("Serif", Font.PLAIN, 10)
+          }
         }
         if (isSelected) {
           cell.border = BorderFactory.createLineBorder(Color.black)
         }
         cell
       }
-    }
-    listenTo(nodeModel)
+    })
     reactions += {
-      case nodeModel.NodeChanged(node) =>
-        table.updateCell(node.row, node.col)
+      case PositionChanged(position) =>
+        table.get.updateCell(position.node.y, position.node.x) // y == row and x == col
     }
 
     viewportView = new GridBagPanel {
-      layout(table) = new Constraints
+      layout(table.get) = new Constraints
     }
   }
 
-  def removeWorm(worm: Worm): Unit = {
-
+  def updatePositions(positions: List[Position]): Unit = {
+    for (pos <- positions)
+      updatePosition(pos)
   }
 
-  def moveWorm(worm: Worm): Unit = {
-    nodeModel.moveWorm(worm)
+  def updatePosition(pos: Position) {
+    cellModel.updatePosition(pos)
   }
 
-  def updateNodes(nodes: List[Node]): Unit = {
-    for (node <- nodes)
-      updateNode(node)
+  /** Initialize worms from specified list of pairs 'ownerName' -> 'list of Nodes' */
+  def initWorms(wormsInit: Set[(String, List[Node])]): Unit = {
+    worms.clear()
+    for ((name, nodes) <- wormsInit) {
+      worms.add(Worm(name, (for (node <- nodes) yield WormPiece(node, "Body", name)).toList))
+    }
+    // update model
+    for (worm <- worms) updatePositions(worm.pieces)
   }
 
-  def updateNode(node: Node) {
-    nodeModel.updateNode(node)
+  /** Moves the worm to the new position */
+  def moveWorm(ownerName: String, nodes: List[Node]): Unit = {
+    // removes current worm pieces
+    removeWormPieces(ownerName)
+    for (node <- nodes) {
+      // we can only update Empty nodes, if the worm crashed into wall or other worm piece must not be updated!
+      cellModel.positions(node.x)(node.y) match {
+        case Empty(node) =>
+          updateWorm(ownerName, new WormPiece(node, "Body", ownerName))
+        case Collectible(node, _, _) => updateWorm(ownerName, new WormPiece(node, "Body", ownerName))
+        case _ =>
+      }
+    }
+  }
+
+  def updateWorm(ownerName: String, piece: WormPiece) = {
+    getWorm(ownerName).addPiece(piece)
+    updatePosition(piece)
+  }
+
+  def getWorm(ownerName: String): Worm = {
+    worms.find(_.ownerName == ownerName) match {
+      case Some(worm) => worm
+      case None => throw new RuntimeException("Can't update worm non existing worm! Owner=" + ownerName)
+    }
+  }
+
+  /** Removed the worm from the list of worms and also makes sure that all worm pieces are removed from playground */
+  def removeWorm(ownerName: String): Unit = {
+    val worm = getWorm(ownerName)
+    removeWormPieces(ownerName)
+    worms.remove(worm)
+  }
+
+  def removeWormPieces(ownerName: String): Unit = {
+    worms.find(_.ownerName == ownerName) match {
+      case Some(worm) =>
+
+        for (piece <- worm.pieces) {
+          cellModel.positions(piece.node.x)(piece.node.y) match {
+            case WormPiece(node, t, owner) =>
+              if (piece.playerName == owner)
+                updatePosition(Empty(node))
+            case _ =>
+          }
+          worm.pieces = List()
+        }
+      case None =>
+    }
   }
 
   def isGridVisible(): Boolean = {
-    table.showGrid
+    table.get.showGrid
   }
 
   def hideGrid(): Unit = {
-    if (table != null) {
-      table.showGrid = false
-      table.peer.setIntercellSpacing(new Dimension(0, 0))
+    table match {
+      case Some(table) =>
+        table.showGrid = false
+        table.peer.setIntercellSpacing(new Dimension(0, 0))
+      case None =>
     }
   }
 
   def showGrid(): Unit = {
-    if (table != null) {
-      table.showGrid = true
-      table.peer.setIntercellSpacing(new Dimension(1, 1))
+    table match {
+      case Some(table) =>
+        table.showGrid = true
+        table.peer.setIntercellSpacing(new Dimension(1, 1))
+      case None =>
     }
   }
 

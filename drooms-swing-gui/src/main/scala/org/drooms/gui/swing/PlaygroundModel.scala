@@ -2,93 +2,58 @@ package org.drooms.gui.swing
 
 import scala.swing.Publisher
 import scala.swing.event.Event
+import org.drooms.gui.swing.event.DroomsEventPublisher
 
-class PlaygroundModel(val height: Int, val width: Int) extends Publisher {
-  val nodes = new Array[Array[Node]](height, width)
-  var worms: Set[Worm] = Set()
+/**
+ * Represents underlying model for Playground as array of arrays of Positions.
+ */
+class PlaygroundModel(val width: Int, val height: Int) {
+  val eventPublisher = DroomsEventPublisher.get()
+  val positions = new Array[Array[Position]](width, height)
 
-  for (i <- 0 until height; j <- 0 until width) {
-    nodes(i)(j) = new Wall(i, j)
+  // initialize the playground
+  for (i <- 0 until width; j <- 0 until height) {
+    positions(i)(j) = Wall(Node(i, j))
   }
 
-  def updateNode(node: Node): Unit = {
-    nodes(node.row)(node.col) = node
-    publish(new NodeChanged(node))
+  def updatePosition(pos: Position): Unit = {
+    positions(pos.node.x)(pos.node.y) = pos
+    eventPublisher.publish(new PositionChanged(pos))
   }
 
-  def updateNodes(nodes: Seq[Node]): Unit = {
-    for (node <- nodes) {
-      updateNode(node)
-    }
-  }
-
-  /** Moves the worm to the new position */
-  def moveWorm(worm: Worm): Unit = {
-    // removes old worm
-    removeWorm(worm.owner.name)
-    worms += worm
-    println("moving worm")
-    updateNodes(worm.pieces.toList)
-  }
-
-  def removeWorm(ownerName: String): Unit = {
-    for (worm <- worms) {
-      if (worm.owner.name == ownerName) {
-        worms -= worm
-        emptyNodes(worm.pieces)
-      }
+  def updatePositions(positions: Seq[Position]): Unit = {
+    for (pos <- positions) {
+      updatePosition(pos)
     }
   }
 
   def emptyNodes(nodesToEmpty: Iterable[Node]) = {
-    nodesToEmpty.foreach(node => updateNode(new Empty(node.row, node.col)))
+    nodesToEmpty.foreach(node => updatePosition(Empty(node)))
   }
-
-  /** Go through all nodes and save player worms on the way*/
-  def gatherWorms(): Unit = {
-    for (i <- 0 until height; j <- 0 until width) {
-      nodes(i)(j) match {
-        case wp @ WormPiece(_, _, _, _) =>
-          updateWorm(wp)
-        case _ =>
-      }
-    }
-  }
-
-  def updateWorm(wormPiece: WormPiece): Unit = {
-    if (worms.exists(_.owner.name == wormPiece.player.name)) {
-      val worm = getWorm(wormPiece.player.name)
-      worm.addPiece(wormPiece)
-    } else {
-      worms += new Worm(wormPiece.player, Set(wormPiece))
-    }
-
-  }
-
-  def getWorm(ownerName: String): Worm = {
-    def getWorm_(worms: Iterable[Worm], ownerName: String): Worm = {
-      if (worms.isEmpty) throw new RuntimeException("Worm for followring player is not in playground model: " + ownerName)
-      else if (worms.head.owner.name == ownerName) worms.head
-      else (getWorm_(worms.tail, ownerName))
-    }
-    getWorm_(worms, ownerName)
-  }
-
-  case class NodeChanged(val node: Node) extends Event
 }
 
-abstract class Node {
-  def row: Int
-  def col: Int
+/** Event that indicates that value on specified position has changed */
+case class PositionChanged(val pos: Position) extends Event
+
+/**
+ * Represents x and y coordinates for certain position on playground
+ */
+case class Node(val x: Int, val y: Int)
+
+/**
+ * Represents one position on playground
+ */
+trait Position {
+  def node: Node
 }
 
-case class Empty(val row: Int, val col: Int) extends Node
-case class WormPiece(val row: Int, val col: Int, val wormType: String, val player: Player) extends Node
-case class Wall(val row: Int, val col: Int) extends Node
-case class Collectible(val row: Int, val col: Int, val expiresInTurn: Int, val points: Int) extends Node
+case class Empty(val node: Node) extends Position
+case class WormPiece(val node: Node, val wormType: String, val playerName: String) extends Position
+case class Wall(val node: Node) extends Position
+case class Collectible(val node: Node, val expiresInTurn: Int, val points: Int) extends Position
 
-case class Worm(val owner: Player, var pieces: Set[WormPiece]) {
+case class Worm(val ownerName: String, var pieces: List[WormPiece]) {
   def addPiece(piece: WormPiece) = {
-    pieces += piece
+    pieces ::= piece
   }
 }

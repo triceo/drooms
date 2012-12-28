@@ -2,6 +2,7 @@ package org.drooms.gui.swing
 
 import java.awt.Dimension
 import java.io.File
+
 import scala.swing.Action
 import scala.swing.BorderPanel
 import scala.swing.BoxPanel
@@ -19,14 +20,17 @@ import scala.swing.Reactor
 import scala.swing.SimpleSwingApplication
 import scala.swing.SplitPane
 import scala.swing.event.ButtonClicked
+
+import org.drooms.gui.swing.event.DroomsEventPublisher
+import org.drooms.gui.swing.event.GameFinished
 import org.drooms.gui.swing.event.NewGameLogChosen
 import org.drooms.gui.swing.event.NextTurnInitiated
 import org.drooms.gui.swing.event.PlaygroundGridDisabled
 import org.drooms.gui.swing.event.PlaygroundGridEnabled
-import org.drooms.gui.swing.event.NewGameLogChosen
-import org.drooms.gui.swing.event.GameFinished
+import org.drooms.gui.swing.event.TurnStepPerformed
 
 object DroomsSwingApp extends SimpleSwingApplication {
+  val eventPublisher = DroomsEventPublisher.get()
   val leftPane = new LeftPane
   val rightPane = new RightPane
   var gameController: GameController = _
@@ -35,52 +39,33 @@ object DroomsSwingApp extends SimpleSwingApplication {
     title = "Drooms"
     minimumSize = new Dimension(1200, 700)
     menuBar = new MainMenu()
-    menuBar.listenTo()
-    leftPane.listenTo(rightPane)
-    leftPane.playground.listenTo(leftPane.controlPanel)
-    leftPane.playground.listenTo(menuBar)
-    leftPane.controlPanel.listenTo(menuBar)
-    leftPane.controlPanel.listenTo(this)
-    rightPane.listenTo(leftPane)
-    rightPane.listenTo(menuBar)
-
-    listenTo(menuBar)
-    listenTo(leftPane.controlPanel)
+    listenTo(eventPublisher)
 
     contents = new SplitPane(Orientation.Vertical, leftPane, rightPane) {
       resizeWeight = 1.0
       rightComponent.minimumSize = new Dimension(200, 500)
       leftComponent.minimumSize = new Dimension(500, 500)
     }
-    val playground = leftPane.playground
     reactions += {
       case NewGameLogChosen(gameLog, file) =>
         gameController = new ReplayGameController(gameLog)
       case NextTurnInitiated() =>
         val turn = gameController.nextTurn
         for (step <- turn.steps) {
-          step match {
-            case WormMoved(worm) =>
-              playground.moveWorm(worm)
-            case WormDied(worm) =>
-              playground.removeWorm(worm)
-            case CollectibeAdded(collectible) =>
-              playground.updateNode(collectible)
-            case CollectibleRemoved(collectible) =>
-              playground.updateNode(collectible)
-          }
-
+          eventPublisher.publish(new TurnStepPerformed(step))
         }
         if (!gameController.hasNextTurn()) {
-          publish(new GameFinished)
+          eventPublisher.publish(new GameFinished)
         }
     }
     centerOnScreen()
     // dummy game
-    menuBar.publish(new NewGameLogChosen(GameLog.loadFromXml(new File("/home/psiroky/work/git-repos/drooms/drooms-game-impl/target/drooms-reports/2012-12-23 10:46:57.12/report.xml")), new File(".")))
+    eventPublisher.publish(new NewGameLogChosen(GameLog.loadFromXml(new File("/home/psiroky/work/git-repos/drooms/drooms-game-impl/target/drooms-reports/2012-12-23 10:46:57.12/report.xml")), new File(".")))
   }
 
   class MainMenu extends MenuBar {
+    val eventPublisher = DroomsEventPublisher.get()
+
     // file menu
     contents += new Menu("File") {
       contents += new MenuItem(Action("Open game log...") {
@@ -111,14 +96,15 @@ object DroomsSwingApp extends SimpleSwingApplication {
     contents += new Menu("Help") {
       contents += new MenuItem("About Drooms")
     }
+    listenTo(eventPublisher)
     listenTo(showGridBtn)
     listenTo(this)
     reactions += {
       case ButtonClicked(`showGridBtn`) => {
         if (showGridBtn.selected)
-          publish(new PlaygroundGridEnabled)
+          eventPublisher.publish(new PlaygroundGridEnabled)
         else
-          publish(new PlaygroundGridDisabled)
+          eventPublisher.publish(new PlaygroundGridDisabled)
       }
       case NewGameLogChosen(_, _) => {
         startGameItem.enabled = true
@@ -132,13 +118,14 @@ object DroomsSwingApp extends SimpleSwingApplication {
       if (res == FileChooser.Result.Approve) {
         val selectedFile = fileChooser.selectedFile
         val gameLog = GameLog.loadFromXml(selectedFile)
-        publish(new NewGameLogChosen(gameLog, selectedFile))
+        eventPublisher.publish(new NewGameLogChosen(gameLog, selectedFile))
       }
     }
   }
 }
 
 class LeftPane extends BorderPanel {
+  val eventPublisher = DroomsEventPublisher.get()
   val playground = new Playground
   val controlPanel = new ControlPanel
 
@@ -154,6 +141,7 @@ class LeftPane extends BorderPanel {
     }
     contents += nextTurnBtn
     contents += startBtn
+    listenTo(eventPublisher)
     listenTo(nextTurnBtn)
     listenTo(startBtn)
 
@@ -163,7 +151,7 @@ class LeftPane extends BorderPanel {
         startBtn.enabled = true
       }
       case ButtonClicked(`nextTurnBtn`) =>
-        publish(new NextTurnInitiated)
+        eventPublisher.publish(new NextTurnInitiated)
       case GameFinished() =>
         nextTurnBtn.enabled = false
     }
@@ -171,12 +159,14 @@ class LeftPane extends BorderPanel {
 }
 
 class RightPane extends BoxPanel(Orientation.Horizontal) with Reactor {
-  val playersList = new PlayersList(List())
-  contents += playersList
+  val eventPublisher = DroomsEventPublisher.get()
+  val playersListView = new PlayersListView
+  contents += playersListView
 
+  listenTo(eventPublisher)
   reactions += {
     case NewGameLogChosen(gameLog, file) => {
-      playersList.addPlayers(gameLog.players)
+      playersListView.update()
     }
   }
 }
