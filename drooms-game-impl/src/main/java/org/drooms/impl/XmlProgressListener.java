@@ -12,9 +12,13 @@ import org.drooms.api.Move;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
+import org.drooms.impl.util.XmlUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class XmlProgressListener implements GameProgressListener {
-
+    private static Logger logger = LoggerFactory.getLogger(XmlProgressListener.class);
+    
     private static String collectibleXml(final Collectible c) {
         return "<collectible points='" + c.getPoints() + "' expiresInTurn='"
                 + c.expiresInTurn() + "' />";
@@ -34,7 +38,13 @@ public class XmlProgressListener implements GameProgressListener {
 
     private final Map<Player, Integer> playerPoints = new HashMap<>();
 
+    private boolean prettyPrint = false;
+    
     public XmlProgressListener(final Playground p, final Properties gameConfig) {
+        // property has to be set exactly to "true" otherwise no pretty printing
+        if (gameConfig.getProperty("report.pretty.print", "false").equals("true")) {
+            prettyPrint = true;
+        }
         this.report.append("<game>");
         // report game config
         this.report.append("<config>");
@@ -151,7 +161,17 @@ public class XmlProgressListener implements GameProgressListener {
         }
         result.append("</results>");
         result.append("</game>");
-        w.write(result.toString());
+        String resultingXml = result.toString();
+        // make the xml pretty if specified by property
+        // if it fails, error is logged and original string will be returned
+        if (prettyPrint) {
+            System.out.println("pretty print");
+            try {
+                resultingXml = XmlUtil.prettyPrint(result.toString());
+            } catch (RuntimeException re) {
+                logger.error("Error while pretty printing XML report, !\n", re);
+            }
+        }
+        w.write(resultingXml);
     }
-
 }
