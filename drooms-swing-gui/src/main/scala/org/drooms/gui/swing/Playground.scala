@@ -16,6 +16,7 @@ import org.drooms.gui.swing.event.NewGameLogChosen
 import java.awt.Font
 import org.drooms.gui.swing.event.TurnStepPerformed
 import org.drooms.gui.swing.event.DroomsEventPublisher
+import javax.swing.table.DefaultTableModel
 
 class Playground extends ScrollPane with Reactor {
   val CELL_SIZE = 15
@@ -62,6 +63,12 @@ class Playground extends ScrollPane with Reactor {
       selection.intervalMode = Table.IntervalMode.Single
       selection.elementMode = Table.ElementMode.Cell
       peer.setTableHeader(null)
+      model = new DefaultTableModel(height, width) {
+        override def setValueAt(value: Any, row: Int, col: Int) {
+          super.setValueAt(value, row, col)
+        }
+        override def isCellEditable(row: Int, column: Int) = false
+      }
       showGrid = false
       peer.setIntercellSpacing(new Dimension(0, 0))
       listenTo(eventPublisher)
