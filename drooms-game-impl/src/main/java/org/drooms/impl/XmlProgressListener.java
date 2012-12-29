@@ -2,6 +2,7 @@ package org.drooms.impl;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -40,7 +41,7 @@ public class XmlProgressListener implements GameProgressListener {
 
     private boolean prettyPrint = false;
     
-    public XmlProgressListener(final Playground p, final Properties gameConfig) {
+    public XmlProgressListener(final Playground p, final Collection<Player> players, Properties gameConfig) {
         // property has to be set exactly to "true" otherwise no pretty printing
         if (gameConfig.getProperty("report.pretty.print", "false").equals("true")) {
             prettyPrint = true;
@@ -55,6 +56,12 @@ public class XmlProgressListener implements GameProgressListener {
                     + "' />");
         }
         this.report.append("</config>");
+        // report players
+        this.report.append("<players>");
+        for (Player player : players) {
+            this.report.append(XmlProgressListener.playerXml(player));
+        }
+        this.report.append("</players>");
         // report playground
         this.report.append("<playground>");
         for (int x = -1; x <= p.getWidth(); x++) {
@@ -165,7 +172,6 @@ public class XmlProgressListener implements GameProgressListener {
         // make the xml pretty if specified by property
         // if it fails, error is logged and original string will be returned
         if (prettyPrint) {
-            System.out.println("pretty print");
             try {
                 resultingXml = XmlUtil.prettyPrint(result.toString());
             } catch (RuntimeException re) {
