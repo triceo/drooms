@@ -12,6 +12,10 @@ import javax.swing.BorderFactory
 import scala.collection.mutable.Buffer
 import org.drooms.gui.swing.event.DroomsEventPublisher
 import org.drooms.gui.swing.event.NewGameLogChosen
+import scala.swing.BoxPanel
+import scala.swing.Orientation
+import java.awt.BorderLayout
+import org.drooms.gui.swing.event.TurnStepPerformed
 
 object PlayersList {
   val players: Buffer[Player] = Buffer()
@@ -20,7 +24,7 @@ object PlayersList {
 
   def addPlayer(player: Player): Unit = players += player
 
-  def addPlayer(name: String): Unit = players += new Player(name, PlayerColors.getNext())
+  def addPlayer(name: String): Unit = players += new Player(name, 0, PlayerColors.getNext())
 
   def addPlayers(players: List[String]): Unit = {
     players.foreach(addPlayer(_))
@@ -54,6 +58,16 @@ class PlayersListView extends BorderPanel {
       PlayersList.clear()
       PlayersList.addPlayers(gameLog.players)
       update()
+    case TurnStepPerformed(step) =>
+      step match {
+        case WormSurvived(ownerName, points) =>
+          PlayersList.getPlayer(ownerName).addPoints(points)
+          update()
+        case CollectibleCollected(playerName, collectible) =>
+          PlayersList.getPlayer(playerName).addPoints(collectible.points)
+          update()
+        case _ =>
+      }
   }
 
   def update() {
@@ -63,13 +77,18 @@ class PlayersListView extends BorderPanel {
   class PlayersListRenderer extends Renderer {
     override def componentFor(list: ListView[_], isSelected: Boolean, focused: Boolean, a: Any, index: Int): Component = {
       val player = a.asInstanceOf[Player]
-      new Label(player.name) {
-        horizontalAlignment = Alignment.Left
+      new BorderPanel() {
         opaque = true
         background = player.color
         if (isSelected) {
           border = BorderFactory.createLineBorder(Color.BLACK)
         }
+        layout(new Label(player.name) {
+          horizontalAlignment = Alignment.Left
+          opaque = true
+          background = player.color
+        }) = BorderPanel.Position.West
+        layout(new Label(player.currentScore + " points")) = BorderPanel.Position.East
       }
     }
   }

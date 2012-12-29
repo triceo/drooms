@@ -17,3 +17,4 @@ object DroomsEventPublisher {
 
 case class PlayersListUpdated extends Event
 case class TurnStepPerformed(val turnStep: TurnStep) extends Event
+case class GameRestarted extends Event

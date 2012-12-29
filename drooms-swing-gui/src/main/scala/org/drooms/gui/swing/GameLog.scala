@@ -82,6 +82,10 @@ object GameLog {
     val removedCollectibles =
       (for (removedCollectible <- turnXml \ "removedCollectible")
         yield new CollectibleRemoved(parseCollectible(removedCollectible))).toList
+    // collected collectibles
+    val collectedCollectibles =
+      (for (collectedCollectible <- turnXml \ "collectedCollectible")
+        yield new CollectibleCollected(parsePlayerName(collectedCollectible), parseCollectible(collectedCollectible))).toList
     // crashed worms
     val crashedWorms =
       (for (crashedWorm <- turnXml \ "crashedPlayer")
@@ -94,7 +98,7 @@ object GameLog {
     val survivedWorms =
       (for (survivedWorm <- turnXml \ "survivedPlayer")
         yield new WormSurvived(parsePlayerName(survivedWorm), (survivedWorm \ "@points").text.toInt)).toList
-    new GameTurn(number, wormsMoved ::: newCollectibles ::: removedCollectibles ::: crashedWorms ::: deactivatedWorms)
+    new GameTurn(number, wormsMoved ::: crashedWorms ::: deactivatedWorms ::: survivedWorms ::: newCollectibles ::: removedCollectibles ::: collectedCollectibles)
   }
 
   private def parsePlayerName(xml: NodeSeq): String = (xml \ "player" \ "@name").text
