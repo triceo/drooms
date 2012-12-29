@@ -34,7 +34,6 @@ class Playground extends ScrollPane with Reactor {
       createNew(gameLog.playgroundWidth, gameLog.playgroundHeight)
       for (node <- gameLog.playgroundInit)
         cellModel.updatePosition(Empty(node))
-      println("worm init: " + gameLog.wormInitPositions)
       initWorms(gameLog.wormInitPositions)
     }
     case TurnStepPerformed(step) =>
@@ -49,7 +48,8 @@ class Playground extends ScrollPane with Reactor {
           updatePosition(collectible)
         case CollectibleRemoved(collectible) =>
           updatePosition(Empty(collectible.node))
-        case _ =>
+        case CollectibleCollected(player, collectible) =>
+        case _ => new RuntimeException("Unrecognized TurnStep: " + step)
       }
   }
 
@@ -79,8 +79,10 @@ class Playground extends ScrollPane with Reactor {
           case WormPiece(_, wormType, playerName) => new Label() {
             opaque = true
             background = PlayersList.getPlayer(playerName).color
+            border = BorderFactory.createRaisedBevelBorder()
             if (wormType == "Head") {
-              border = BorderFactory.createLineBorder(Color.BLACK)
+              //border = BorderFactory.createLoweredBevelBorder()
+              text = "\u25CF"
             }
           }
           case Wall(_) => new Label("") {
@@ -119,7 +121,7 @@ class Playground extends ScrollPane with Reactor {
   def initWorms(wormsInit: Set[(String, List[Node])]): Unit = {
     worms.clear()
     for ((name, nodes) <- wormsInit) {
-      worms.add(Worm(name, (for (node <- nodes) yield WormPiece(node, "Body", name)).toList))
+      worms.add(Worm(name, (for (node <- nodes) yield WormPiece(node, "Head", name)).toList))
     }
     // update model
     for (worm <- worms) updatePositions(worm.pieces)
@@ -129,12 +131,31 @@ class Playground extends ScrollPane with Reactor {
   def moveWorm(ownerName: String, nodes: List[Node]): Unit = {
     // removes current worm pieces
     removeWormPieces(ownerName)
-    for (node <- nodes) {
-      // we can only update Empty nodes, if the worm crashed into wall or other worm piece must not be updated!
+    // worm must have at least head
+    val head = nodes.head
+    updateWormIfLegal(head, ownerName, "Head")
+
+    if (nodes.size > 2) {
+      for (node <- nodes.tail.init) {
+        updateWormIfLegal(node, ownerName, "Body")
+      }
+    }
+
+    if (nodes.size > 1) {
+      val tail = nodes.last
+      updateWormIfLegal(tail, ownerName, "Tail")
+    }
+
+    /**
+     * Updates the wom only if the underlaying node is empty or collectible == eligible to be occupied by current worm
+     */
+    def updateWormIfLegal(node: Node, ownerName: String, wormType: String): Unit = {
+      // we can only update Empty nodes and Collectibles, if the worm crashed into wall or other worm piece must not be updated!
       cellModel.positions(node.x)(node.y) match {
         case Empty(node) =>
-          updateWorm(ownerName, new WormPiece(node, "Body", ownerName))
-        case Collectible(node, _, _) => updateWorm(ownerName, new WormPiece(node, "Body", ownerName))
+          updateWorm(ownerName, new WormPiece(node, wormType, ownerName))
+        case Collectible(node, _, _) =>
+          updateWorm(ownerName, new WormPiece(node, wormType, ownerName))
         case _ =>
       }
     }
@@ -148,11 +169,13 @@ class Playground extends ScrollPane with Reactor {
   def getWorm(ownerName: String): Worm = {
     worms.find(_.ownerName == ownerName) match {
       case Some(worm) => worm
-      case None => throw new RuntimeException("Can't update worm non existing worm! Owner=" + ownerName)
+      case None => throw new RuntimeException("Can't update non existing worm! Owner=" + ownerName)
     }
   }
 
-  /** Removed the worm from the list of worms and also makes sure that all worm pieces are removed from playground */
+  /**
+   * Removes the worm from the list of worms and also makes sure that all worm pieces are removed from playground
+   */
   def removeWorm(ownerName: String): Unit = {
     val worm = getWorm(ownerName)
     removeWormPieces(ownerName)
@@ -162,12 +185,12 @@ class Playground extends ScrollPane with Reactor {
   def removeWormPieces(ownerName: String): Unit = {
     worms.find(_.ownerName == ownerName) match {
       case Some(worm) =>
-
         for (piece <- worm.pieces) {
           cellModel.positions(piece.node.x)(piece.node.y) match {
             case WormPiece(node, t, owner) =>
-              if (piece.playerName == owner)
+              if (piece.playerName == owner) {
                 updatePosition(Empty(node))
+              }
             case _ =>
           }
           worm.pieces = List()

@@ -30,6 +30,11 @@ import org.drooms.gui.swing.event.NewGameLogChosen
 import org.drooms.gui.swing.event.GameRestarted
 import org.drooms.gui.swing.event.GameRestarted
 import org.drooms.gui.swing.event.NextTurnInitiated
+import java.util.Timer
+import org.drooms.gui.swing.event.ReplayInitiated
+import java.util.TimerTask
+import org.drooms.gui.swing.event.NextTurnInitiated
+import org.drooms.gui.swing.event.ReplayInitiated
 
 object DroomsSwingApp extends SimpleSwingApplication {
   val eventPublisher = DroomsEventPublisher.get()
@@ -49,6 +54,8 @@ object DroomsSwingApp extends SimpleSwingApplication {
       rightComponent.minimumSize = new Dimension(200, 500)
       leftComponent.minimumSize = new Dimension(500, 500)
     }
+    var timer: Timer = _
+
     reactions += {
       case NewGameLogChosen(log, file) =>
         gameLog = (log, file)
@@ -61,7 +68,21 @@ object DroomsSwingApp extends SimpleSwingApplication {
         if (!gameController.hasNextTurn()) {
           eventPublisher.publish(new GameFinished)
         }
-      case GameRestarted() => eventPublisher.publish(new NewGameLogChosen(gameLog._1, gameLog._2))
+      case GameRestarted() =>
+        eventPublisher.publish(new NewGameLogChosen(gameLog._1, gameLog._2))
+      case ReplayInitiated() =>
+        timer = new Timer()
+        timer.schedule(new ScheduleNextTurn(), 0, 100)
+    }
+
+    class ScheduleNextTurn extends TimerTask {
+      def run(): Unit = {
+        if (gameController.hasNextTurn()) {
+          eventPublisher.publish(NextTurnInitiated())
+        } else {
+          timer.cancel()
+        }
+      }
     }
     centerOnScreen()
     // dummy game
@@ -102,7 +123,7 @@ object DroomsSwingApp extends SimpleSwingApplication {
       contents += new MenuItem("About Drooms")
     }
     listenTo(eventPublisher)
-    listenTo(showGridBtn)
+    listenTo(startGameItem, restartGameItem, showGridBtn)
     listenTo(this)
     reactions += {
       case ButtonClicked(`showGridBtn`) => {
@@ -111,6 +132,9 @@ object DroomsSwingApp extends SimpleSwingApplication {
         else
           eventPublisher.publish(new PlaygroundGridDisabled)
       }
+      case ButtonClicked(`startGameItem`) =>
+        println("replay_")
+        eventPublisher.publish(ReplayInitiated())
       case NewGameLogChosen(_, _) => {
         startGameItem.enabled = true
         restartGameItem.enabled = true
@@ -160,6 +184,9 @@ class LeftPane extends BorderPanel {
         nextTurnBtn.enabled = true
         startBtn.enabled = true
       }
+      case ButtonClicked(`startBtn`) =>
+        println("replay_")
+        eventPublisher.publish(ReplayInitiated())
       case ButtonClicked(`restartBtn`) => {
         eventPublisher.publish(new GameRestarted)
         //        eventPublisher.publish(new NewGameLogChosen(currentLog._1, currentLog._2))

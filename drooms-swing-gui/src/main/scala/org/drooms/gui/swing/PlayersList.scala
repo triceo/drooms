@@ -80,8 +80,9 @@ class PlayersListView extends BorderPanel {
       new BorderPanel() {
         opaque = true
         background = player.color
+        border = BorderFactory.createRaisedBevelBorder()
         if (isSelected) {
-          border = BorderFactory.createLineBorder(Color.BLACK)
+          border = BorderFactory.createLoweredBevelBorder()
         }
         layout(new Label(player.name) {
           horizontalAlignment = Alignment.Left

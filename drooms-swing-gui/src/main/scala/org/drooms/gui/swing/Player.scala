@@ -19,17 +19,16 @@ object PlayerColors {
 
   val colors = List(
     new Color(79, 0xBE, 0xDB),
-    new Color(0xFF, 00, 00),
+    new Color(0xE8, 68, 50),
     new Color(0xC0, 0xC0, 0xC0),
     new Color(0xFF, 99, 00),
     new Color(0xFF, 0xCC, 00),
     new Color(99, 0xFF, 00),
     new Color(0xFF, 0xBA, 0xD2),
-    new Color(0x8C, 48, 0x9F),
     new Color(0xC9, 0xA7, 98),
-    new Color(00, 99, 66),
+    new Color(20, 139, 66),
+    new Color(0x7C, 88, 0x9A),
     // in case more than 10 players in the game
-    Color.CYAN,
     Color.ORANGE,
     Color.YELLOW,
     Color.GREEN,
