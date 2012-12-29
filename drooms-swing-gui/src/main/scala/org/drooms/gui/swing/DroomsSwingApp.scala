@@ -35,6 +35,9 @@ import org.drooms.gui.swing.event.ReplayInitiated
 import java.util.TimerTask
 import org.drooms.gui.swing.event.NextTurnInitiated
 import org.drooms.gui.swing.event.ReplayInitiated
+import scala.swing.ProgressBar
+import scala.swing.Label
+import org.drooms.gui.swing.event.NextTurnInitiated
 
 object DroomsSwingApp extends SimpleSwingApplication {
   val eventPublisher = DroomsEventPublisher.get()
@@ -161,8 +164,9 @@ class LeftPane extends BorderPanel {
   layout(playground) = BorderPanel.Position.Center
   layout(controlPanel) = BorderPanel.Position.South
 
-  class ControlPanel extends FlowPanel(FlowPanel.Alignment.Right)() with Reactor with Publisher {
+  class ControlPanel extends BorderPanel with Reactor with Publisher {
     var currentLog: (GameLog, File) = _
+    var currentTurn = 0
     val startBtn = new Button("Start game") {
       enabled = false
     }
@@ -172,9 +176,21 @@ class LeftPane extends BorderPanel {
     val restartBtn = new Button("Restart game") {
       enabled = false
     }
-    contents += nextTurnBtn
-    contents += startBtn
-    contents += restartBtn
+    val progressBar = new ProgressBar {
+      labelPainted = true
+    }
+    
+    val rightBtns = new FlowPanel(FlowPanel.Alignment.Right)() {
+      contents += nextTurnBtn
+      contents += startBtn
+      contents += restartBtn
+    }
+    layout(rightBtns) = BorderPanel.Position.East
+    layout(new BoxPanel(Orientation.Horizontal) {
+      contents += new Label("Game progress ")
+      contents += progressBar
+    }) = BorderPanel.Position.West
+    
     listenTo(eventPublisher)
     listenTo(nextTurnBtn, startBtn, restartBtn)
 
@@ -183,13 +199,18 @@ class LeftPane extends BorderPanel {
         //        currentLog = (log, file)
         nextTurnBtn.enabled = true
         startBtn.enabled = true
+        currentTurn = 0
+        progressBar.value = currentTurn
+        progressBar.max = log.turns.size
       }
+      case NextTurnInitiated() =>
+        currentTurn += 1
+        progressBar.value = currentTurn
       case ButtonClicked(`startBtn`) =>
         println("replay_")
         eventPublisher.publish(ReplayInitiated())
       case ButtonClicked(`restartBtn`) => {
         eventPublisher.publish(new GameRestarted)
-        //        eventPublisher.publish(new NewGameLogChosen(currentLog._1, currentLog._2))
       }
       case ButtonClicked(`nextTurnBtn`) =>
         restartBtn.enabled = true

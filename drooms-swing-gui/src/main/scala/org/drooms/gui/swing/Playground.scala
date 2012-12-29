@@ -17,6 +17,7 @@ import java.awt.Font
 import org.drooms.gui.swing.event.TurnStepPerformed
 import org.drooms.gui.swing.event.DroomsEventPublisher
 import javax.swing.table.DefaultTableModel
+import org.drooms.gui.swing.event.PlaygroundGridEnabled
 
 class Playground extends ScrollPane with Reactor {
   val CELL_SIZE = 15
