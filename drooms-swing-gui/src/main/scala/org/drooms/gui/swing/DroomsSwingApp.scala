@@ -45,6 +45,7 @@ import org.drooms.gui.swing.event.ReplayContinued
 import org.drooms.gui.swing.event.GameRestarted
 import org.drooms.gui.swing.event.NextTurnInitiated
 import org.drooms.gui.swing.event.NextTurnInitiated
+import scala.swing.Slider
 
 object DroomsSwingApp extends SimpleSwingApplication {
   val eventPublisher = DroomsEventPublisher.get()
@@ -249,8 +250,16 @@ class LeftPane extends BorderPanel {
     val progressBar = new ProgressBar {
       labelPainted = true
     }
+    val intervalSlider = new Slider {
+        min = 50
+        max = 2000
+      }
 
     val rightBtns = new FlowPanel(FlowPanel.Alignment.Right)() {
+      contents += intervalSlider
+      contents += new Label {
+        text = intervalSlider.value + "ms "
+      }
       contents += nextTurnBtn
       contents += replayPauseBtn
       contents += restartBtn
