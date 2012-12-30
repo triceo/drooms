@@ -19,3 +19,6 @@ case class PlayersListUpdated extends Event
 case class TurnStepPerformed(val turnStep: TurnStep) extends Event
 case class GameRestarted extends Event
 case class ReplayInitiated extends Event
+case class ReplayPaused extends Event
+case class ReplayContinued extends Event
+

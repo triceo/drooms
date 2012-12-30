@@ -33,7 +33,7 @@ object PlayersList {
   def getPlayer(playerName: String): Player = {
     players.find(_.name == playerName) match {
       case Some(player) => player
-      case None => throw new RuntimeException("Player not found!" + playerName)
+      case None => throw new RuntimeException("Player '" + playerName + "'not found!")
     }
   }
 

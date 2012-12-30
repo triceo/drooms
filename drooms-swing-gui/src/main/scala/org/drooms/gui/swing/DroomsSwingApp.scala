@@ -2,6 +2,8 @@ package org.drooms.gui.swing
 
 import java.awt.Dimension
 import java.io.File
+import java.util.Timer
+import java.util.TimerTask
 import scala.swing.Action
 import scala.swing.BorderPanel
 import scala.swing.BoxPanel
@@ -9,11 +11,13 @@ import scala.swing.Button
 import scala.swing.CheckMenuItem
 import scala.swing.FileChooser
 import scala.swing.FlowPanel
+import scala.swing.Label
 import scala.swing.MainFrame
 import scala.swing.Menu
 import scala.swing.MenuBar
 import scala.swing.MenuItem
 import scala.swing.Orientation
+import scala.swing.ProgressBar
 import scala.swing.Publisher
 import scala.swing.Reactor
 import scala.swing.SimpleSwingApplication
@@ -21,22 +25,25 @@ import scala.swing.SplitPane
 import scala.swing.event.ButtonClicked
 import org.drooms.gui.swing.event.DroomsEventPublisher
 import org.drooms.gui.swing.event.GameFinished
+import org.drooms.gui.swing.event.GameRestarted
 import org.drooms.gui.swing.event.NewGameLogChosen
 import org.drooms.gui.swing.event.NextTurnInitiated
 import org.drooms.gui.swing.event.PlaygroundGridDisabled
 import org.drooms.gui.swing.event.PlaygroundGridEnabled
+import org.drooms.gui.swing.event.ReplayContinued
+import org.drooms.gui.swing.event.ReplayInitiated
+import org.drooms.gui.swing.event.ReplayPaused
 import org.drooms.gui.swing.event.TurnStepPerformed
-import org.drooms.gui.swing.event.NewGameLogChosen
+import org.drooms.gui.swing.event.ReplayPaused
+import org.drooms.gui.swing.event.ReplayContinued
+import org.drooms.gui.swing.event.ReplayInitiated
+import org.drooms.gui.swing.event.ReplayPaused
 import org.drooms.gui.swing.event.GameRestarted
+import org.drooms.gui.swing.event.ReplayInitiated
+import org.drooms.gui.swing.event.ReplayPaused
+import org.drooms.gui.swing.event.ReplayContinued
 import org.drooms.gui.swing.event.GameRestarted
 import org.drooms.gui.swing.event.NextTurnInitiated
-import java.util.Timer
-import org.drooms.gui.swing.event.ReplayInitiated
-import java.util.TimerTask
-import org.drooms.gui.swing.event.NextTurnInitiated
-import org.drooms.gui.swing.event.ReplayInitiated
-import scala.swing.ProgressBar
-import scala.swing.Label
 import org.drooms.gui.swing.event.NextTurnInitiated
 
 object DroomsSwingApp extends SimpleSwingApplication {
@@ -76,6 +83,11 @@ object DroomsSwingApp extends SimpleSwingApplication {
       case ReplayInitiated() =>
         timer = new Timer()
         timer.schedule(new ScheduleNextTurn(), 0, 100)
+      case ReplayPaused() =>
+        timer.cancel()
+      case ReplayContinued() =>
+        timer = new Timer()
+        timer.schedule(new ScheduleNextTurn(), 0, 100)
     }
 
     class ScheduleNextTurn extends TimerTask {
@@ -94,57 +106,101 @@ object DroomsSwingApp extends SimpleSwingApplication {
 
   class MainMenu extends MenuBar {
     val eventPublisher = DroomsEventPublisher.get()
-
+    listenTo(eventPublisher)
     // file menu
     contents += new Menu("File") {
-      contents += new MenuItem(Action("Open game log...") {
-        openGameLog()
+      contents += new MenuItem(Action("Open game report...") {
+        openGameReport()
       })
+//      contents += new MenuItem(Action("Exit") {
+//      })
     }
     // game menu
-    val startGameItem = new MenuItem("Start") {
+    val nextTurnItem = new MenuItem(Action("Next turn") {
+      eventPublisher.publish(NextTurnInitiated())
+    }) {
       enabled = false
     }
-    val restartGameItem = new MenuItem("Restart") {
+    val replayItem = new MenuItem(Action("Replay") {
+      eventPublisher.publish(ReplayInitiated())
+    }) {
       enabled = false
     }
+    val pauseItem = new MenuItem(Action("Pause") {
+      eventPublisher.publish(ReplayPaused())
+    }) {
+      enabled = false
+    }
+    val restartItem = new MenuItem(Action("Restart") {
+      eventPublisher.publish(GameRestarted())
+    }) {
+      enabled = false
+    }
+
     contents += new Menu("Game") {
-      contents += startGameItem
-      contents += restartGameItem
+      contents += nextTurnItem
+      contents += replayItem
+      contents += pauseItem
+      contents += restartItem
+    }
+    reactions += {
+      case ReplayInitiated() =>
+        println("replay")
+        replayItem.enabled = false
+        pauseItem.enabled = true
+        restartItem.enabled = false
+        nextTurnItem.enabled = false
+      case ReplayPaused() =>
+        replayItem.enabled = true
+        pauseItem.enabled = false
+        restartItem.enabled = true
+        nextTurnItem.enabled = true
+      case ReplayContinued() =>
+        replayItem.enabled = false
+        pauseItem.enabled = true
+        restartItem.enabled = false
+        nextTurnItem.enabled = false
+      case GameRestarted() =>
+        replayItem.enabled = true
+        pauseItem.enabled = false
+        restartItem.enabled = false
+        nextTurnItem.enabled = true
+      case NextTurnInitiated() =>
+        replayItem.enabled = true
+        pauseItem.enabled = false
+        restartItem.enabled = true
+        nextTurnItem.enabled = true
     }
     // players menu
-    contents += new Menu("Players") {
-      contents += new MenuItem("Settings...")
-    }
-    val showGridBtn = new CheckMenuItem("Show grid")
+//    contents += new Menu("Players") {
+//      contents += new MenuItem("Settings...")
+//    }
+    val showGridItem = new CheckMenuItem("Show grid")
     // playground menu
     contents += new Menu("Playground") {
-      contents += showGridBtn
+      contents += showGridItem
     }
     // help menu
     contents += new Menu("Help") {
       contents += new MenuItem("About Drooms")
     }
-    listenTo(eventPublisher)
-    listenTo(startGameItem, restartGameItem, showGridBtn)
-    listenTo(this)
+    listenTo(showGridItem)
     reactions += {
-      case ButtonClicked(`showGridBtn`) => {
-        if (showGridBtn.selected)
+      case ButtonClicked(`showGridItem`) => {
+        if (showGridItem.selected)
           eventPublisher.publish(new PlaygroundGridEnabled)
         else
           eventPublisher.publish(new PlaygroundGridDisabled)
       }
-      case ButtonClicked(`startGameItem`) =>
-        println("replay_")
-        eventPublisher.publish(ReplayInitiated())
       case NewGameLogChosen(_, _) => {
-        startGameItem.enabled = true
-        restartGameItem.enabled = true
+        replayItem.enabled = true
+        pauseItem.enabled = false
+        restartItem.enabled = false
+        nextTurnItem.enabled = true
       }
     }
 
-    def openGameLog(): Unit = {
+    def openGameReport(): Unit = {
       val fileChooser = new FileChooser(new File(System.getProperty("user.dir")))
       val res = fileChooser.showOpenDialog(this)
       if (res == FileChooser.Result.Approve) {
@@ -167,56 +223,84 @@ class LeftPane extends BorderPanel {
   class ControlPanel extends BorderPanel with Reactor with Publisher {
     var currentLog: (GameLog, File) = _
     var currentTurn = 0
-    val startBtn = new Button("Start game") {
+    var gameStatus: GameStatus = GameNotStarted()
+    val replayPauseBtn = new Button(Action("Replay") {
+      gameStatus match {
+        case GameNotStarted() =>
+          eventPublisher.publish(ReplayInitiated())
+        case GameReplaying() =>
+          eventPublisher.publish(ReplayPaused())
+        case GameReplayingPaused() =>
+          eventPublisher.publish(ReplayContinued())
+      }
+    }) {
       enabled = false
     }
-    val nextTurnBtn = new Button("Next turn") {
+    val nextTurnBtn = new Button(Action("Next turn") {
+      eventPublisher.publish(NextTurnInitiated())
+    }) {
       enabled = false
     }
-    val restartBtn = new Button("Restart game") {
+    val restartBtn = new Button(Action("Restart game") {
+      eventPublisher.publish(new GameRestarted)
+    }) {
       enabled = false
     }
     val progressBar = new ProgressBar {
       labelPainted = true
     }
-    
+
     val rightBtns = new FlowPanel(FlowPanel.Alignment.Right)() {
       contents += nextTurnBtn
-      contents += startBtn
+      contents += replayPauseBtn
       contents += restartBtn
     }
+
     layout(rightBtns) = BorderPanel.Position.East
     layout(new BoxPanel(Orientation.Horizontal) {
       contents += new Label("Game progress ")
       contents += progressBar
     }) = BorderPanel.Position.West
-    
+
     listenTo(eventPublisher)
-    listenTo(nextTurnBtn, startBtn, restartBtn)
 
     reactions += {
       case NewGameLogChosen(log, file) => {
-        //        currentLog = (log, file)
         nextTurnBtn.enabled = true
-        startBtn.enabled = true
+        replayPauseBtn.enabled = true
+        replayPauseBtn.text = "Replay"
+        restartBtn.enabled = false
         currentTurn = 0
-        progressBar.value = currentTurn
+        progressBar.value = 0
         progressBar.max = log.turns.size
       }
       case NextTurnInitiated() =>
         currentTurn += 1
         progressBar.value = currentTurn
-      case ButtonClicked(`startBtn`) =>
-        println("replay_")
-        eventPublisher.publish(ReplayInitiated())
-      case ButtonClicked(`restartBtn`) => {
-        eventPublisher.publish(new GameRestarted)
-      }
-      case ButtonClicked(`nextTurnBtn`) =>
+      case ReplayInitiated() =>
+        nextTurnBtn.enabled = false
+        restartBtn.enabled = false
+        replayPauseBtn.enabled = true
+        gameStatus = GameReplaying()
+        replayPauseBtn.text = "Pause"
+      case ReplayPaused() =>
         restartBtn.enabled = true
-        eventPublisher.publish(new NextTurnInitiated)
+        nextTurnBtn.enabled = true
+        replayPauseBtn.enabled = true
+        gameStatus = GameReplayingPaused()
+        replayPauseBtn.text = "Continue"
+      case ReplayContinued() =>
+        restartBtn.enabled = false
+        nextTurnBtn.enabled = false
+        replayPauseBtn.enabled = true
+        gameStatus = GameReplaying()
+        replayPauseBtn.text = "Pause"
       case GameFinished() =>
         nextTurnBtn.enabled = false
+        restartBtn.enabled = true
+        replayPauseBtn.enabled = false
+        replayPauseBtn.text = "Replay"
+        gameStatus = GameNotStarted()
     }
   }
 }
@@ -228,3 +312,8 @@ class RightPane extends BoxPanel(Orientation.Horizontal) with Reactor {
 
   listenTo(eventPublisher)
 }
+
+trait GameStatus
+case class GameNotStarted extends GameStatus
+case class GameReplaying extends GameStatus
+case class GameReplayingPaused extends GameStatus
