@@ -280,7 +280,7 @@ public abstract class GameController implements Game {
             i++;
         }
         // prepare situation
-        this.reporter = new XmlProgressListener(playground, gameConfig);
+        this.reporter = new XmlProgressListener(playground, players, gameConfig);
         final CommandDistributor playerControl = new CommandDistributor(
                 playground, players, this.reporter, reportFolder, wormTimeout);
         final Set<Player> currentPlayers = new HashSet<Player>(players);
