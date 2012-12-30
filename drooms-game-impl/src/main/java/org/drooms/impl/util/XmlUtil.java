@@ -26,24 +26,27 @@ public class XmlUtil {
      * @return
      */
     public static final String prettyPrint(final String xmlString) {
-        try {
-            DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-            InputStream inputStream = new ByteArrayInputStream(xmlString.getBytes());
-            Document document = documentBuilder.parse(inputStream);
+        try (InputStream inputStream = new ByteArrayInputStream(
+                xmlString.getBytes());
+                ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            final DocumentBuilder documentBuilder = DocumentBuilderFactory
+                    .newInstance().newDocumentBuilder();
+            final Document document = documentBuilder.parse(inputStream);
 
-            TransformerFactory tfactory = TransformerFactory.newInstance();
-            Transformer serializer;
-            serializer = tfactory.newTransformer();
+            final TransformerFactory tfactory = TransformerFactory
+                    .newInstance();
+            final Transformer serializer = tfactory.newTransformer();
             // Setup indenting to "pretty print"
             serializer.setOutputProperty(OutputKeys.INDENT, "yes");
-            serializer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+            serializer.setOutputProperty(
+                    "{http://xml.apache.org/xslt}indent-amount", "2");
 
-            DOMSource xmlSource = new DOMSource(document);
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            StreamResult outputTarget = new StreamResult(baos);
+            final DOMSource xmlSource = new DOMSource(document);
+            final StreamResult outputTarget = new StreamResult(baos);
             serializer.transform(xmlSource, outputTarget);
             return baos.toString("utf-8");
-        } catch (ParserConfigurationException | TransformerException | SAXException | IOException ex) {
+        } catch (ParserConfigurationException | TransformerException
+                | SAXException | IOException ex) {
             throw new RuntimeException("Can't pretty print xml!", ex);
         }
     }
