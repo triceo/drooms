@@ -21,4 +21,5 @@ case class GameRestarted extends Event
 case class ReplayInitiated extends Event
 case class ReplayPaused extends Event
 case class ReplayContinued extends Event
+case class TurnDelayChanged(val value: Int) extends Event
 

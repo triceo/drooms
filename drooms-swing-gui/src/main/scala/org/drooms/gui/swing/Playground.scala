@@ -27,6 +27,8 @@ class Playground extends ScrollPane with Reactor {
   val worms: collection.mutable.Set[Worm] = collection.mutable.Set()
 
   lazy val wallIcon = createImageIcon("/images/brick-wall-small.png", "Wall")
+  lazy val emptyIcon = createImageIcon("/images/empty.gif", "Empty")
+
   listenTo(eventPublisher)
   reactions += {
     case PlaygroundGridEnabled() => showGrid
@@ -76,7 +78,9 @@ class Playground extends ScrollPane with Reactor {
       override def rendererComponent(isSelected: Boolean, hasFocus: Boolean, row: Int, col: Int): Component = {
         val node = cellModel.positions(col)(row)
         val cell = node match {
-          case Empty(_) => new Label("")
+          case Empty(_) => new Label() {
+            //icon = emptyIcon
+          }
           case WormPiece(_, wormType, playerName) => new Label() {
             opaque = true
             background = PlayersList.getPlayer(playerName).color
@@ -130,34 +134,36 @@ class Playground extends ScrollPane with Reactor {
 
   /** Moves the worm to the new position */
   def moveWorm(ownerName: String, nodes: List[Node]): Unit = {
-    // removes current worm pieces
-    removeWormPieces(ownerName)
-    // worm must have at least head
-    val head = nodes.head
-    updateWormIfLegal(head, ownerName, "Head")
+    this.synchronized {
+      // removes current worm pieces
+      removeWormPieces(ownerName)
+      // worm must have at least head
+      val head = nodes.head
+      updateWormIfLegal(head, ownerName, "Head")
 
-    if (nodes.size > 2) {
-      for (node <- nodes.tail.init) {
-        updateWormIfLegal(node, ownerName, "Body")
+      if (nodes.size > 2) {
+        for (node <- nodes.tail.init) {
+          updateWormIfLegal(node, ownerName, "Body")
+        }
       }
-    }
 
-    if (nodes.size > 1) {
-      val tail = nodes.last
-      updateWormIfLegal(tail, ownerName, "Tail")
-    }
+      if (nodes.size > 1) {
+        val tail = nodes.last
+        updateWormIfLegal(tail, ownerName, "Tail")
+      }
 
-    /**
-     * Updates the wom only if the underlaying node is empty or collectible == eligible to be occupied by current worm
-     */
-    def updateWormIfLegal(node: Node, ownerName: String, wormType: String): Unit = {
-      // we can only update Empty nodes and Collectibles, if the worm crashed into wall or other worm piece must not be updated!
-      cellModel.positions(node.x)(node.y) match {
-        case Empty(node) =>
-          updateWorm(ownerName, new WormPiece(node, wormType, ownerName))
-        case Collectible(node, _, _) =>
-          updateWorm(ownerName, new WormPiece(node, wormType, ownerName))
-        case _ =>
+      /**
+       * Updates the wom only if the underlaying node is empty or collectible == eligible to be occupied by current worm
+       */
+      def updateWormIfLegal(node: Node, ownerName: String, wormType: String): Unit = {
+        // we can only update Empty nodes and Collectibles, if the worm crashed into wall or other worm piece must not be updated!
+        cellModel.positions(node.x)(node.y) match {
+          case Empty(node) =>
+            updateWorm(ownerName, new WormPiece(node, wormType, ownerName))
+          case Collectible(node, _, _) =>
+            updateWorm(ownerName, new WormPiece(node, wormType, ownerName))
+          case _ =>
+        }
       }
     }
   }

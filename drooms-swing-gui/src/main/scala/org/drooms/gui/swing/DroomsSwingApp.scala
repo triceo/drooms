@@ -46,6 +46,11 @@ import org.drooms.gui.swing.event.GameRestarted
 import org.drooms.gui.swing.event.NextTurnInitiated
 import org.drooms.gui.swing.event.NextTurnInitiated
 import scala.swing.Slider
+import java.awt.Font
+import scala.swing.event.ValueChanged
+import org.drooms.gui.swing.event.TurnDelayChanged
+import org.drooms.gui.swing.event.TurnDelayChanged
+import org.drooms.gui.swing.event.GameFinished
 
 object DroomsSwingApp extends SimpleSwingApplication {
   val eventPublisher = DroomsEventPublisher.get()
@@ -53,6 +58,7 @@ object DroomsSwingApp extends SimpleSwingApplication {
   val rightPane = new RightPane
   var gameController: GameController = _
   var gameLog: (GameLog, File) = _
+  var turnDelay = 100
 
   def top = new MainFrame {
     title = "Drooms"
@@ -65,7 +71,7 @@ object DroomsSwingApp extends SimpleSwingApplication {
       rightComponent.minimumSize = new Dimension(200, 500)
       leftComponent.minimumSize = new Dimension(500, 500)
     }
-    var timer: Timer = _
+    var timer: Option[Timer] = None
 
     reactions += {
       case NewGameLogChosen(log, file) =>
@@ -81,22 +87,39 @@ object DroomsSwingApp extends SimpleSwingApplication {
         }
       case GameRestarted() =>
         eventPublisher.publish(new NewGameLogChosen(gameLog._1, gameLog._2))
-      case ReplayInitiated() =>
-        timer = new Timer()
-        timer.schedule(new ScheduleNextTurn(), 0, 100)
+      case ReplayInitiated() | ReplayContinued() =>
+        timer match {
+          case Some(x) => 
+            x.cancel()
+          case None =>
+        }
+        timer = Some(new Timer())
+        timer.get.schedule(new ScheduleNextTurn(), 0, turnDelay)
       case ReplayPaused() =>
-        timer.cancel()
-      case ReplayContinued() =>
-        timer = new Timer()
-        timer.schedule(new ScheduleNextTurn(), 0, 100)
+        timer.get.cancel()
+        timer = None
+      case TurnDelayChanged(value) =>
+        turnDelay = value
+        timer match {
+          // currently running replay;; update timer to new delay
+          case Some(x) =>
+            x.cancel()
+            timer = Some(new Timer())
+            timer.get.schedule(new ScheduleNextTurn(), 0, turnDelay)
+          case None =>
+        }
+      case GameFinished() =>
+        timer match {
+          case Some(x) => x.cancel()
+          case None =>
+        }
+        timer = None
     }
 
     class ScheduleNextTurn extends TimerTask {
       def run(): Unit = {
         if (gameController.hasNextTurn()) {
           eventPublisher.publish(NextTurnInitiated())
-        } else {
-          timer.cancel()
         }
       }
     }
@@ -113,8 +136,8 @@ object DroomsSwingApp extends SimpleSwingApplication {
       contents += new MenuItem(Action("Open game report...") {
         openGameReport()
       })
-//      contents += new MenuItem(Action("Exit") {
-//      })
+      //      contents += new MenuItem(Action("Exit") {
+      //      })
     }
     // game menu
     val nextTurnItem = new MenuItem(Action("Next turn") {
@@ -132,7 +155,7 @@ object DroomsSwingApp extends SimpleSwingApplication {
     }) {
       enabled = false
     }
-    val restartItem = new MenuItem(Action("Restart") {
+    val restartItem = new MenuItem(Action("Reset") {
       eventPublisher.publish(GameRestarted())
     }) {
       enabled = false
@@ -146,7 +169,6 @@ object DroomsSwingApp extends SimpleSwingApplication {
     }
     reactions += {
       case ReplayInitiated() =>
-        println("replay")
         replayItem.enabled = false
         pauseItem.enabled = true
         restartItem.enabled = false
@@ -173,9 +195,9 @@ object DroomsSwingApp extends SimpleSwingApplication {
         nextTurnItem.enabled = true
     }
     // players menu
-//    contents += new Menu("Players") {
-//      contents += new MenuItem("Settings...")
-//    }
+    //    contents += new Menu("Players") {
+    //      contents += new MenuItem("Settings...")
+    //    }
     val showGridItem = new CheckMenuItem("Show grid")
     // playground menu
     contents += new Menu("Playground") {
@@ -242,7 +264,7 @@ class LeftPane extends BorderPanel {
     }) {
       enabled = false
     }
-    val restartBtn = new Button(Action("Restart game") {
+    val restartBtn = new Button(Action("Reset game") {
       eventPublisher.publish(new GameRestarted)
     }) {
       enabled = false
@@ -251,15 +273,24 @@ class LeftPane extends BorderPanel {
       labelPainted = true
     }
     val intervalSlider = new Slider {
-        min = 50
-        max = 2000
-      }
+      min = 50
+      max = 2000
+      value = 100
+      paintLabels = true
+      //minorTickSpacing = 100
+      majorTickSpacing = 450
+      font = new Font("Serif", Font.PLAIN, 10)
+    }
+    listenTo(intervalSlider)
+    reactions += {
+      case ValueChanged(`intervalSlider`) =>
+        eventPublisher.publish(TurnDelayChanged(intervalSlider.value))
+    }
 
     val rightBtns = new FlowPanel(FlowPanel.Alignment.Right)() {
+      contents += new Label("Turn delay ")
       contents += intervalSlider
-      contents += new Label {
-        text = intervalSlider.value + "ms "
-      }
+
       contents += nextTurnBtn
       contents += replayPauseBtn
       contents += restartBtn
