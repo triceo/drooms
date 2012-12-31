@@ -6,6 +6,11 @@ import scala.io.Source
 import scala.xml.XML
 import scala.xml.NodeSeq
 
+/**
+ * Class that represents Drooms game log (report).
+ *
+ * Log can be loaded from XML file.
+ */
 class GameLog(
   val props: Map[String, String],
   val players: List[String],
@@ -17,7 +22,11 @@ class GameLog(
   val results: List[(String, Int)])
 
 object GameLog {
-  def loadFromXml(file: File): GameLog = {
+  def loadFromXml(file: File): GameLog = GameLogXmlParser.parseLog(file)
+}
+
+object GameLogXmlParser {
+  def parseLog(file: File): GameLog = {
     // parse game ID
     // parse game properties
     val xml = XML.loadFile(file)
@@ -66,7 +75,6 @@ object GameLog {
       turns,
       results)
   }
-
   ////////////////////// Helper methods for parsing XML report ////////////////
   private def parseTurn(turnXml: NodeSeq): GameTurn = {
     val number = (turnXml \ "@number").text.toInt
@@ -107,7 +115,7 @@ object GameLog {
     (for (node <- playerPosXml \ "node")
       yield Node((node \ "@x").text.toInt, (node \ "@y").text.toInt)).toList
   }
-
+  
   private def parseCollectible(collectibleXml: NodeSeq): Collectible = {
     val expires = (collectibleXml \ "collectible" \ "@expiresInTurn").text.toInt
     val points = (collectibleXml \ "collectible" \ "@points").text.toInt
