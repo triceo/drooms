@@ -18,6 +18,7 @@ import org.drooms.gui.swing.event.TurnStepPerformed
 import org.drooms.gui.swing.event.DroomsEventPublisher
 import javax.swing.table.DefaultTableModel
 import org.drooms.gui.swing.event.PlaygroundGridEnabled
+import scala.swing.Alignment
 
 class Playground extends ScrollPane with Reactor {
   val CELL_SIZE = 15
@@ -27,7 +28,7 @@ class Playground extends ScrollPane with Reactor {
   val worms: collection.mutable.Set[Worm] = collection.mutable.Set()
 
   lazy val wallIcon = createImageIcon("/images/brick-wall-small.png", "Wall")
-  lazy val emptyIcon = createImageIcon("/images/empty.gif", "Empty")
+  lazy val bonusIcon = createImageIcon("/images/strawberry-icon.png", "Bonus")
 
   listenTo(eventPublisher)
   reactions += {
@@ -94,7 +95,10 @@ class Playground extends ScrollPane with Reactor {
             icon = wallIcon
           }
           case Collectible(_, _, p) => new Label(p + "") {
-            font = new Font("Serif", Font.PLAIN, 10)
+            font = new Font("Serif", Font.BOLD, 10)
+            icon = bonusIcon
+            verticalTextPosition = Alignment.Center
+            horizontalTextPosition = Alignment.Center
           }
         }
         if (isSelected) {

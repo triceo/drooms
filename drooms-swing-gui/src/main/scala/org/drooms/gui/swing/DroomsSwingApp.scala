@@ -105,7 +105,7 @@ object DroomsSwingApp extends SimpleSwingApplication {
           case Some(x) =>
             x.cancel()
             timer = Some(new Timer())
-            timer.get.schedule(new ScheduleNextTurn(), 0, turnDelay)
+            timer.get.schedule(new ScheduleNextTurn(), turnDelay, turnDelay)
           case None =>
         }
       case GameFinished() =>
@@ -274,11 +274,11 @@ class LeftPane extends BorderPanel {
     }
     val intervalSlider = new Slider {
       min = 50
-      max = 2000
+      max = 1000
       value = 100
       paintLabels = true
       //minorTickSpacing = 100
-      majorTickSpacing = 450
+      majorTickSpacing = 250
       font = new Font("Serif", Font.PLAIN, 10)
     }
     listenTo(intervalSlider)
