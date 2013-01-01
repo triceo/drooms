@@ -11,7 +11,7 @@ import scala.xml.NodeSeq
  *
  * Log can be loaded from XML file.
  */
-class GameLog(
+class GameReport(
   val props: Map[String, String],
   val players: List[String],
   val playgroundHeight: Int,
@@ -21,12 +21,12 @@ class GameLog(
   val turns: List[GameTurn],
   val results: List[(String, Int)])
 
-object GameLog {
-  def loadFromXml(file: File): GameLog = GameLogXmlParser.parseLog(file)
+object GameReport {
+  def loadFromXml(file: File): GameReport = GameReportXmlParser.parseReport(file)
 }
 
-object GameLogXmlParser {
-  def parseLog(file: File): GameLog = {
+object GameReportXmlParser {
+  def parseReport(file: File): GameReport = {
     // parse game ID
     // parse game properties
     val xml = XML.loadFile(file)
@@ -65,7 +65,7 @@ object GameLogXmlParser {
       (for (result <- xml \ "results" \ "score")
         yield (parsePlayerName(result), (result \ "@points").text.toInt)).toList
 
-    new GameLog(
+    new GameReport(
       props,
       players.sorted,
       playgroundHeight,

@@ -12,7 +12,7 @@ import org.drooms.gui.swing.event.PlaygroundGridDisabled
 import org.drooms.gui.swing.event.PlaygroundGridEnabled
 import javax.swing.BorderFactory
 import javax.swing.ImageIcon
-import org.drooms.gui.swing.event.NewGameLogChosen
+import org.drooms.gui.swing.event.NewGameReportChosen
 import java.awt.Font
 import org.drooms.gui.swing.event.TurnStepPerformed
 import org.drooms.gui.swing.event.DroomsEventPublisher
@@ -34,11 +34,11 @@ class Playground extends ScrollPane with Reactor {
   reactions += {
     case PlaygroundGridEnabled() => showGrid
     case PlaygroundGridDisabled() => hideGrid
-    case NewGameLogChosen(gameLog, file) => {
-      createNew(gameLog.playgroundWidth, gameLog.playgroundHeight)
-      for (node <- gameLog.playgroundInit)
+    case NewGameReportChosen(gameReport, file) => {
+      createNew(gameReport.playgroundWidth, gameReport.playgroundHeight)
+      for (node <- gameReport.playgroundInit)
         cellModel.updatePosition(Empty(node))
-      initWorms(gameLog.wormInitPositions)
+      initWorms(gameReport.wormInitPositions)
     }
     case TurnStepPerformed(step) =>
       step match {

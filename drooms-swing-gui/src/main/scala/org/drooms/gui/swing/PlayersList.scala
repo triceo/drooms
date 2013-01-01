@@ -11,7 +11,7 @@ import scala.swing.Alignment
 import javax.swing.BorderFactory
 import scala.collection.mutable.Buffer
 import org.drooms.gui.swing.event.DroomsEventPublisher
-import org.drooms.gui.swing.event.NewGameLogChosen
+import org.drooms.gui.swing.event.NewGameReportChosen
 import scala.swing.BoxPanel
 import scala.swing.Orientation
 import java.awt.BorderLayout
@@ -54,9 +54,9 @@ class PlayersListView extends BorderPanel {
   layout(playersListView) = BorderPanel.Position.Center
 
   reactions += {
-    case NewGameLogChosen(gameLog, _) =>
+    case NewGameReportChosen(gameReport, _) =>
       PlayersList.clear()
-      PlayersList.addPlayers(gameLog.players)
+      PlayersList.addPlayers(gameReport.players)
       update()
     case TurnStepPerformed(step) =>
       step match {

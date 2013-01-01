@@ -26,7 +26,7 @@ import scala.swing.event.ButtonClicked
 import org.drooms.gui.swing.event.DroomsEventPublisher
 import org.drooms.gui.swing.event.GameFinished
 import org.drooms.gui.swing.event.GameRestarted
-import org.drooms.gui.swing.event.NewGameLogChosen
+import org.drooms.gui.swing.event.NewGameReportChosen
 import org.drooms.gui.swing.event.NextTurnInitiated
 import org.drooms.gui.swing.event.PlaygroundGridDisabled
 import org.drooms.gui.swing.event.PlaygroundGridEnabled
@@ -57,7 +57,7 @@ object DroomsSwingApp extends SimpleSwingApplication {
   val leftPane = new LeftPane
   val rightPane = new RightPane
   var gameController: GameController = _
-  var gameLog: (GameLog, File) = _
+  var gameReport: (GameReport, File) = _
   var turnDelay = 100
 
   def top = new MainFrame {
@@ -74,9 +74,9 @@ object DroomsSwingApp extends SimpleSwingApplication {
     var timer: Option[Timer] = None
 
     reactions += {
-      case NewGameLogChosen(log, file) =>
-        gameLog = (log, file)
-        gameController = new ReplayGameController(log)
+      case NewGameReportChosen(report, file) =>
+        gameReport = (report, file)
+        gameController = new ReplayGameController(report)
       case NextTurnInitiated() =>
         val turn = gameController.nextTurn
         for (step <- turn.steps) {
@@ -86,7 +86,7 @@ object DroomsSwingApp extends SimpleSwingApplication {
           eventPublisher.publish(new GameFinished)
         }
       case GameRestarted() =>
-        eventPublisher.publish(new NewGameLogChosen(gameLog._1, gameLog._2))
+        eventPublisher.publish(new NewGameReportChosen(gameReport._1, gameReport._2))
       case ReplayInitiated() | ReplayContinued() =>
         timer match {
           case Some(x) => 
@@ -125,7 +125,7 @@ object DroomsSwingApp extends SimpleSwingApplication {
     }
     centerOnScreen()
     // dummy game
-    eventPublisher.publish(new NewGameLogChosen(GameLog.loadFromXml(new File("/home/psiroky/work/git-repos/drooms/advanced-report-pretty.xml")), new File(".")))
+    eventPublisher.publish(new NewGameReportChosen(GameReport.loadFromXml(new File("/home/psiroky/work/git-repos/drooms/advanced-report-pretty.xml")), new File(".")))
   }
 
   class MainMenu extends MenuBar {
@@ -215,7 +215,7 @@ object DroomsSwingApp extends SimpleSwingApplication {
         else
           eventPublisher.publish(new PlaygroundGridDisabled)
       }
-      case NewGameLogChosen(_, _) => {
+      case NewGameReportChosen(_, _) => {
         replayItem.enabled = true
         pauseItem.enabled = false
         restartItem.enabled = false
@@ -228,8 +228,8 @@ object DroomsSwingApp extends SimpleSwingApplication {
       val res = fileChooser.showOpenDialog(this)
       if (res == FileChooser.Result.Approve) {
         val selectedFile = fileChooser.selectedFile
-        val gameLog = GameLog.loadFromXml(selectedFile)
-        eventPublisher.publish(new NewGameLogChosen(gameLog, selectedFile))
+        val gameReport = GameReport.loadFromXml(selectedFile)
+        eventPublisher.publish(new NewGameReportChosen(gameReport, selectedFile))
       }
     }
   }
@@ -244,7 +244,7 @@ class LeftPane extends BorderPanel {
   layout(controlPanel) = BorderPanel.Position.South
 
   class ControlPanel extends BorderPanel with Reactor with Publisher {
-    var currentLog: (GameLog, File) = _
+    var currentLog: (GameReport, File) = _
     var currentTurn = 0
     var gameStatus: GameStatus = GameNotStarted()
     val replayPauseBtn = new Button(Action("Replay") {
@@ -305,7 +305,7 @@ class LeftPane extends BorderPanel {
     listenTo(eventPublisher)
 
     reactions += {
-      case NewGameLogChosen(log, file) => {
+      case NewGameReportChosen(log, file) => {
         nextTurnBtn.enabled = true
         replayPauseBtn.enabled = true
         replayPauseBtn.text = "Replay"

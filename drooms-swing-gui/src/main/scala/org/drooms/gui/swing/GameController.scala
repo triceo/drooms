@@ -5,8 +5,8 @@ trait GameController {
   def hasNextTurn(): Boolean
 }
 
-class ReplayGameController(val gameLog: GameLog) extends GameController {
-  val totalTurns = gameLog.turns.size
+class ReplayGameController(val gameReport: GameReport) extends GameController {
+  val totalTurns = gameReport.turns.size
   var turnNumber = 0
 
   // should return set of steps within that turn
@@ -14,7 +14,7 @@ class ReplayGameController(val gameLog: GameLog) extends GameController {
     if (!hasNextTurn())
       throw new RuntimeException("Can't get next turn, game already finished!")
     else {
-      val turn = gameLog.turns(turnNumber)
+      val turn = gameReport.turns(turnNumber)
       turnNumber += 1
       turn
     }
