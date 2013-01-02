@@ -47,7 +47,7 @@ public abstract class TournamentResults {
         }
 
         public BigDecimal getFirstQuartile(final Player p) {
-            return BigDecimal.valueOf(this.getStats(p).getPercentile(0.25));
+            return BigDecimal.valueOf(this.getStats(p).getPercentile(25));
         }
 
         // FIXME better name
@@ -60,7 +60,7 @@ public abstract class TournamentResults {
         }
 
         public BigDecimal getMedian(final Player p) {
-            return BigDecimal.valueOf(this.getStats(p).getPercentile(0.5));
+            return BigDecimal.valueOf(this.getStats(p).getPercentile(50));
         }
 
         public BigDecimal getMin(final Player p) {
@@ -82,7 +82,7 @@ public abstract class TournamentResults {
         }
 
         public BigDecimal getThirdQuartile(final Player p) {
-            return BigDecimal.valueOf(this.getStats(p).getPercentile(0.75));
+            return BigDecimal.valueOf(this.getStats(p).getPercentile(75));
         }
     }
 
