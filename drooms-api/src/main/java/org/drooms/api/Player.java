@@ -5,6 +5,7 @@ import java.util.Collection;
 import org.drools.KnowledgeBase;
 import org.drools.KnowledgeBaseConfiguration;
 import org.drools.KnowledgeBaseFactory;
+import org.drools.conf.EventProcessingOption;
 import org.drools.conf.PermGenThresholdOption;
 import org.drools.definition.KnowledgePackage;
 
@@ -67,6 +68,7 @@ public class Player {
     public KnowledgeBase constructKnowledgeBase() {
         KnowledgeBaseConfiguration kbconf = KnowledgeBaseFactory.newKnowledgeBaseConfiguration(null, classLoader);
         kbconf.setOption(PermGenThresholdOption.get(0)); // workaround for https://github.com/triceo/drooms/issues/3
+        kbconf.setOption(EventProcessingOption.STREAM);
         KnowledgeBase kbase = KnowledgeBaseFactory.newKnowledgeBase(kbconf);
         kbase.addKnowledgePackages(packages);
         return kbase;
