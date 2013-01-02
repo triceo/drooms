@@ -89,7 +89,7 @@ object DroomsSwingApp extends SimpleSwingApplication {
         eventPublisher.publish(new NewGameReportChosen(gameReport._1, gameReport._2))
       case ReplayInitiated() | ReplayContinued() =>
         timer match {
-          case Some(x) => 
+          case Some(x) =>
             x.cancel()
           case None =>
         }
@@ -202,9 +202,9 @@ object DroomsSwingApp extends SimpleSwingApplication {
       contents += showGridItem
     }
     // help menu
-//    contents += new Menu("Help") {
-//      contents += new MenuItem("About Drooms")
-//    }
+    //    contents += new Menu("Help") {
+    //      contents += new MenuItem("About Drooms")
+    //    }
     listenTo(showGridItem)
     reactions += {
       case ButtonClicked(`showGridItem`) => {

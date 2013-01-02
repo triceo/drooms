@@ -27,9 +27,6 @@ class Playground extends ScrollPane with Reactor {
   var table: Option[Table] = None
   val worms: collection.mutable.Set[Worm] = collection.mutable.Set()
 
-  lazy val wallIcon = createImageIcon("/images/brick-wall-small.png", "Wall")
-  lazy val bonusIcon = createImageIcon("/images/strawberry-icon.png", "Bonus")
-
   listenTo(eventPublisher)
   reactions += {
     case PlaygroundGridEnabled() => showGrid
@@ -58,16 +55,19 @@ class Playground extends ScrollPane with Reactor {
   }
 
   def createNew(width: Int, height: Int): Unit = {
-    cellModel = new PlaygroundModel(width, height)
-    table = Some(new Table(height, width) {
-      val widthPixels = CELL_SIZE * width - 1
-      val heightPixels = CELL_SIZE * height - 1
+      cellModel = new PlaygroundModel(width, height)
+    // plus two in each direction (x and y) for border around the playground
+    val actualTableWidth = width + 2
+    val actualTableHeight = height + 2
+    table = Some(new Table(actualTableWidth, actualTableHeight) {
+      val widthPixels = CELL_SIZE * actualTableWidth - 1   // minus one so the line at the end is not rendered
+      val heightPixels = CELL_SIZE * actualTableHeight - 1 // minus one so the line at the end is not rendered
       preferredSize = new Dimension(widthPixels, heightPixels)
       rowHeight = CELL_SIZE
       selection.intervalMode = Table.IntervalMode.Single
-      selection.elementMode = Table.ElementMode.Cell
+      selection.elementMode = Table.ElementMode.None
       peer.setTableHeader(null)
-      model = new DefaultTableModel(height, width) {
+      model = new DefaultTableModel(actualTableHeight, actualTableWidth) { // rows == height, cols == width
         override def setValueAt(value: Any, row: Int, col: Int) {
           super.setValueAt(value, row, col)
         }
@@ -75,41 +75,50 @@ class Playground extends ScrollPane with Reactor {
       }
       showGrid = false
       peer.setIntercellSpacing(new Dimension(0, 0))
-      listenTo(eventPublisher)
+      lazy val wallIcon = createImageIcon("/images/brick-wall-small.png", "Wall")
+      lazy val bonusIcon = createImageIcon("/images/strawberry-icon.png", "Bonus")
+
       override def rendererComponent(isSelected: Boolean, hasFocus: Boolean, row: Int, col: Int): Component = {
-        val node = cellModel.positions(col)(row)
-        val cell = node match {
-          case Empty(_) => new Label() {
-            //icon = emptyIcon
-          }
-          case WormPiece(_, wormType, playerName) => new Label() {
-            opaque = true
-            background = PlayersList.get().getPlayer(playerName).color
-            border = BorderFactory.createRaisedBevelBorder()
-            if (wormType == "Head") {
-              //border = BorderFactory.createLoweredBevelBorder()
-              text = "\u25CF"
+        val wallLabel = new Label("") {
+          icon = wallIcon
+        }
+        // border around playground
+        if (col == 0 || row == 0 || col > width || row > height) {
+          wallLabel
+        } else {
+          val node = cellModel.positions(col - 1)(row - 1)
+          val cell = node match {
+            case Empty(_) => new Label() {
+              //icon = emptyIcon
+            }
+            case WormPiece(_, wormType, playerName) => new Label() {
+              opaque = true
+              background = PlayersList.get().getPlayer(playerName).color
+              border = BorderFactory.createRaisedBevelBorder()
+              if (wormType == "Head") {
+                //border = BorderFactory.createLoweredBevelBorder()
+                text = "\u25CF"
+              }
+            }
+            case Wall(_) => wallLabel
+
+            case Collectible(_, _, p) => new Label(p + "") {
+              font = new Font("Serif", Font.BOLD, 10)
+              icon = bonusIcon
+              verticalTextPosition = Alignment.Center
+              horizontalTextPosition = Alignment.Center
             }
           }
-          case Wall(_) => new Label("") {
-            icon = wallIcon
+          if (isSelected) {
+            cell.border = BorderFactory.createLineBorder(Color.black)
           }
-          case Collectible(_, _, p) => new Label(p + "") {
-            font = new Font("Serif", Font.BOLD, 10)
-            icon = bonusIcon
-            verticalTextPosition = Alignment.Center
-            horizontalTextPosition = Alignment.Center
-          }
+          cell
         }
-        if (isSelected) {
-          cell.border = BorderFactory.createLineBorder(Color.black)
-        }
-        cell
       }
     })
     reactions += {
       case PositionChanged(position) =>
-        table.get.updateCell(position.node.y, position.node.x) // y == row and x == col
+        table.get.updateCell(position.node.y + 1, position.node.x + 1) // y == row and x == col
     }
 
     viewportView = new GridBagPanel {
