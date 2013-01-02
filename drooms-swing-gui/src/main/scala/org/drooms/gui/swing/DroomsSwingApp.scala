@@ -124,8 +124,6 @@ object DroomsSwingApp extends SimpleSwingApplication {
       }
     }
     centerOnScreen()
-    // dummy game
-    eventPublisher.publish(new NewGameReportChosen(GameReport.loadFromXml(new File("/home/psiroky/work/git-repos/drooms/advanced-report-pretty.xml")), new File(".")))
   }
 
   class MainMenu extends MenuBar {
@@ -204,9 +202,9 @@ object DroomsSwingApp extends SimpleSwingApplication {
       contents += showGridItem
     }
     // help menu
-    contents += new Menu("Help") {
-      contents += new MenuItem("About Drooms")
-    }
+//    contents += new Menu("Help") {
+//      contents += new MenuItem("About Drooms")
+//    }
     listenTo(showGridItem)
     reactions += {
       case ButtonClicked(`showGridItem`) => {
