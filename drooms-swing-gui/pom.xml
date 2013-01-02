@@ -10,35 +10,28 @@
   </parent>
   <artifactId>drooms-swing-gui</artifactId>
   <name>Drooms: Swing GUI</name>
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <scala.version>2.9.2</scala.version>
-  </properties>
   <dependencies>
-    <dependency>
-      <groupId>com.github.triceo.drooms</groupId>
-      <artifactId>drooms-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.github.triceo.drooms</groupId>
-      <artifactId>drooms-game-impl</artifactId>
-    </dependency>
-
     <dependency>
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-library</artifactId>
-      <version>${scala.version}</version>
     </dependency>
     <dependency>
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-swing</artifactId>
-      <version>${scala.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.scalatest</groupId>
+      <artifactId>scalatest_${scala.version}</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
   <build>
-    <sourceDirectory>src/main/scala</sourceDirectory>
-    <testSourceDirectory>src/test/scala</testSourceDirectory>
     <plugins>
       <plugin>
         <groupId>org.scala-tools</groupId>
@@ -79,6 +72,16 @@
           <descriptorRefs>
             <descriptorRef>jar-with-dependencies</descriptorRef>
           </descriptorRefs>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <includes>
+            <include>**/*Spec.class</include>
+            <include>**/*Suite.class</include>
+          </includes>
         </configuration>
       </plugin>
     </plugins>
