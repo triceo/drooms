@@ -7,9 +7,9 @@ import scala.xml.XML
 import scala.xml.NodeSeq
 
 /**
- * Class that represents Drooms game log (report).
+ * Class that represents Drooms game report.
  *
- * Log can be loaded from XML file.
+ * Report can be loaded from XML file.
  */
 class GameReport(
   val props: Map[String, String],
@@ -106,7 +106,8 @@ object GameReportXmlParser {
     val survivedWorms =
       (for (survivedWorm <- turnXml \ "survivedPlayer")
         yield new WormSurvived(parsePlayerName(survivedWorm), (survivedWorm \ "@points").text.toInt)).toList
-    new GameTurn(number, wormsMoved ::: crashedWorms ::: deactivatedWorms ::: survivedWorms ::: newCollectibles ::: removedCollectibles ::: collectedCollectibles)
+    new GameTurn(number, wormsMoved ::: crashedWorms ::: deactivatedWorms ::: survivedWorms ::: newCollectibles
+      ::: removedCollectibles ::: collectedCollectibles)
   }
 
   private def parsePlayerName(xml: NodeSeq): String = (xml \ "player" \ "@name").text
@@ -115,7 +116,7 @@ object GameReportXmlParser {
     (for (node <- playerPosXml \ "node")
       yield Node((node \ "@x").text.toInt, (node \ "@y").text.toInt)).toList
   }
-  
+
   private def parseCollectible(collectibleXml: NodeSeq): Collectible = {
     val expires = (collectibleXml \ "collectible" \ "@expiresInTurn").text.toInt
     val points = (collectibleXml \ "collectible" \ "@points").text.toInt

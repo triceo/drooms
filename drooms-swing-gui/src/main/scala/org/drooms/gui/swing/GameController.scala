@@ -21,6 +21,8 @@ class ReplayGameController(val gameReport: GameReport) extends GameController {
   }
 
   def hasNextTurn(): Boolean = turnNumber < totalTurns
+  
+  def nextTurnNumber(): Int = turnNumber
 }
 
 //class RealTimeGameController extends GameController {
