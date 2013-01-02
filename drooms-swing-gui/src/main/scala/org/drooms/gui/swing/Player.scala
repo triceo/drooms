@@ -2,10 +2,10 @@ package org.drooms.gui.swing
 
 import java.awt.Color
 
-class Player(val name: String, var currentScore: Int, var color: Color) {
+class Player(val name: String, var score: Int, var color: Color) {
   def this(name: String) = this(name, 0, PlayerColors.DEFAULT_COLOR)
 
-  def addPoints(points: Int): Unit = currentScore += points
+  def addPoints(points: Int): Unit = score += points
 
   override def equals(obj: Any): Boolean = {
     obj.isInstanceOf[Player] && obj.asInstanceOf[Player].name == this.name
@@ -14,10 +14,26 @@ class Player(val name: String, var currentScore: Int, var color: Color) {
   override def hashCode(): Int = this.name.hashCode()
 }
 
+class PlayerColors(val colors: List[Color]) {
+  var nextColorIndex: Int = 0
+
+  def getNext(): Color = {
+    if (nextColorIndex >= colors.size)
+      nextColorIndex = 0
+    val color = colors(nextColorIndex)
+    nextColorIndex += 1
+    color
+  }
+
+  def reset(): Unit = {
+    nextColorIndex = 0
+  }
+}
+
 object PlayerColors {
   val DEFAULT_COLOR = Color.CYAN
-
-  val colors = List(
+  
+  val defaultColors = List(
     new Color(79, 0xBE, 0xDB),
     new Color(0xE8, 68, 50),
     new Color(0xC0, 0xC0, 0xC0),
@@ -37,17 +53,6 @@ object PlayerColors {
     Color.MAGENTA,
     Color.DARK_GRAY,
     Color.PINK)
-  var nextColorIndex: Int = 0
-
-  def getNext(): Color = {
-    if (nextColorIndex >= colors.size)
-      nextColorIndex = 0
-    val color = colors(nextColorIndex)
-    nextColorIndex += 1
-    color
-  }
-
-  def reset(): Unit = {
-    nextColorIndex = 0
-  }
+    
+    def getDefault(): PlayerColors = new PlayerColors(defaultColors)
 }

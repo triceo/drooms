@@ -17,14 +17,15 @@ import scala.swing.Orientation
 import java.awt.BorderLayout
 import org.drooms.gui.swing.event.TurnStepPerformed
 
-object PlayersList {
-  val players: Buffer[Player] = Buffer()
-
-  def get(): List[Player] = players.toList
-
+class PlayersList(val players: Buffer[Player], val colors: PlayerColors) {
+  def this() = this(Buffer(), PlayerColors.getDefault())
+  def this(colors: PlayerColors) = this(Buffer(), colors)
+  
   def addPlayer(player: Player): Unit = players += player
 
-  def addPlayer(name: String): Unit = players += new Player(name, 0, PlayerColors.getNext())
+  def addPlayer(name: String, color: Color): Unit = addPlayer(new Player(name, 0, color))
+  
+  def addPlayer(name: String): Unit = addPlayer(name, colors.getNext())
 
   def addPlayers(players: List[String]): Unit = {
     players.foreach(addPlayer(_))
@@ -39,13 +40,20 @@ object PlayersList {
 
   def clear(): Unit = {
     players.clear()
-    PlayerColors.reset()
+    colors.reset()
   }
+}
+
+object PlayersList {
+  val playersList = new PlayersList()
+  
+  def get() = playersList
 }
 
 class PlayersListView extends BorderPanel {
   val eventPublisher = DroomsEventPublisher.get()
-  val playersListView = new ListView(PlayersList.get()) {
+  val playersList = PlayersList.get()
+  val playersListView = new ListView(playersList.players) {
     renderer = new PlayersListRenderer
   }
   listenTo(eventPublisher)
@@ -55,23 +63,23 @@ class PlayersListView extends BorderPanel {
 
   reactions += {
     case NewGameReportChosen(gameReport, _) =>
-      PlayersList.clear()
-      PlayersList.addPlayers(gameReport.players)
+      playersList.clear()
+      playersList.addPlayers(gameReport.players)
       update()
     case TurnStepPerformed(step) =>
       step match {
         case WormSurvived(ownerName, points) =>
-          PlayersList.getPlayer(ownerName).addPoints(points)
+          playersList.getPlayer(ownerName).addPoints(points)
           update()
         case CollectibleCollected(playerName, collectible) =>
-          PlayersList.getPlayer(playerName).addPoints(collectible.points)
+          playersList.getPlayer(playerName).addPoints(collectible.points)
           update()
         case _ =>
       }
   }
 
   def update() {
-    playersListView.listData = PlayersList.get()
+    playersListView.listData = playersList.players
   }
 
   class PlayersListRenderer extends Renderer {
@@ -89,7 +97,7 @@ class PlayersListView extends BorderPanel {
           opaque = true
           background = player.color
         }) = BorderPanel.Position.West
-        layout(new Label(player.currentScore + " points")) = BorderPanel.Position.East
+        layout(new Label(player.score + " points")) = BorderPanel.Position.East
       }
     }
   }

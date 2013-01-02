@@ -84,7 +84,7 @@ class Playground extends ScrollPane with Reactor {
           }
           case WormPiece(_, wormType, playerName) => new Label() {
             opaque = true
-            background = PlayersList.getPlayer(playerName).color
+            background = PlayersList.get().getPlayer(playerName).color
             border = BorderFactory.createRaisedBevelBorder()
             if (wormType == "Head") {
               //border = BorderFactory.createLoweredBevelBorder()
