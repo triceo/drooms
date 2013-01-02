@@ -79,7 +79,7 @@ class PlayersListView extends BorderPanel {
   }
 
   def update() {
-    playersListView.listData = playersList.players
+    playersListView.listData = playersList.players.sortBy(_.score).reverse
   }
 
   class PlayersListRenderer extends Renderer {
