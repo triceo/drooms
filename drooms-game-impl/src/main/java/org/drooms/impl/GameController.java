@@ -51,8 +51,10 @@ import org.slf4j.LoggerFactory;
  * <li>When a worm's past couple decisions were all STAY (see {@link Move}), the
  * worm may be terminated. This is controlled by the classes extending this one.
  * </li>
- * <li>At the end of each turn, each non-terminated worm is rewarded for
- * surviving.</li>
+ * <li>In the turn when at least one worm is removed from the game, either due
+ * to crashing or inactivity, every surviving worm is rewarded. The amount of
+ * the reward is "the number of worms gone so far" multiplied by the bonus
+ * factor, see below.</li>
  * <li>Terminated worms will disappear from the playground in the next turn.</li>
  * <li>In each turn, a collectible item of a certain value may appear in the
  * playground. These collectibles will disappear after a certain amount of
@@ -94,7 +96,7 @@ import org.slf4j.LoggerFactory;
  * inactivity.</dd>
  * <dt>worm.survival.bonus (defaults to 1)</dt>
  * <dd>The amount of points that the worm will be awarded upon surviving another
- * turn.</dd>
+ * worm.</dd>
  * </dl>
  */
 public abstract class GameController implements Game {
@@ -292,6 +294,7 @@ public abstract class GameController implements Game {
         int turnNumber = 0;
         do {
             GameController.LOGGER.info("--- Starting turn no. {}.", turnNumber);
+            final int preRemoval = currentPlayers.size();
             final List<Command> commands = new LinkedList<>();
             // remove inactive worms
             for (final Player player : this.performInactivityDetection(
@@ -316,11 +319,14 @@ public abstract class GameController implements Game {
                 currentPlayers.remove(player);
                 commands.add(new CrashPlayerCommand(player));
             }
-            if (turnNumber > 0) {
+            final int postRemoval = currentPlayers.size();
+            if (postRemoval < preRemoval) {
                 // reward surviving worms; but not in the first round
+                final int amount = wormSurvivalBonus
+                        * (playersAvailable - postRemoval);
                 for (final Player p : currentPlayers) {
-                    this.reward(p, 1);
-                    commands.add(new RewardSurvivalCommand(p, wormSurvivalBonus));
+                    this.reward(p, amount);
+                    commands.add(new RewardSurvivalCommand(p, amount));
                 }
             }
             // expire uncollected collectibles
