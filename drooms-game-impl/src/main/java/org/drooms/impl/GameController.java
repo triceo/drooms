@@ -51,10 +51,8 @@ import org.slf4j.LoggerFactory;
  * <li>When a worm's past couple decisions were all STAY (see {@link Move}), the
  * worm may be terminated. This is controlled by the classes extending this one.
  * </li>
- * <li>In the turn when at least one worm is removed from the game, either due
- * to crashing or inactivity, every surviving worm is rewarded. The amount of
- * the reward is "the number of worms gone so far" multiplied by the bonus
- * factor, see below.</li>
+ * <li>When a turn ends, worms may be rewarded for surviving. How and when, that
+ * depends on the classes extending this one.</li>
  * <li>Terminated worms will disappear from the playground in the next turn.</li>
  * <li>In each turn, a collectible item of a certain value may appear in the
  * playground. These collectibles will disappear after a certain amount of
@@ -241,6 +239,24 @@ public abstract class GameController implements Game {
     protected abstract Deque<Node> performPlayerMove(final Player player,
             final Move decision);
 
+    /**
+     * Decide which players should be rewarded for survival in this round.
+     * 
+     * @param allPlayers
+     *            All the players that ever were in the game.
+     * @param survivingPlayers
+     *            Players that remain in the game.
+     * @param removedInThisRound
+     *            Number of players removed in this round.
+     * @param rewardAmount
+     *            How many points to award.
+     * @return How much each player should be rewarded. Players not mentioned
+     *         are not rewarded.
+     */
+    protected abstract Map<Player, Integer> performSurvivalRewarding(
+            Collection<Player> allPlayers, Collection<Player> survivingPlayers,
+            int removedInThisRound, int rewardAmount);
+
     @Override
     public Map<Player, Integer> play(final Playground playground,
             final Properties gameConfig, final Collection<Player> players,
@@ -320,14 +336,14 @@ public abstract class GameController implements Game {
                 commands.add(new CrashPlayerCommand(player));
             }
             final int postRemoval = currentPlayers.size();
-            if (postRemoval < preRemoval) {
-                // reward surviving worms; but not in the first round
-                final int amount = wormSurvivalBonus
-                        * (playersAvailable - postRemoval);
-                for (final Player p : currentPlayers) {
-                    this.reward(p, amount);
-                    commands.add(new RewardSurvivalCommand(p, amount));
-                }
+            for (final Map.Entry<Player, Integer> entry : this
+                    .performSurvivalRewarding(players, currentPlayers,
+                            postRemoval - preRemoval, wormSurvivalBonus)
+                    .entrySet()) {
+                final Player p = entry.getKey();
+                final int amount = entry.getValue();
+                this.reward(p, amount);
+                commands.add(new RewardSurvivalCommand(p, amount));
             }
             // expire uncollected collectibles
             final Set<Collectible> removeCollectibles = new HashSet<Collectible>();

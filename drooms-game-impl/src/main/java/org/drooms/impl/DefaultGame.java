@@ -37,6 +37,11 @@ import org.drooms.api.Playground;
  * <dd>When two worms collect the same item at the same time, it is considered a
  * collision. Both worms are terminated and neither is awarded points for the
  * item.</dd>
+ * <dt>Survival bonuses</dt>
+ * <dd>In the turn when at least one worm is removed from the game, either due
+ * to crashing or inactivity, every surviving worm is rewarded. The amount of
+ * the reward is "the number of worms gone so far" multiplied by the bonus
+ * factor.</dd>
  * <dt>Inactivity enforcement</dt>
  * <dd>This implementation will terminate worms for inactivity, as described in
  * the super class.</dd>
@@ -223,6 +228,23 @@ public class DefaultGame extends GameController {
         }
         // notify
         return newPosition;
+    }
+
+    @Override
+    protected Map<Player, Integer> performSurvivalRewarding(
+            final Collection<Player> allPlayers,
+            final Collection<Player> survivingPlayers,
+            final int removedInThisRound, final int rewardAmount) {
+        if (removedInThisRound < 1) {
+            return Collections.emptyMap();
+        }
+        final int amount = rewardAmount
+                * (allPlayers.size() - survivingPlayers.size());
+        final Map<Player, Integer> result = new HashMap<>();
+        for (final Player p : survivingPlayers) {
+            result.put(p, amount);
+        }
+        return Collections.unmodifiableMap(result);
     }
 
     private Node pickRandomUnusedNode(final Playground p,
