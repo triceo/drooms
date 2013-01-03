@@ -148,6 +148,8 @@ public class CommandDistributor {
      * @return Strategy decisions.
      */
     public Map<Player, Move> execute(final List<Command> commands) {
+        // hint GC to potentially not interrupt decision making later
+        System.gc();
         CommandDistributor.LOGGER
                 .info("First reporting what happens in this turn.");
         for (final GameProgressListener listener : this.listeners) {
@@ -177,8 +179,6 @@ public class CommandDistributor {
                     player.getName());
             final DecisionMakerUnit dmu = new DecisionMakerUnit(playerLogic,
                     commands);
-            // hint GC to potentially not interrupt decision making later
-            System.gc();
             // begin the time-box for a player strategy
             final Future<Move> move = this.e.submit(dmu);
             try {
