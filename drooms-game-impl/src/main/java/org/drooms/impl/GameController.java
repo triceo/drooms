@@ -338,7 +338,7 @@ public abstract class GameController implements Game {
             final int postRemoval = currentPlayers.size();
             for (final Map.Entry<Player, Integer> entry : this
                     .performSurvivalRewarding(players, currentPlayers,
-                            postRemoval - preRemoval, wormSurvivalBonus)
+                            preRemoval - postRemoval, wormSurvivalBonus)
                     .entrySet()) {
                 final Player p = entry.getKey();
                 final int amount = entry.getValue();
