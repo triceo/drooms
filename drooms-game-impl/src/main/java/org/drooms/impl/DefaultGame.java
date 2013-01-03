@@ -107,8 +107,10 @@ public class DefaultGame extends GameController {
             final BigDecimal chosen = BigDecimal.valueOf(GameController.RANDOM
                     .nextDouble());
             if (probability.compareTo(chosen) > 0) {
-                final int expiration = currentTurnNumber
-                        + ct.getExpiration(gameConfig);
+                final double expirationAdjustmentRate = GameController.RANDOM
+                        .nextDouble() + 0.5;
+                final int expiration = (int) Math.round((currentTurnNumber + ct
+                        .getExpiration(gameConfig)) * expirationAdjustmentRate);
                 final int points = ct.getPoints(gameConfig);
                 final Collectible c = new Collectible(points, expiration);
                 collectibles.put(c,
