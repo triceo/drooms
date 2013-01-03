@@ -12,10 +12,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.drooms.api.GameProgressListener;
 import org.drooms.api.Move;
@@ -180,10 +182,15 @@ public class CommandDistributor {
             try {
                 moves.put(player,
                         move.get(this.playerTimeoutInSeconds, TimeUnit.SECONDS));
-            } catch (final Exception e) {
+            } catch (InterruptedException | ExecutionException e) {
+                CommandDistributor.LOGGER
+                        .warn("Player {} error during decision-making, STAY forced.",
+                                player.getName(), e);
+                moves.put(player, Move.STAY);
+            } catch (final TimeoutException e) {
                 CommandDistributor.LOGGER
                         .warn("Player {}, didn't reach a decision in time, STAY forced.",
-                                player.getName(), e);
+                                player.getName());
                 move.cancel(true);
                 moves.put(player, Move.STAY);
             }
