@@ -1,9 +1,11 @@
 package org.drooms.gui.swing
 
 import java.awt.Dimension
+import java.awt.Font
 import java.io.File
 import java.util.Timer
 import java.util.TimerTask
+
 import scala.swing.Action
 import scala.swing.BorderPanel
 import scala.swing.BoxPanel
@@ -21,8 +23,11 @@ import scala.swing.ProgressBar
 import scala.swing.Publisher
 import scala.swing.Reactor
 import scala.swing.SimpleSwingApplication
+import scala.swing.Slider
 import scala.swing.SplitPane
 import scala.swing.event.ButtonClicked
+import scala.swing.event.ValueChanged
+
 import org.drooms.gui.swing.event.DroomsEventPublisher
 import org.drooms.gui.swing.event.GameFinished
 import org.drooms.gui.swing.event.GameRestarted
@@ -33,24 +38,10 @@ import org.drooms.gui.swing.event.PlaygroundGridEnabled
 import org.drooms.gui.swing.event.ReplayContinued
 import org.drooms.gui.swing.event.ReplayInitiated
 import org.drooms.gui.swing.event.ReplayPaused
+import org.drooms.gui.swing.event.TurnDelayChanged
 import org.drooms.gui.swing.event.TurnStepPerformed
-import org.drooms.gui.swing.event.ReplayPaused
-import org.drooms.gui.swing.event.ReplayContinued
-import org.drooms.gui.swing.event.ReplayInitiated
-import org.drooms.gui.swing.event.ReplayPaused
-import org.drooms.gui.swing.event.GameRestarted
-import org.drooms.gui.swing.event.ReplayInitiated
-import org.drooms.gui.swing.event.ReplayPaused
-import org.drooms.gui.swing.event.ReplayContinued
-import org.drooms.gui.swing.event.GameRestarted
-import org.drooms.gui.swing.event.NextTurnInitiated
-import org.drooms.gui.swing.event.NextTurnInitiated
-import scala.swing.Slider
-import java.awt.Font
-import scala.swing.event.ValueChanged
-import org.drooms.gui.swing.event.TurnDelayChanged
-import org.drooms.gui.swing.event.TurnDelayChanged
-import org.drooms.gui.swing.event.GameFinished
+
+import javax.swing.filechooser.FileFilter
 
 object DroomsSwingApp extends SimpleSwingApplication {
   val eventPublisher = DroomsEventPublisher.get()
@@ -220,12 +211,22 @@ object DroomsSwingApp extends SimpleSwingApplication {
         nextTurnItem.enabled = true
       }
     }
-
+    var lastUsedDir = new File(System.getProperty("user.dir"))
+    
+    val xmlFileFilter = new FileFilter() {
+      // filter files, because the reports are saved in XML
+      override def accept(f: File): Boolean = {
+        f.getPath().endsWith(".xml")
+      }
+      override def getDescription() = "XML report file"
+    }
     def openGameReport(): Unit = {
-      val fileChooser = new FileChooser(new File(System.getProperty("user.dir")))
+      val fileChooser = new FileChooser(lastUsedDir)
+      fileChooser.fileFilter = xmlFileFilter
       val res = fileChooser.showOpenDialog(this)
       if (res == FileChooser.Result.Approve) {
         val selectedFile = fileChooser.selectedFile
+        lastUsedDir = selectedFile.getParentFile()
         val gameReport = GameReport.loadFromXml(selectedFile)
         eventPublisher.publish(new NewGameReportChosen(gameReport, selectedFile))
       }
