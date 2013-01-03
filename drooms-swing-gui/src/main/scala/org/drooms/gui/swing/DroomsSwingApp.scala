@@ -118,6 +118,11 @@ object DroomsSwingApp extends SimpleSwingApplication {
   }
 
   class MainMenu extends MenuBar {
+    // TODO make this configurable and saved as preference in user's home dir
+    val REPORT_LOCATIONS = List(
+      "../../drooms-game-impl/reports", // in case the app is started from drooms-swing-gui/target
+      "../drooms-game-impl/reports" // in case the app is started from drooms-swing-gui
+      )
     val eventPublisher = DroomsEventPublisher.get()
     listenTo(eventPublisher)
     // file menu
@@ -211,12 +216,21 @@ object DroomsSwingApp extends SimpleSwingApplication {
         nextTurnItem.enabled = true
       }
     }
-    var lastUsedDir = new File(System.getProperty("user.dir"))
-    
+    var lastUsedDir = {
+      var openIn = new File(System.getProperty("user.dir"))
+      for (dirName <- REPORT_LOCATIONS) {
+        val dir = new File(dirName)
+        if (dir.exists()) {
+          openIn = dir
+        }
+      }
+      openIn
+    }
+
     val xmlFileFilter = new FileFilter() {
       // filter files, because the reports are saved in XML
       override def accept(f: File): Boolean = {
-        f.getPath().endsWith(".xml")
+        f.getPath().endsWith(".xml") || f.isDirectory()
       }
       override def getDescription() = "XML report file"
     }
