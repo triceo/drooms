@@ -5,7 +5,6 @@ import java.awt.Font
 import java.io.File
 import java.util.Timer
 import java.util.TimerTask
-
 import scala.swing.Action
 import scala.swing.BorderPanel
 import scala.swing.BoxPanel
@@ -27,7 +26,6 @@ import scala.swing.Slider
 import scala.swing.SplitPane
 import scala.swing.event.ButtonClicked
 import scala.swing.event.ValueChanged
-
 import org.drooms.gui.swing.event.DroomsEventPublisher
 import org.drooms.gui.swing.event.GameFinished
 import org.drooms.gui.swing.event.GameRestarted
@@ -40,8 +38,8 @@ import org.drooms.gui.swing.event.ReplayInitiated
 import org.drooms.gui.swing.event.ReplayPaused
 import org.drooms.gui.swing.event.TurnDelayChanged
 import org.drooms.gui.swing.event.TurnStepPerformed
-
 import javax.swing.filechooser.FileFilter
+import javax.swing.SwingUtilities
 
 object DroomsSwingApp extends SimpleSwingApplication {
   val eventPublisher = DroomsEventPublisher.get()
@@ -110,7 +108,11 @@ object DroomsSwingApp extends SimpleSwingApplication {
     class ScheduleNextTurn extends TimerTask {
       def run(): Unit = {
         if (gameController.hasNextTurn()) {
-          eventPublisher.publish(NextTurnInitiated())
+          SwingUtilities.invokeLater(new Runnable() {
+            override def run(): Unit = {
+              eventPublisher.publish(NextTurnInitiated())
+            }
+          })
         }
       }
     }
