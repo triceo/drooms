@@ -40,6 +40,7 @@ import org.drooms.gui.swing.event.TurnDelayChanged
 import org.drooms.gui.swing.event.TurnStepPerformed
 import javax.swing.filechooser.FileFilter
 import javax.swing.SwingUtilities
+import org.drooms.gui.swing.event.CoordinantsVisibilityChanged
 
 object DroomsSwingApp extends SimpleSwingApplication {
   val eventPublisher = DroomsEventPublisher.get()
@@ -108,7 +109,7 @@ object DroomsSwingApp extends SimpleSwingApplication {
     class ScheduleNextTurn extends TimerTask {
       def run(): Unit = {
         if (gameController.hasNextTurn()) {
-          SwingUtilities.invokeLater(new Runnable() {
+          SwingUtilities.invokeAndWait(new Runnable() {
             override def run(): Unit = {
               eventPublisher.publish(NextTurnInitiated())
             }
@@ -195,15 +196,18 @@ object DroomsSwingApp extends SimpleSwingApplication {
     //      contents += new MenuItem("Settings...")
     //    }
     val showGridItem = new CheckMenuItem("Show grid")
+    val showCoordsItem = new CheckMenuItem("Show axis numbers")
     // playground menu
     contents += new Menu("Playground") {
       contents += showGridItem
+      contents += showCoordsItem
     }
     // help menu
     //    contents += new Menu("Help") {
     //      contents += new MenuItem("About Drooms")
     //    }
     listenTo(showGridItem)
+    listenTo(showCoordsItem)
     reactions += {
       case ButtonClicked(`showGridItem`) => {
         if (showGridItem.selected)
@@ -211,6 +215,10 @@ object DroomsSwingApp extends SimpleSwingApplication {
         else
           eventPublisher.publish(new PlaygroundGridDisabled)
       }
+      case ButtonClicked(`showCoordsItem`) => {
+        eventPublisher.publish(new CoordinantsVisibilityChanged(showCoordsItem.selected))
+      }
+
       case NewGameReportChosen(_, _) => {
         replayItem.enabled = true
         pauseItem.enabled = false

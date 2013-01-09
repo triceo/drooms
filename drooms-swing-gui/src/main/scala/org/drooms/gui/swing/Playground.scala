@@ -19,6 +19,10 @@ import org.drooms.gui.swing.event.DroomsEventPublisher
 import javax.swing.table.DefaultTableModel
 import org.drooms.gui.swing.event.PlaygroundGridEnabled
 import scala.swing.Alignment
+import scala.swing.BoxPanel
+import scala.swing.FlowPanel
+import javax.swing.UIManager
+import org.drooms.gui.swing.event.CoordinantsVisibilityChanged
 
 class Playground extends ScrollPane with Reactor {
   val CELL_SIZE = 15
@@ -26,6 +30,7 @@ class Playground extends ScrollPane with Reactor {
   var cellModel: PlaygroundModel = _
   var table: Option[Table] = None
   val worms: collection.mutable.Set[Worm] = collection.mutable.Set()
+  var showCoords = false
 
   listenTo(eventPublisher)
   reactions += {
@@ -37,6 +42,7 @@ class Playground extends ScrollPane with Reactor {
         cellModel.updatePosition(Empty(node))
       initWorms(gameReport.wormInitPositions)
     }
+
     case TurnStepPerformed(step) =>
       step match {
         case WormMoved(ownerName, nodes) =>
@@ -55,12 +61,12 @@ class Playground extends ScrollPane with Reactor {
   }
 
   def createNew(width: Int, height: Int): Unit = {
-      cellModel = new PlaygroundModel(width, height)
+    cellModel = new PlaygroundModel(width, height)
     // plus two in each direction (x and y) for border around the playground
-    val actualTableWidth = width + 2
-    val actualTableHeight = height + 2
+    val actualTableWidth = width + 2 + 1 // +2 for wall border and +1 for coordinate numbers
+    val actualTableHeight = height + 2 + 1 // +2 for wall border and +1 for coordinate numbers
     table = Some(new Table(actualTableWidth, actualTableHeight) {
-      val widthPixels = CELL_SIZE * actualTableWidth - 1   // minus one so the line at the end is not rendered
+      val widthPixels = CELL_SIZE * actualTableWidth - 1 // minus one so the line at the end is not rendered
       val heightPixels = CELL_SIZE * actualTableHeight - 1 // minus one so the line at the end is not rendered
       preferredSize = new Dimension(widthPixels, heightPixels)
       rowHeight = CELL_SIZE
@@ -77,20 +83,43 @@ class Playground extends ScrollPane with Reactor {
       peer.setIntercellSpacing(new Dimension(0, 0))
       lazy val wallIcon = createImageIcon("/images/brick-wall-small.png", "Wall")
       lazy val bonusIcon = createImageIcon("/images/strawberry-icon.png", "Bonus")
-
+      val emptyComponent = new FlowPanel {
+        // just empty space
+      }
+      // table has (0,0) in left upper corner, we have (0,0) in left down corner -> we need to translate the 
+      // coordinants accordingly
       override def rendererComponent(isSelected: Boolean, hasFocus: Boolean, row: Int, col: Int): Component = {
         val wallLabel = new Label("") {
           icon = wallIcon
         }
-        // border around playground
-        if (col == 0 || row == 0 || col > width || row > height) {
+        if (col == 0) {
+          if (showCoords && row <= actualTableHeight - 3 && row > 0) {
+            new Label(actualTableHeight - row - 3 + "") {
+              opaque = true
+              background = UIManager.getColor("Panel.background")
+              font = new Font("Serif", Font.BOLD, 10)
+            }
+          } else {
+            // just empty space
+            emptyComponent
+          }
+        } else if (row == actualTableHeight - 1) {
+          if (showCoords && col >= 2 && col < actualTableWidth - 1) {
+            new Label(col - 2 + "") {
+              opaque = true
+              background = UIManager.getColor("Panel.background")
+              font = new Font("Serif", Font.BOLD, 8)
+            }
+          } else {
+            emptyComponent
+          }
+        } // border around playground
+        else if (col == 1 || row == 0 || col == actualTableWidth - 1 || row == actualTableHeight - 2) {
           wallLabel
         } else {
-          val node = cellModel.positions(col - 1)(row - 1)
-          val cell = node match {
-            case Empty(_) => new Label() {
-              //icon = emptyIcon
-            }
+          val pos = cellModel.positions(col - 2)(actualTableHeight - row - 3)
+          val cell = pos match {
+            case Empty(_) => emptyComponent
             case WormPiece(_, wormType, playerName) => new Label() {
               opaque = true
               background = PlayersList.get().getPlayer(playerName).color
@@ -103,22 +132,36 @@ class Playground extends ScrollPane with Reactor {
             case Wall(_) => wallLabel
 
             case Collectible(_, _, p) => new Label(p + "") {
+              opaque = true
               font = new Font("Serif", Font.BOLD, 10)
               icon = bonusIcon
+              background = UIManager.getColor("Panel.background")
               verticalTextPosition = Alignment.Center
               horizontalTextPosition = Alignment.Center
             }
           }
-          if (isSelected) {
-            cell.border = BorderFactory.createLineBorder(Color.black)
-          }
+          cell.tooltip = (pos.node.x + "," + pos.node.y)
           cell
         }
       }
     })
     reactions += {
       case PositionChanged(position) =>
-        table.get.updateCell(position.node.y + 1, position.node.x + 1) // y == row and x == col
+        table.get.updateCell(actualTableHeight - 1 - position.node.y - 2, position.node.x + 2) // y == row and x == col
+      // starting from 0 to actualTableHeight -1 and need to subtract the current position and -2 for number and wall down
+      case CoordinantsVisibilityChanged(value) => {
+        showCoords = value
+        // update the table, so the headers are painted
+        table match {
+          case Some(table) => {
+            for(i <- 0 until actualTableWidth)
+                table.updateCell(actualTableHeight - 1, i)
+            for(j <- 0 until actualTableHeight)
+              table.updateCell(j, 0)
+          }
+          case None =>
+        }
+      }
     }
 
     viewportView = new GridBagPanel {

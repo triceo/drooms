@@ -22,4 +22,5 @@ case class ReplayInitiated extends Event
 case class ReplayPaused extends Event
 case class ReplayContinued extends Event
 case class TurnDelayChanged(val value: Int) extends Event
+case class CoordinantsVisibilityChanged(val value: Boolean) extends Event
 
