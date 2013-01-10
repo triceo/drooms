@@ -86,77 +86,104 @@ class Playground extends ScrollPane with Reactor {
       val emptyComponent = new FlowPanel {
         // just empty space
       }
-      // table has (0,0) in left upper corner, we have (0,0) in left down corner -> we need to translate the 
-      // coordinants accordingly
+      trait CellType
+      object Blank extends CellType
+      object Border extends CellType
+      object AxisXNumber extends CellType
+      object AxisYNumber extends CellType
+      object PlaygroundCell extends CellType
+
+      // table has (0,0) in left upper corner, model has (0,0) in left down corner -> we need to translate the 
+      // coordinates accordingly
       override def rendererComponent(isSelected: Boolean, hasFocus: Boolean, row: Int, col: Int): Component = {
+        def determineCellType(row: Int, col: Int): CellType = {
+          // numbers on Y axis
+          if (col == 0) {
+            if (showCoords && row <= actualTableHeight - 3 && row > 0)
+              AxisYNumber
+            else
+              Blank
+          } else if (row == actualTableHeight - 1) { // number on X axis
+            if (showCoords && col >= 2 && col < actualTableWidth - 1)
+              AxisXNumber
+            else
+              Blank
+          } else if (col == 1 || row == 0 || col == actualTableWidth - 1 || row == actualTableHeight - 2) { // border around the playground
+            // second column | first row | last column | last row - 1
+            Border
+          } else {
+            PlaygroundCell
+          }
+        }
+        
         val wallLabel = new Label("") {
           icon = wallIcon
         }
-        if (col == 0) {
-          if (showCoords && row <= actualTableHeight - 3 && row > 0) {
+        val cellType = determineCellType(row, col)
+        cellType match {
+          case Blank => emptyComponent
+          case Border => wallLabel
+          case AxisYNumber => {
+            // number on Y axis
             new Label(actualTableHeight - row - 3 + "") {
               opaque = true
               background = UIManager.getColor("Panel.background")
               font = new Font("Serif", Font.BOLD, 10)
+
             }
-          } else {
-            // just empty space
-            emptyComponent
           }
-        } else if (row == actualTableHeight - 1) {
-          if (showCoords && col >= 2 && col < actualTableWidth - 1) {
+          case AxisXNumber => {
+            // number on X axis
+            // start numbering from the second col, so the 0,0 points to correct cell
             new Label(col - 2 + "") {
               opaque = true
               background = UIManager.getColor("Panel.background")
               font = new Font("Serif", Font.BOLD, 8)
             }
-          } else {
-            emptyComponent
           }
-        } // border around playground
-        else if (col == 1 || row == 0 || col == actualTableWidth - 1 || row == actualTableHeight - 2) {
-          wallLabel
-        } else {
-          val pos = cellModel.positions(col - 2)(actualTableHeight - row - 3)
-          val cell = pos match {
-            case Empty(_) => emptyComponent
-            case WormPiece(_, wormType, playerName) => new Label() {
-              opaque = true
-              background = PlayersList.get().getPlayer(playerName).color
-              border = BorderFactory.createRaisedBevelBorder()
-              if (wormType == "Head") {
-                //border = BorderFactory.createLoweredBevelBorder()
-                text = "\u25CF"
+          case PlaygroundCell => {
+            val pos = cellModel.positions(col - 2)(actualTableHeight - row - 3)
+            val cell = pos match {
+              case Empty(_) => emptyComponent
+              case WormPiece(_, wormType, playerName) => new Label() {
+                opaque = true
+                background = PlayersList.get().getPlayer(playerName).color
+                border = BorderFactory.createRaisedBevelBorder()
+                if (wormType == "Head") {
+                  //border = BorderFactory.createLoweredBevelBorder()
+                  text = "\u25CF" // full circle
+                }
+              }
+              case Wall(_) => wallLabel
+
+              case Collectible(_, _, p) => new Label(p + "") {
+                opaque = true
+                font = new Font("Serif", Font.BOLD, 10)
+                icon = bonusIcon
+                background = UIManager.getColor("Panel.background")
+                verticalTextPosition = Alignment.Center
+                horizontalTextPosition = Alignment.Center
               }
             }
-            case Wall(_) => wallLabel
-
-            case Collectible(_, _, p) => new Label(p + "") {
-              opaque = true
-              font = new Font("Serif", Font.BOLD, 10)
-              icon = bonusIcon
-              background = UIManager.getColor("Panel.background")
-              verticalTextPosition = Alignment.Center
-              horizontalTextPosition = Alignment.Center
-            }
+            cell.tooltip = (pos.node.x + "," + pos.node.y)
+            cell
           }
-          cell.tooltip = (pos.node.x + "," + pos.node.y)
-          cell
         }
       }
     })
     reactions += {
       case PositionChanged(position) =>
+        // Y-axis numbering in playground model and talbe is reversed  
+        // starting from 0 to actualTableHeight -1 and need to subtract the current position and -2 for number and wall down
         table.get.updateCell(actualTableHeight - 1 - position.node.y - 2, position.node.x + 2) // y == row and x == col
-      // starting from 0 to actualTableHeight -1 and need to subtract the current position and -2 for number and wall down
       case CoordinantsVisibilityChanged(value) => {
         showCoords = value
         // update the table, so the headers are painted
         table match {
           case Some(table) => {
-            for(i <- 0 until actualTableWidth)
-                table.updateCell(actualTableHeight - 1, i)
-            for(j <- 0 until actualTableHeight)
+            for (i <- 0 until actualTableWidth)
+              table.updateCell(actualTableHeight - 1, i)
+            for (j <- 0 until actualTableHeight)
               table.updateCell(j, 0)
           }
           case None =>
