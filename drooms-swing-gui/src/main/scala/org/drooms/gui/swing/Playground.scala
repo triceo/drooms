@@ -59,13 +59,15 @@ class Playground extends ScrollPane with Reactor {
         case _ => new RuntimeException("Unrecognized TurnStep: " + step)
       }
   }
-
+  var actualTableWidth: Int = _
+  var actualTableHeight: Int =_
+  
   def createNew(width: Int, height: Int): Unit = {
     cellModel = new PlaygroundModel(width, height)
     // plus two in each direction (x and y) for border around the playground
-    val actualTableWidth = width + 2 + 1 // +2 for wall border and +1 for coordinate numbers
-    val actualTableHeight = height + 2 + 1 // +2 for wall border and +1 for coordinate numbers
-    table = Some(new Table(actualTableWidth, actualTableHeight) {
+    actualTableWidth = width + 2 + 1 // +2 for wall border and +1 for coordinate numbers
+    actualTableHeight = height + 2 + 1 // +2 for wall border and +1 for coordinate numbers
+    table = Some(new Table(actualTableHeight, actualTableWidth) {
       val widthPixels = CELL_SIZE * actualTableWidth - 1 // minus one so the line at the end is not rendered
       val heightPixels = CELL_SIZE * actualTableHeight - 1 // minus one so the line at the end is not rendered
       preferredSize = new Dimension(widthPixels, heightPixels)
@@ -173,7 +175,7 @@ class Playground extends ScrollPane with Reactor {
     })
     reactions += {
       case PositionChanged(position) =>
-        // Y-axis numbering in playground model and talbe is reversed  
+        // Y-axis numbering in playground model and table is reversed  
         // starting from 0 to actualTableHeight -1 and need to subtract the current position and -2 for number and wall down
         table.get.updateCell(actualTableHeight - 1 - position.node.y - 2, position.node.x + 2) // y == row and x == col
       case CoordinantsVisibilityChanged(value) => {
