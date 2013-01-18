@@ -32,6 +32,8 @@ public class UnweightedAStarShortestPath<V extends Node, E extends Edge>
 
     private final DistanceHeuristic<V> heuristics;
 
+    private final Map<V, Map<V, List<V>>> shortestPaths = new HashMap<>();
+
     public UnweightedAStarShortestPath(final Graph<V, E> graph,
             final VertexDistanceHeuristics heuristicType) {
         this.graph = graph;
@@ -92,11 +94,11 @@ public class UnweightedAStarShortestPath<V extends Node, E extends Edge>
         return Collections.unmodifiableList(new ArrayList<V>());
     }
 
-    public AStarNode<V> getAStarNode(final V node) {
+    private AStarNode<V> getAStarNode(final V node) {
         return this.getAStarNode(node, new AStarNode<V>(node, 0, 0));
     }
 
-    public AStarNode<V> getAStarNode(final V node,
+    private AStarNode<V> getAStarNode(final V node,
             final AStarNode<V> returnIfNonexistent) {
         if (!this.nodeCache.containsKey(node)) {
             this.nodeCache.put(node, returnIfNonexistent);
@@ -110,8 +112,26 @@ public class UnweightedAStarShortestPath<V extends Node, E extends Edge>
 
     @Override
     public Map<V, E> getIncomingEdgeMap(final V source) {
-        // TODO Auto-generated method stub
-        return null;
+        if (!this.shortestPaths.containsKey(source)) {
+            this.shortestPaths.put(source, new HashMap<V, List<V>>());
+        }
+        final Map<V, List<V>> relevantPaths = this.shortestPaths.get(source);
+        final Map<V, E> result = new HashMap<>();
+        for (final V target : this.graph.getVertices()) {
+            if (target == source) {
+                continue;
+            }
+            if (!relevantPaths.containsKey(target)) {
+                relevantPaths.put(target, this.find(source, target));
+            }
+            final List<V> path = relevantPaths.get(target);
+            if (path.size() == 0) {
+                continue;
+            }
+            final V next = path.get(1);
+            result.put(next, this.graph.findEdge(source, next));
+        }
+        return Collections.unmodifiableMap(result);
     }
 
     private List<V> reconstructPath(
