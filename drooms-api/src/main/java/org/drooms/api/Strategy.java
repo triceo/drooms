@@ -3,13 +3,17 @@ package org.drooms.api;
 import org.drools.KnowledgeBase;
 import org.drools.builder.KnowledgeBuilder;
 
+import edu.uci.ics.jung.algorithms.shortestpath.UnweightedShortestPath;
+
 /**
  * Represents a {@link Player}'s strategy for a worm to move around on a
  * {@link Playground}. This strategy should be implemented as a set of Drools
  * business rules.
  * 
  * This is the interface that competitors should implement in order to enter in
- * the game.
+ * the game. If your strategy depends on a particular path-finding algorithm,
+ * you need to implement {@link CustomPathBasedStrategy}. Otherwise,
+ * {@link UnweightedShortestPath} will be used.
  */
 public interface Strategy {
 

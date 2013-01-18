@@ -17,7 +17,6 @@ import org.drooms.api.Playground;
 
 import edu.uci.ics.jung.algorithms.shortestpath.ShortestPath;
 import edu.uci.ics.jung.algorithms.shortestpath.ShortestPathUtils;
-import edu.uci.ics.jung.algorithms.shortestpath.UnweightedShortestPath;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 
@@ -156,8 +155,8 @@ public class PathTracker {
                 .getGraph();
         this.currentGraph = PathTracker.cloneGraph(graphWithoutPlayers,
                 unavailable);
-        this.currentPath = new UnweightedShortestPath<Node, Edge>(
-                this.currentGraph);
+        this.currentPath = this.player
+                .getShortestPathAlgorithm(this.currentGraph);
         this.currentPosition = newPositions.get(this.player).getFirst();
     }
 

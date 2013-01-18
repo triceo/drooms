@@ -5,9 +5,13 @@ import java.util.Collection;
 import org.drools.KnowledgeBase;
 import org.drools.KnowledgeBaseConfiguration;
 import org.drools.KnowledgeBaseFactory;
+import org.drools.builder.KnowledgeBuilder;
 import org.drools.conf.EventProcessingOption;
 import org.drools.conf.PermGenThresholdOption;
 import org.drools.definition.KnowledgePackage;
+
+import edu.uci.ics.jung.algorithms.shortestpath.ShortestPath;
+import edu.uci.ics.jung.graph.Graph;
 
 /**
  * Represents a worm in the {@link Game} on the {@link Playground}.
@@ -15,6 +19,7 @@ import org.drools.definition.KnowledgePackage;
 public class Player {
 
     private final String name;
+    private final CustomPathBasedStrategy strategy;
     private final Collection<KnowledgePackage> packages;
     private final ClassLoader classLoader;
 
@@ -23,19 +28,40 @@ public class Player {
      * 
      * @param name
      *            Name of the player.
-     * @param knowledgePackages
-     *            Rules that implement the player's strategy.
+     * @param strategy
+     *            Strategy of the player.
      * @param strategyClassLoader
      *            Class loader used to load player's strategy.
      */
-    public Player(final String name, final Collection<KnowledgePackage> knowledgePackages, final ClassLoader strategyClassLoader) {
-        if (name == null || knowledgePackages == null || strategyClassLoader == null) {
+    public Player(final String name, final CustomPathBasedStrategy strategy,
+            final ClassLoader strategyClassLoader) {
+        if (name == null || strategy == null || strategyClassLoader == null) {
             throw new IllegalArgumentException(
                     "None of the parameters can be null.");
         }
+        final KnowledgeBuilder kb = strategy
+                .getKnowledgeBuilder(strategyClassLoader);
+        this.packages = kb.getKnowledgePackages();
+        this.strategy = strategy;
         this.name = name;
-        this.packages = knowledgePackages;
         this.classLoader = strategyClassLoader;
+    }
+
+    /**
+     * Retrieve the player's strategy.
+     * 
+     * @return The strategy.
+     */
+    public KnowledgeBase constructKnowledgeBase() {
+        final KnowledgeBaseConfiguration kbconf = KnowledgeBaseFactory
+                .newKnowledgeBaseConfiguration(null, this.classLoader);
+        kbconf.setOption(PermGenThresholdOption.get(0)); // workaround for
+                                                         // https://github.com/triceo/drooms/issues/3
+        kbconf.setOption(EventProcessingOption.STREAM);
+        final KnowledgeBase kbase = KnowledgeBaseFactory
+                .newKnowledgeBase(kbconf);
+        kbase.addKnowledgePackages(this.packages);
+        return kbase;
     }
 
     @Override
@@ -61,26 +87,21 @@ public class Player {
     }
 
     /**
-     * Retrieve the player's strategy.
-     * 
-     * @return The strategy.
-     */
-    public KnowledgeBase constructKnowledgeBase() {
-        KnowledgeBaseConfiguration kbconf = KnowledgeBaseFactory.newKnowledgeBaseConfiguration(null, classLoader);
-        kbconf.setOption(PermGenThresholdOption.get(0)); // workaround for https://github.com/triceo/drooms/issues/3
-        kbconf.setOption(EventProcessingOption.STREAM);
-        KnowledgeBase kbase = KnowledgeBaseFactory.newKnowledgeBase(kbconf);
-        kbase.addKnowledgePackages(packages);
-        return kbase;
-    }
-
-    /**
      * Retrieve the player's name.
      * 
      * @return The name.
      */
     public String getName() {
         return this.name;
+    }
+
+    /**
+     * See {@link CustomPathBasedStrategy#getShortestPathAlgorithm(Graph)}. This
+     * method just relays there.
+     */
+    public ShortestPath<Node, Edge> getShortestPathAlgorithm(
+            final Graph<Node, Edge> graph) {
+        return this.strategy.getShortestPathAlgorithm(graph);
     }
 
     @Override

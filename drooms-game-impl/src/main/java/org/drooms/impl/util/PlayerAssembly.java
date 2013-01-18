@@ -17,15 +17,73 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.drools.builder.KnowledgeBuilder;
+import org.drooms.api.CustomPathBasedStrategy;
+import org.drooms.api.Edge;
+import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.api.Strategy;
 import org.drooms.impl.GameController;
+
+import edu.uci.ics.jung.algorithms.shortestpath.ShortestPath;
+import edu.uci.ics.jung.algorithms.shortestpath.UnweightedShortestPath;
+import edu.uci.ics.jung.graph.Graph;
 
 /**
  * A helper class to load {@link Strategy} implementations. for all requested
  * {@link Player}s.
  */
 public class PlayerAssembly {
+
+    private static class DefaultPathBasedStrategy implements
+            CustomPathBasedStrategy {
+
+        private final Strategy strategy;
+
+        public DefaultPathBasedStrategy(
+                final Strategy nonCustomPathBasedStrategy) {
+            if (nonCustomPathBasedStrategy == null) {
+                throw new IllegalArgumentException(
+                        "The strategy may not be null!");
+            }
+            if (nonCustomPathBasedStrategy instanceof CustomPathBasedStrategy) {
+                throw new IllegalArgumentException(
+                        "The strategy must not provide its own path-finding algorithm!");
+            }
+            this.strategy = nonCustomPathBasedStrategy;
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+            return this.strategy.equals(obj);
+        }
+
+        @Override
+        public KnowledgeBuilder getKnowledgeBuilder(final ClassLoader cls) {
+            return this.strategy.getKnowledgeBuilder(cls);
+        }
+
+        @Override
+        public String getName() {
+            return this.strategy.getName();
+        }
+
+        @Override
+        public ShortestPath<Node, Edge> getShortestPathAlgorithm(
+                final Graph<Node, Edge> graph) {
+            return new UnweightedShortestPath<>(graph);
+        }
+
+        @Override
+        public int hashCode() {
+            return this.strategy.hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return this.strategy.toString();
+        }
+
+    }
 
     private static URL uriToUrl(final URI uri) {
         try {
@@ -99,16 +157,23 @@ public class PlayerAssembly {
             final String playerName = entry.getKey();
             final String strategyClass = entry.getValue();
             final URI strategyJar = strategyJars.get(strategyClass);
-            Strategy strategy;
+            CustomPathBasedStrategy strategy;
             try {
-                strategy = this.loadStrategy(strategyClass, strategyJar);
+                final Strategy s = this
+                        .loadStrategy(strategyClass, strategyJar);
+                if (s instanceof CustomPathBasedStrategy) {
+                    strategy = (CustomPathBasedStrategy) s;
+                } else {
+                    // if the strategy doesn't care about path, provide the
+                    // default one
+                    strategy = new DefaultPathBasedStrategy(s);
+                }
             } catch (final Exception e) {
                 throw new IllegalArgumentException("Failed loading: "
                         + strategyClass, e);
             }
-            final ClassLoader cl = this.loadJar(strategyJar);
-            final KnowledgeBuilder kb = strategy.getKnowledgeBuilder(cl);
-            players.add(new Player(playerName, kb.getKnowledgePackages(), cl));
+            players.add(new Player(playerName, strategy, this
+                    .loadJar(strategyJar)));
         }
         Collections.shuffle(players, new SecureRandom());
         return Collections.unmodifiableList(players);
