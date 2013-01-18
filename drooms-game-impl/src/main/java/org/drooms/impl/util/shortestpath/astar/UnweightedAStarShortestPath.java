@@ -16,14 +16,26 @@ import org.drooms.api.Node;
 import edu.uci.ics.jung.algorithms.shortestpath.ShortestPath;
 import edu.uci.ics.jung.graph.Graph;
 
+/**
+ * Implements the A* algorithm with various choices of distance-estimating
+ * heuristics. All edges are considered to have the same weight, that is 1.
+ * 
+ * @param <V>
+ *            Vertex.
+ * @param <E>
+ *            Edge.
+ */
 public class UnweightedAStarShortestPath<V extends Node, E extends Edge>
         implements ShortestPath<V, E> {
 
-    public enum VertexDistanceHeuristics {
+    public static enum VertexDistanceHeuristics {
 
         MANHATTAN, EUCLIDEAN, CHEBYSHEV;
     }
 
+    /**
+     * Unweighted.
+     */
     private static final int DISTANCE_BETWEEN_NEIGHBORS = 1;
 
     private final Graph<V, E> graph;
@@ -34,6 +46,14 @@ public class UnweightedAStarShortestPath<V extends Node, E extends Edge>
 
     private final Map<V, Map<V, List<V>>> shortestPaths = new HashMap<>();
 
+    /**
+     * Prepare the algorithm.
+     * 
+     * @param graph
+     *            The graph to run queries on.
+     * @param heuristicType
+     *            Type of the distance estimation heuristic to use.
+     */
     public UnweightedAStarShortestPath(final Graph<V, E> graph,
             final VertexDistanceHeuristics heuristicType) {
         this.graph = graph;
@@ -53,6 +73,15 @@ public class UnweightedAStarShortestPath<V extends Node, E extends Edge>
         }
     }
 
+    /**
+     * Find the shortest path between two nodes. Doesn't cache results.
+     * 
+     * @param source
+     *            Source vertex.
+     * @param target
+     *            Target vertex.
+     * @return Unmodifiable. Empty when no path.
+     */
     public List<V> find(final V source, final V target) {
         // prepare the data structures
         final Set<V> closedSet = new HashSet<>();
@@ -66,7 +95,8 @@ public class UnweightedAStarShortestPath<V extends Node, E extends Edge>
         while (!openSet.isEmpty()) {
             final AStarNode<V> current = openSet.first();
             if (current.getNode() == target) {
-                return this.reconstructPath(cameFrom, current);
+                return Collections.unmodifiableList(this.reconstructPath(
+                        cameFrom, current));
             }
             openSet.remove(current);
             closedSet.add(current.getNode());
