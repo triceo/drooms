@@ -10,9 +10,9 @@ import org.drooms.api.Strategy;
  * This is an example strategy. It makes its moves by random choice, but makes
  * sure it doesn't hit a wall.
  */
-public class RandomNonSuicidalStrategy implements Strategy {
+public class RandomStrategy implements Strategy {
 
-    public RandomNonSuicidalStrategy() {
+    public RandomStrategy() {
         // do nothing
     }
 
@@ -20,13 +20,13 @@ public class RandomNonSuicidalStrategy implements Strategy {
     public KnowledgeBuilder getKnowledgeBuilder(final ClassLoader cls) {
         final KnowledgeBuilder kb = KnowledgeBuilderFactory
                 .newKnowledgeBuilder();
-        kb.add(ResourceFactory.newClassPathResource("random-nonsuicidal.drl",
+        kb.add(ResourceFactory.newClassPathResource("random.drl",
                 cls), ResourceType.DRL);
         return kb;
     }
 
     @Override
     public String getName() {
-        return "Random Non-Suicidal";
+        return "Random";
     }
 }

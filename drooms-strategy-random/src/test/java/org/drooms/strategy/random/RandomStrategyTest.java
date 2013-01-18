@@ -3,12 +3,12 @@ package org.drooms.strategy.random;
 import org.drooms.api.Strategy;
 import org.drooms.impl.util.DroomsTestHelper;
 
-public class NonSuicidalStrategyTest extends DroomsTestHelper {
+public class RandomStrategyTest extends DroomsTestHelper {
 
     private final Strategy strategy;
     
-    public NonSuicidalStrategyTest() {
-        this.strategy = new RandomNonSuicidalStrategy();
+    public RandomStrategyTest() {
+        this.strategy = new RandomStrategy();
     }
     
     @Override
