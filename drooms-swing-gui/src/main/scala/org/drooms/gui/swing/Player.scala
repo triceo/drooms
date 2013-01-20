@@ -2,6 +2,9 @@ package org.drooms.gui.swing
 
 import java.awt.Color
 
+/** 
+ * Represents player. Each player has a unique name, current score value and color.
+ */
 class Player(val name: String, var score: Int, var color: Color) {
   def this(name: String) = this(name, 0, PlayerColors.DEFAULT_COLOR)
 

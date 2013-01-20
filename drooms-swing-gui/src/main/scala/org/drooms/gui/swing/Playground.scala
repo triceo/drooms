@@ -238,10 +238,10 @@ class Playground extends ScrollPane with Reactor {
       }
 
       /**
-       * Updates the wom only if the underlaying node is empty or collectible == eligible to be occupied by current worm
+       * Updates the wom only if the underlaying node is empty or collectible, meaning eligible to be occupied by current worm
        */
       def updateWormIfLegal(node: Node, ownerName: String, wormType: String): Unit = {
-        // we can only update Empty nodes and Collectibles, if the worm crashed into wall or other worm piece must not be updated!
+        // we can only update Empty nodes and Collectibles, if the worm crashed into wall or other worm, piece must not be updated!
         cellModel.positions(node.x)(node.y) match {
           case Empty(node) =>
             updateWorm(ownerName, new WormPiece(node, wormType, ownerName))
