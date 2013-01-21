@@ -7,8 +7,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Properties;
 import java.util.SortedMap;
 
@@ -24,16 +27,14 @@ import org.slf4j.LoggerFactory;
 
 public class DroomsTournament {
 
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(DroomsTournament.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DroomsTournament.class);
 
     @SuppressWarnings("unchecked")
     private static Class<? extends Game> getGameImpl(final String id) {
         try {
             return (Class<? extends Game>) Class.forName(id);
         } catch (final ClassNotFoundException e) {
-            throw new IllegalArgumentException(
-                    "Cannot instantiate game class.", e);
+            throw new IllegalArgumentException("Cannot instantiate game class.", e);
         }
     }
 
@@ -63,12 +64,10 @@ public class DroomsTournament {
         // load players
         final Properties props = DroomsTournament.loadFromFile(config);
         if (props == null) {
-            throw new IllegalStateException(
-                    "Failed reading tournament config file.");
+            throw new IllegalStateException("Failed reading tournament config file.");
         }
         final File playerConfigFile = new File(props.getProperty("players"));
-        final Collection<Player> players = new PlayerAssembly(playerConfigFile)
-                .assemblePlayers();
+        final Collection<Player> players = new PlayerAssembly(playerConfigFile).assemblePlayers();
         // load report folder
         final String id = DroomsTournament.getTimestamp();
         final File reports = new File("target/reports/tournaments/" + id);
@@ -76,58 +75,45 @@ public class DroomsTournament {
             reports.mkdirs();
         }
         // load game class
-        final Class<? extends Game> game = DroomsTournament.getGameImpl(props
-                .getProperty("game.class"));
+        final Class<? extends Game> game = DroomsTournament.getGameImpl(props.getProperty("game.class"));
         // prepare a result tracker
-        final TournamentResults result = new DroomsTournamentResults(id,
-                players);
+        final TournamentResults result = new DroomsTournamentResults(id, players);
         // for each playground...
-        final String[] playgroundNames = props.getProperty("playgrounds")
-                .split("\\Q,\\E");
+        final String[] playgroundNames = props.getProperty("playgrounds").split("\\Q,\\E");
         for (final String playgroundName : playgroundNames) {
             // load playground
-            final File playgroundFile = new File("src/main/resources",
-                    playgroundName + ".playground");
+            final File playgroundFile = new File("src/main/resources", playgroundName + ".playground");
             Playground p = null;
             try (InputStream is = new FileInputStream(playgroundFile)) {
                 p = DefaultPlayground.read(is);
             } catch (final IOException e) {
-                throw new IllegalStateException("Cannot read playground file "
-                        + playgroundFile, e);
+                throw new IllegalStateException("Cannot read playground file " + playgroundFile, e);
             }
             // load game properties
-            final File propsFile = new File("src/main/resources",
-                    playgroundName + ".cfg");
-            final Properties gameProps = DroomsTournament
-                    .loadFromFile(propsFile);
+            final File propsFile = new File("src/main/resources", playgroundName + ".cfg");
+            final Properties gameProps = DroomsTournament.loadFromFile(propsFile);
             if (gameProps == null) {
-                throw new IllegalStateException(
-                        "Failed reading game config file for playgrond: "
-                                + playgroundName);
+                throw new IllegalStateException("Failed reading game config file for playgrond: " + playgroundName);
             }
             // run N games on the playground
-            DroomsTournament.LOGGER.info("Starting games on playground {}.",
-                    playgroundName);
-            final DroomsGame dg = new DroomsGame(game, p, players, gameProps,
-                    reports);
+            DroomsTournament.LOGGER.info("Starting games on playground {}.", playgroundName);
             for (int i = 1; i <= Integer.valueOf(props.getProperty("runs")); i++) {
-                DroomsTournament.LOGGER.info(
-                        "Starting game #{} on playground {}.", i,
-                        playgroundName);
-                result.addResults(playgroundName,
-                        dg.play(playgroundName + "_" + i));
+                DroomsTournament.LOGGER.info("Starting game #{} on playground {}.", i, playgroundName);
+                // randomize player order
+                final List<Player> randomPlayers = new ArrayList<>(players);
+                Collections.shuffle(randomPlayers);
+                // play the game
+                final DroomsGame dg = new DroomsGame(game, p, randomPlayers, gameProps, reports);
+                result.addResults(playgroundName, dg.play(playgroundName + "_" + i));
             }
         }
         System.out.println("Tournament results:");
         int i = 1;
-        for (final SortedMap.Entry<Long, Collection<Player>> entry : result
-                .evaluate().entrySet()) {
-            System.out.println("#" + i + " with " + entry.getKey()
-                    + " points: " + entry.getValue());
+        for (final SortedMap.Entry<Long, Collection<Player>> entry : result.evaluate().entrySet()) {
+            System.out.println("#" + i + " with " + entry.getKey() + " points: " + entry.getValue());
             i++;
         }
-        try (BufferedWriter w = new BufferedWriter(new FileWriter(new File(
-                reports, "report.html")))) {
+        try (BufferedWriter w = new BufferedWriter(new FileWriter(new File(reports, "report.html")))) {
             result.write(w);
         } catch (final IOException e) {
             // FIXME do something here

@@ -7,7 +7,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -29,25 +28,21 @@ import edu.uci.ics.jung.algorithms.shortestpath.UnweightedShortestPath;
 import edu.uci.ics.jung.graph.Graph;
 
 /**
- * A helper class to load {@link Strategy} implementations. for all requested
+ * A helper class to load {@link Strategy} implementations for all requested
  * {@link Player}s.
  */
 public class PlayerAssembly {
 
-    private static class DefaultPathBasedStrategy implements
-            CustomPathBasedStrategy {
+    private static class DefaultPathBasedStrategy implements CustomPathBasedStrategy {
 
         private final Strategy strategy;
 
-        public DefaultPathBasedStrategy(
-                final Strategy nonCustomPathBasedStrategy) {
+        public DefaultPathBasedStrategy(final Strategy nonCustomPathBasedStrategy) {
             if (nonCustomPathBasedStrategy == null) {
-                throw new IllegalArgumentException(
-                        "The strategy may not be null!");
+                throw new IllegalArgumentException("The strategy may not be null!");
             }
             if (nonCustomPathBasedStrategy instanceof CustomPathBasedStrategy) {
-                throw new IllegalArgumentException(
-                        "The strategy must not provide its own path-finding algorithm!");
+                throw new IllegalArgumentException("The strategy must not provide its own path-finding algorithm!");
             }
             this.strategy = nonCustomPathBasedStrategy;
         }
@@ -68,8 +63,7 @@ public class PlayerAssembly {
         }
 
         @Override
-        public ShortestPath<Node, Edge> getShortestPathAlgorithm(
-                final Graph<Node, Edge> graph) {
+        public ShortestPath<Node, Edge> getShortestPathAlgorithm(final Graph<Node, Edge> graph) {
             return new UnweightedShortestPath<>(graph);
         }
 
@@ -112,8 +106,7 @@ public class PlayerAssembly {
             this.config = new Properties();
             this.config.load(fr);
         } catch (final Exception e) {
-            throw new IllegalArgumentException(
-                    "Cannot read player config file.", e);
+            throw new IllegalArgumentException("Cannot read player config file.", e);
         }
     }
 
@@ -121,10 +114,10 @@ public class PlayerAssembly {
      * Perform all the strategy resolution and return a list of fully
      * initialized players.
      * 
-     * @return The unmodifiable collection of players, in a totally randomized
-     *         order.
+     * @return The unmodifiable collection of players, in the order in which
+     *         they come up in the data file.
      */
-    public Collection<Player> assemblePlayers() {
+    public List<Player> assemblePlayers() {
         // parse a list of players
         final Map<String, String> playerStrategies = new HashMap<>();
         final Map<String, URI> strategyJars = new HashMap<>();
@@ -132,35 +125,29 @@ public class PlayerAssembly {
             final String strategyDescr = this.config.getProperty(playerName);
             final String[] parts = strategyDescr.split("\\Q@\\E");
             if (parts.length != 2) {
-                throw new IllegalArgumentException(
-                        "Invalid strategy descriptor: " + strategyDescr);
+                throw new IllegalArgumentException("Invalid strategy descriptor: " + strategyDescr);
             }
             final String strategyClass = parts[0];
             if (strategyClass.startsWith("org.drooms.impl.")) {
-                throw new IllegalStateException(
-                        "Strategy musn't belong to the game implementation package.");
+                throw new IllegalStateException("Strategy musn't belong to the game implementation package.");
             }
             try {
                 final URI strategyJar = new URI(parts[1]);
                 playerStrategies.put(playerName, strategyClass);
                 strategyJars.put(strategyClass, strategyJar);
             } catch (final URISyntaxException e) {
-                throw new IllegalArgumentException(
-                        "Invalid URL in the strategy descriptor: "
-                                + strategyDescr, e);
+                throw new IllegalArgumentException("Invalid URL in the strategy descriptor: " + strategyDescr, e);
             }
         }
         // load strategies for players
         final List<Player> players = new ArrayList<>();
-        for (final Map.Entry<String, String> entry : playerStrategies
-                .entrySet()) {
+        for (final Map.Entry<String, String> entry : playerStrategies.entrySet()) {
             final String playerName = entry.getKey();
             final String strategyClass = entry.getValue();
             final URI strategyJar = strategyJars.get(strategyClass);
             CustomPathBasedStrategy strategy;
             try {
-                final Strategy s = this
-                        .loadStrategy(strategyClass, strategyJar);
+                final Strategy s = this.loadStrategy(strategyClass, strategyJar);
                 if (s instanceof CustomPathBasedStrategy) {
                     strategy = (CustomPathBasedStrategy) s;
                 } else {
@@ -169,13 +156,10 @@ public class PlayerAssembly {
                     strategy = new DefaultPathBasedStrategy(s);
                 }
             } catch (final Exception e) {
-                throw new IllegalArgumentException("Failed loading: "
-                        + strategyClass, e);
+                throw new IllegalArgumentException("Failed loading: " + strategyClass, e);
             }
-            players.add(new Player(playerName, strategy, this
-                    .loadJar(strategyJar)));
+            players.add(new Player(playerName, strategy, this.loadJar(strategyJar)));
         }
-        Collections.shuffle(players, new SecureRandom());
         return Collections.unmodifiableList(players);
     }
 
@@ -190,19 +174,16 @@ public class PlayerAssembly {
     private ClassLoader loadJar(final URI strategyJar) {
         if (!this.strategyClassloaders.containsKey(strategyJar)) {
             @SuppressWarnings("resource")
-            final ClassLoader loader = URLClassLoader.newInstance(
-                    new URL[] { PlayerAssembly.uriToUrl(strategyJar) }, this
-                            .getClass().getClassLoader());
+            final ClassLoader loader = URLClassLoader.newInstance(new URL[] { PlayerAssembly.uriToUrl(strategyJar) },
+                    this.getClass().getClassLoader());
             this.strategyClassloaders.put(strategyJar, loader);
         }
         return this.strategyClassloaders.get(strategyJar);
     }
 
-    private Strategy loadStrategy(final String strategyClass,
-            final URI strategyJar) throws Exception {
+    private Strategy loadStrategy(final String strategyClass, final URI strategyJar) throws Exception {
         if (!this.strategyInstances.containsKey(strategyClass)) {
-            final Class<?> clz = Class.forName(strategyClass, true,
-                    this.loadJar(strategyJar));
+            final Class<?> clz = Class.forName(strategyClass, true, this.loadJar(strategyJar));
             final Strategy strategy = (Strategy) clz.newInstance();
             this.strategyInstances.put(strategyClass, strategy);
         }

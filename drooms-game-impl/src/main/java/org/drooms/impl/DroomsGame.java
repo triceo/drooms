@@ -11,6 +11,7 @@ import java.io.Writer;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -47,8 +48,7 @@ public class DroomsGame {
             System.exit(-1);
         }
         // play the game
-        final File reportFolder = (configs.length == 4) ? configs[3]
-                : new File("reports/");
+        final File reportFolder = (configs.length == 4) ? configs[3] : new File("reports/");
         final Properties gameConfig = new Properties();
         // FIXME standardize on InputStream or Reader
         try (InputStream playgroundFile = new FileInputStream(configs[0]);
@@ -56,10 +56,8 @@ public class DroomsGame {
             // prepare configs
             gameConfig.load(gameConfigFile);
             // play and report
-            final DroomsGame d = new DroomsGame(DefaultGame.class,
-                    DefaultPlayground.read(playgroundFile), new PlayerAssembly(
-                            configs[2]).assemblePlayers(), gameConfig,
-                    reportFolder);
+            final DroomsGame d = new DroomsGame(DefaultGame.class, DefaultPlayground.read(playgroundFile),
+                    new PlayerAssembly(configs[2]).assemblePlayers(), gameConfig, reportFolder);
             d.play(configs[0].getName());
         } catch (final IOException e) {
             throw new IllegalStateException("Failed reading config files.", e);
@@ -72,12 +70,10 @@ public class DroomsGame {
     private final File f;
     private final Class<? extends Game> cls;
 
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(DroomsGame.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DroomsGame.class);
 
-    public DroomsGame(final Class<? extends Game> game, final Playground p,
-            final Collection<Player> players, final Properties gameConfig,
-            final File reportFolder) {
+    public DroomsGame(final Class<? extends Game> game, final Playground p, final List<Player> players,
+            final Properties gameConfig, final File reportFolder) {
         this.c = gameConfig;
         this.p = p;
         this.f = reportFolder;
@@ -96,8 +92,7 @@ public class DroomsGame {
         if (!f.exists()) {
             f.mkdirs();
         }
-        final Map<Player, Integer> result = g.play(this.p, this.c,
-                this.players, f);
+        final Map<Player, Integer> result = g.play(this.p, this.c, this.players, f);
         // report
         try (Writer w = new FileWriter(new File(f, "report.xml"))) {
             g.getReport().write(w);
