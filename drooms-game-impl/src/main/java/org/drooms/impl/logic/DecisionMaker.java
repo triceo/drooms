@@ -215,6 +215,13 @@ public class DecisionMaker implements Channel {
             return this.latestDecision;
         }
     }
+    
+    /**
+     * Stop the decision-making process, no matter where it currently is.
+     */
+    public void halt() {
+        this.session.halt();
+    }
 
     public Player getPlayer() {
         return this.player;

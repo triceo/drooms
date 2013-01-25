@@ -43,8 +43,7 @@ public class CommandDistributor {
         private final DecisionMaker playerLogic;
         private final List<Command> commands;
 
-        public DecisionMakerUnit(final DecisionMaker m,
-                final List<Command> commands) {
+        public DecisionMakerUnit(final DecisionMaker m, final List<Command> commands) {
             this.playerLogic = m;
             this.commands = commands;
         }
@@ -59,11 +58,9 @@ public class CommandDistributor {
 
     }
 
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(CommandDistributor.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CommandDistributor.class);
 
-    private static Map<Player, Deque<Node>> retrieveNewPlayerPositions(
-            final List<Command> commands) {
+    private static Map<Player, Deque<Node>> retrieveNewPlayerPositions(final List<Command> commands) {
         final Map<Player, Deque<Node>> positions = new HashMap<>();
         for (final Command command : commands) {
             if (command instanceof MovePlayerCommand) {
@@ -74,8 +71,7 @@ public class CommandDistributor {
         return Collections.unmodifiableMap(positions);
     }
 
-    private static Set<Player> retrievePlayersToRemove(
-            final List<Command> commands) {
+    private static Set<Player> retrievePlayersToRemove(final List<Command> commands) {
         final Set<Player> players = new HashSet<>();
         for (final Command command : commands) {
             if (command instanceof DeactivatePlayerCommand) {
@@ -110,15 +106,12 @@ public class CommandDistributor {
      *            How much time the player strategies should be given to make
      *            move decisions.
      */
-    public CommandDistributor(final Playground playground,
-            final Collection<Player> players,
-            final GameProgressListener report, final File reportFolder,
-            final int playerTimeoutInSeconds) {
+    public CommandDistributor(final Playground playground, final Collection<Player> players,
+            final GameProgressListener report, final File reportFolder, final int playerTimeoutInSeconds) {
         for (final Player player : players) {
             final PathTracker tracker = new PathTracker(playground, player);
             this.trackers.put(player, tracker);
-            this.players.put(player, new DecisionMaker(player, tracker,
-                    reportFolder));
+            this.players.put(player, new DecisionMaker(player, tracker, reportFolder));
         }
         this.listeners.add(report);
         this.playerTimeoutInSeconds = playerTimeoutInSeconds;
@@ -150,8 +143,7 @@ public class CommandDistributor {
     public Map<Player, Move> execute(final List<Command> commands) {
         // hint GC to potentially not interrupt decision making later
         System.gc();
-        CommandDistributor.LOGGER
-                .info("First reporting what happens in this turn.");
+        CommandDistributor.LOGGER.info("First reporting what happens in this turn.");
         for (final GameProgressListener listener : this.listeners) {
             listener.nextTurn();
         }
@@ -162,43 +154,36 @@ public class CommandDistributor {
             }
         }
         CommandDistributor.LOGGER.info("Now passing these changes to players.");
-        final Map<Player, Deque<Node>> positions = CommandDistributor
-                .retrieveNewPlayerPositions(commands);
-        final Set<Player> playersToRemove = CommandDistributor
-                .retrievePlayersToRemove(commands);
+        final Map<Player, Deque<Node>> positions = CommandDistributor.retrieveNewPlayerPositions(commands);
+        final Set<Player> playersToRemove = CommandDistributor.retrievePlayersToRemove(commands);
         final Map<Player, Move> moves = new HashMap<Player, Move>();
-        for (final Map.Entry<Player, DecisionMaker> entry : this.players
-                .entrySet()) {
+        for (final Map.Entry<Player, DecisionMaker> entry : this.players.entrySet()) {
             final Player player = entry.getKey();
             if (playersToRemove.contains(player)) {
                 continue;
             }
             final DecisionMaker playerLogic = entry.getValue();
             this.trackers.get(player).movePlayers(positions);
-            CommandDistributor.LOGGER.debug("Processing player {}.",
-                    player.getName());
-            final DecisionMakerUnit dmu = new DecisionMakerUnit(playerLogic,
-                    commands);
+            CommandDistributor.LOGGER.debug("Processing player {}.", player.getName());
+            final DecisionMakerUnit dmu = new DecisionMakerUnit(playerLogic, commands);
             // begin the time-box for a player strategy
             final Future<Move> move = this.e.submit(dmu);
             try {
-                moves.put(player,
-                        move.get(this.playerTimeoutInSeconds, TimeUnit.SECONDS));
+                moves.put(player, move.get(this.playerTimeoutInSeconds, TimeUnit.SECONDS));
             } catch (InterruptedException | ExecutionException e) {
-                CommandDistributor.LOGGER
-                        .warn("Player {} error during decision-making, STAY forced.",
-                                player.getName(), e);
+                CommandDistributor.LOGGER.warn("Player {} error during decision-making, STAY forced.",
+                        player.getName(), e);
                 moves.put(player, Move.STAY);
             } catch (final TimeoutException e) {
-                CommandDistributor.LOGGER
-                        .warn("Player {}, didn't reach a decision in time, STAY forced.",
-                                player.getName());
-                move.cancel(true);
+                CommandDistributor.LOGGER.warn("Player {}, didn't reach a decision in time, STAY forced.",
+                        player.getName());
                 moves.put(player, Move.STAY);
+            } finally {
+                move.cancel(true);
+                playerLogic.halt(); // otherwise other players' are slowed down
             }
             // end the time-box for a player strategy
-            CommandDistributor.LOGGER.debug("Player {} processed.",
-                    player.getName());
+            CommandDistributor.LOGGER.debug("Player {} processed.", player.getName());
         }
         // purge dead players
         for (final Player p : playersToRemove) {
@@ -222,8 +207,7 @@ public class CommandDistributor {
      * active.
      */
     public void terminate() {
-        for (final Map.Entry<Player, DecisionMaker> entry : this.players
-                .entrySet()) {
+        for (final Map.Entry<Player, DecisionMaker> entry : this.players.entrySet()) {
             entry.getValue().terminate();
         }
         this.e.shutdownNow();
