@@ -54,12 +54,9 @@ public class DefaultGame extends GameController {
         CHEAP("cheap"), GOOD("good"), EXTREME("extreme");
 
         private static final String COMMON_PREFIX = "collectible.";
-        private static final String PROBABILITY_PREFIX = CollectibleType.COMMON_PREFIX
-                + "probability.";
-        private static final String PRICE_PREFIX = CollectibleType.COMMON_PREFIX
-                + "price.";
-        private static final String EXPIRATION_PREFIX = CollectibleType.COMMON_PREFIX
-                + "expiration.";
+        private static final String PROBABILITY_PREFIX = CollectibleType.COMMON_PREFIX + "probability.";
+        private static final String PRICE_PREFIX = CollectibleType.COMMON_PREFIX + "price.";
+        private static final String EXPIRATION_PREFIX = CollectibleType.COMMON_PREFIX + "expiration.";
         private final String collectibleName;
 
         CollectibleType(final String propertyName) {
@@ -67,29 +64,24 @@ public class DefaultGame extends GameController {
         }
 
         public int getExpiration(final Properties config) {
-            final String price = config.getProperty(
-                    CollectibleType.EXPIRATION_PREFIX + this.collectibleName,
-                    "1");
+            final String price = config.getProperty(CollectibleType.EXPIRATION_PREFIX + this.collectibleName, "1");
             return Integer.valueOf(price);
         }
 
         public int getPoints(final Properties config) {
-            final String price = config.getProperty(
-                    CollectibleType.PRICE_PREFIX + this.collectibleName, "1");
+            final String price = config.getProperty(CollectibleType.PRICE_PREFIX + this.collectibleName, "1");
             return Integer.valueOf(price);
         }
 
         public BigDecimal getProbabilityOfAppearance(final Properties config) {
-            final String probability = config.getProperty(
-                    CollectibleType.PROBABILITY_PREFIX + this.collectibleName,
+            final String probability = config.getProperty(CollectibleType.PROBABILITY_PREFIX + this.collectibleName,
                     "0.1");
             return new BigDecimal(probability);
         }
     }
 
     @Override
-    protected Map<Collectible, Player> performCollectibleCollection(
-            final Collection<Player> players) {
+    protected Map<Collectible, Player> performCollectibleCollection(final Collection<Player> players) {
         final Map<Collectible, Player> collections = new HashMap<Collectible, Player>();
         for (final Player p : players) {
             final Node headPosition = this.getPlayerPosition(p).getFirst();
@@ -102,38 +94,31 @@ public class DefaultGame extends GameController {
     }
 
     @Override
-    protected Map<Collectible, Node> performCollectibleDistribution(
-            final Properties gameConfig, final Playground playground,
-            final Collection<Player> players, final int currentTurnNumber) {
+    protected Map<Collectible, Node> performCollectibleDistribution(final Properties gameConfig,
+            final Playground playground, final Collection<Player> players, final int currentTurnNumber) {
         final Map<Collectible, Node> collectibles = new HashMap<Collectible, Node>();
         for (final CollectibleType ct : CollectibleType.values()) {
-            final BigDecimal probability = ct
-                    .getProbabilityOfAppearance(gameConfig);
-            final BigDecimal chosen = BigDecimal.valueOf(GameController.RANDOM
-                    .nextDouble());
+            final BigDecimal probability = ct.getProbabilityOfAppearance(gameConfig);
+            final BigDecimal chosen = BigDecimal.valueOf(GameController.RANDOM.nextDouble());
             if (probability.compareTo(chosen) > 0) {
-                final double expirationAdjustmentRate = GameController.RANDOM
-                        .nextDouble() + 0.5;
-                final int expiration = (int) Math.round((currentTurnNumber + ct
-                        .getExpiration(gameConfig)) * expirationAdjustmentRate);
+                final double expirationAdjustmentRate = GameController.RANDOM.nextDouble() + 0.5;
+                final double turnsToLast = expirationAdjustmentRate * ct.getExpiration(gameConfig);
+                final int expiresIn = (int) Math.round(currentTurnNumber + turnsToLast);
                 final int points = ct.getPoints(gameConfig);
-                final Collectible c = new Collectible(points, expiration);
-                collectibles.put(c,
-                        this.pickRandomUnusedNode(playground, players));
+                final Collectible c = new Collectible(points, expiresIn);
+                collectibles.put(c, this.pickRandomUnusedNode(playground, players));
             }
         }
         return Collections.unmodifiableMap(collectibles);
     }
 
     @Override
-    protected Set<Player> performCollisionDetection(
-            final Playground playground, final Collection<Player> currentPlayers) {
+    protected Set<Player> performCollisionDetection(final Playground playground, final Collection<Player> currentPlayers) {
         final Set<Player> collisions = new HashSet<Player>();
         for (final Player p1 : currentPlayers) {
             final Deque<Node> position = this.getPlayerPosition(p1);
             final Node firstPosition = position.getFirst();
-            if (!playground.isAvailable(firstPosition.getX(),
-                    firstPosition.getY())) {
+            if (!playground.isAvailable(firstPosition.getX(), firstPosition.getY())) {
                 collisions.add(p1);
                 continue;
             } else {
@@ -149,8 +134,7 @@ public class DefaultGame extends GameController {
                     // the same worm
                     continue;
                 }
-                final Node secondPosition = this.getPlayerPosition(p2)
-                        .getFirst();
+                final Node secondPosition = this.getPlayerPosition(p2).getFirst();
                 if (firstPosition.equals(secondPosition)) {
                     // head-on-head collision
                     collisions.add(p1);
@@ -165,16 +149,14 @@ public class DefaultGame extends GameController {
     }
 
     @Override
-    protected Set<Player> performInactivityDetection(
-            final Collection<Player> currentPlayers,
+    protected Set<Player> performInactivityDetection(final Collection<Player> currentPlayers,
             final int currentTurnNumber, final int allowedInactiveTurns) {
         final Set<Player> inactiveWorms = new HashSet<Player>();
         if (currentTurnNumber > allowedInactiveTurns) {
             for (final Player p : currentPlayers) {
                 final List<Move> allMoves = this.getDecisionRecord(p);
                 final int size = allMoves.size();
-                final List<Move> relevantMoves = allMoves.subList(
-                        Math.max(0, size - allowedInactiveTurns - 1), size);
+                final List<Move> relevantMoves = allMoves.subList(Math.max(0, size - allowedInactiveTurns - 1), size);
                 if (!relevantMoves.contains(Move.STAY)) {
                     continue;
                 }
@@ -188,28 +170,23 @@ public class DefaultGame extends GameController {
     }
 
     @Override
-    protected Deque<Node> performPlayerMove(final Player player,
-            final Move decision) {
+    protected Deque<Node> performPlayerMove(final Player player, final Move decision) {
         // move the head of the worm
         final Deque<Node> currentPos = this.getPlayerPosition(player);
         final Node currentHeadPos = currentPos.getFirst();
         Node newHeadPos;
         switch (decision) {
             case UP:
-                newHeadPos = Node.getNode(currentHeadPos.getX(),
-                        currentHeadPos.getY() + 1);
+                newHeadPos = Node.getNode(currentHeadPos.getX(), currentHeadPos.getY() + 1);
                 break;
             case DOWN:
-                newHeadPos = Node.getNode(currentHeadPos.getX(),
-                        currentHeadPos.getY() - 1);
+                newHeadPos = Node.getNode(currentHeadPos.getX(), currentHeadPos.getY() - 1);
                 break;
             case LEFT:
-                newHeadPos = Node.getNode(currentHeadPos.getX() - 1,
-                        currentHeadPos.getY());
+                newHeadPos = Node.getNode(currentHeadPos.getX() - 1, currentHeadPos.getY());
                 break;
             case RIGHT:
-                newHeadPos = Node.getNode(currentHeadPos.getX() + 1,
-                        currentHeadPos.getY());
+                newHeadPos = Node.getNode(currentHeadPos.getX() + 1, currentHeadPos.getY());
                 break;
             case STAY:
                 newHeadPos = currentHeadPos;
@@ -231,15 +208,12 @@ public class DefaultGame extends GameController {
     }
 
     @Override
-    protected Map<Player, Integer> performSurvivalRewarding(
-            final Collection<Player> allPlayers,
-            final Collection<Player> survivingPlayers,
-            final int removedInThisRound, final int rewardAmount) {
+    protected Map<Player, Integer> performSurvivalRewarding(final Collection<Player> allPlayers,
+            final Collection<Player> survivingPlayers, final int removedInThisRound, final int rewardAmount) {
         if (removedInThisRound < 1) {
             return Collections.emptyMap();
         }
-        final int amount = rewardAmount
-                * (allPlayers.size() - survivingPlayers.size());
+        final int amount = rewardAmount * (allPlayers.size() - survivingPlayers.size());
         final Map<Player, Integer> result = new HashMap<>();
         for (final Player p : survivingPlayers) {
             result.put(p, amount);
@@ -247,8 +221,7 @@ public class DefaultGame extends GameController {
         return Collections.unmodifiableMap(result);
     }
 
-    private Node pickRandomUnusedNode(final Playground p,
-            final Collection<Player> players) {
+    private Node pickRandomUnusedNode(final Playground p, final Collection<Player> players) {
         final List<Node> nodes = new LinkedList<Node>();
         // locate available nodes
         for (int x = 0; x < p.getWidth(); x++) {
