@@ -15,26 +15,11 @@
     <appender-ref ref="consoleAppender" />
   </appender>
 
-  <appender name="completeFileAppender" class="ch.qos.logback.core.FileAppender">
-    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-      <level>DEBUG</level>
-    </filter>
-    <file>game-complete.log</file>
-    <append>false</append>
-    <encoder>
-      <pattern>%d [%thread] %-5p [%c] - %m%n</pattern>
-    </encoder>
-  </appender>
-  <appender name="asyncCompleteFileAppender" class="ch.qos.logback.classic.AsyncAppender">
-    <queueSize>300</queueSize>
-    <appender-ref ref="completeFileAppender" />
-  </appender>
-
   <appender name="fileAppender" class="ch.qos.logback.core.FileAppender">
     <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
       <level>INFO</level>
     </filter>
-    <file>game-brief.log</file>
+    <file>drooms.log</file>
     <append>false</append>
     <encoder>
       <pattern>%d [%thread] %-5p [%c] - %m%n</pattern>
@@ -47,7 +32,6 @@
 
   <logger name="org.drooms">
     <level value="TRACE" />
-    <appender-ref ref="asyncCompleteFileAppender" />
     <appender-ref ref="asyncFileAppender" />
     <appender-ref ref="asyncConsoleAppender" />
   </logger>
