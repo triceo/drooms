@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -18,7 +17,9 @@ import org.drooms.api.Playground;
 import edu.uci.ics.jung.algorithms.shortestpath.ShortestPath;
 import edu.uci.ics.jung.algorithms.shortestpath.ShortestPathUtils;
 import edu.uci.ics.jung.graph.Graph;
+import edu.uci.ics.jung.graph.UndirectedGraph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
+import edu.uci.ics.jung.graph.util.Graphs;
 
 /**
  * A helper class for the strategies to be able to quickly and easily find paths
@@ -26,24 +27,24 @@ import edu.uci.ics.jung.graph.UndirectedSparseGraph;
  */
 public class PathTracker {
 
-    private static Graph<Node, Edge> cloneGraph(final Graph<Node, Edge> src,
+    private static UndirectedGraph<Node, Edge> cloneGraph(final Graph<Node, Edge> src,
             final Collection<Node> removeNodes) {
-        final Graph<Node, Edge> clone = new UndirectedSparseGraph<>();
-        for (final Node v : src.getVertices()) {
-            clone.addVertex(v);
-        }
+        final UndirectedGraph<Node, Edge> clone = new UndirectedSparseGraph<>();
         for (final Edge e : src.getEdges()) {
-            clone.addEdge(e, src.getIncidentVertices(e));
+            final boolean isEdgeAdded = clone.addEdge(e, src.getIncidentVertices(e));
+            if (!isEdgeAdded) {
+                throw new IllegalStateException("Failed cloning graph. This surely is a bug in Drooms.");
+            }
         }
         for (final Node node : removeNodes) {
             clone.removeVertex(node);
         }
-        return clone;
+        return Graphs.unmodifiableUndirectedGraph(clone);
     }
 
     private final Playground playground;
     private final Player player;
-    private Graph<Node, Edge> currentGraph;
+    private UndirectedGraph<Node, Edge> currentGraph;
 
     private ShortestPath<Node, Edge> currentPath;
     private Node currentPosition;
@@ -83,8 +84,7 @@ public class PathTracker {
      *         end. Empty if path cannot be found.
      */
     public List<Edge> getPath(final Node start, final Node end) {
-        return Collections.unmodifiableList(ShortestPathUtils.getPath(
-                this.currentGraph, this.currentPath, start, end));
+        return Collections.unmodifiableList(ShortestPathUtils.getPath(this.currentGraph, this.currentPath, start, end));
     }
 
     /**
@@ -100,12 +100,10 @@ public class PathTracker {
      * @return Unmodifiable list of nodes on the path, ordered from start to
      *         end. Empty if path cannot be found.
      */
-    public List<Edge> getPath(final Node start, final Node node2,
-            final Node node3) {
+    public List<Edge> getPath(final Node start, final Node node2, final Node node3) {
         final List<Edge> path2 = this.getPath(start, node2);
         final List<Edge> path3 = this.getPath(start, node3);
-        final List<Edge> path23 = new ArrayList<Edge>(
-                this.getPath(node2, node3));
+        final List<Edge> path23 = new ArrayList<Edge>(this.getPath(node2, node3));
         final List<Edge> result = new ArrayList<Edge>();
         if (path2.size() > path3.size()) {
             result.addAll(path3);
@@ -134,29 +132,20 @@ public class PathTracker {
      */
     protected void movePlayers(final Map<Player, Deque<Node>> newPositions) {
         final Set<Node> unavailable = new HashSet<>();
-        for (final Map.Entry<Player, Deque<Node>> entry : newPositions
-                .entrySet()) {
+        for (final Map.Entry<Player, Deque<Node>> entry : newPositions.entrySet()) {
+            Deque<Node> playerNodes = entry.getValue(); 
+            unavailable.addAll(playerNodes);
             if (entry.getKey() == this.player) {
                 /*
-                 * remove all the nodes occupied by the current player, except
-                 * for the one node with the player's head. that node needs to
-                 * remain, so that we can always calculate the path to other
-                 * nodes.
+                 * the head node needs to remain, since otherwise there would be
+                 * no path between the current position and any other position.
                  */
-                final Deque<Node> player = new LinkedList<>(entry.getValue());
-                player.pop();
-                unavailable.addAll(player);
-            } else {
-                // remove all the nodes occupied by other players
-                unavailable.addAll(entry.getValue());
+                unavailable.remove(playerNodes.getFirst());
             }
         }
-        final Graph<Node, Edge> graphWithoutPlayers = this.playground
-                .getGraph();
-        this.currentGraph = PathTracker.cloneGraph(graphWithoutPlayers,
-                unavailable);
-        this.currentPath = this.player
-                .getShortestPathAlgorithm(this.currentGraph);
+        final Graph<Node, Edge> graphWithoutPlayers = this.playground.getGraph();
+        this.currentGraph = PathTracker.cloneGraph(graphWithoutPlayers, unavailable);
+        this.currentPath = this.player.getShortestPathAlgorithm(this.currentGraph);
         this.currentPosition = newPositions.get(this.player).getFirst();
     }
 
