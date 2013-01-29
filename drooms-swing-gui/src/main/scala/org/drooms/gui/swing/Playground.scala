@@ -1,28 +1,28 @@
 package org.drooms.gui.swing
 
-import java.awt.Color
 import java.awt.Dimension
+import java.awt.Font
+
+import scala.swing.Alignment
 import scala.swing.Component
+import scala.swing.FlowPanel
 import scala.swing.GridBagPanel
 import scala.swing.Label
 import scala.swing.Reactor
 import scala.swing.ScrollPane
 import scala.swing.Table
+
+import org.drooms.gui.swing.event.CoordinantsVisibilityChanged
+import org.drooms.gui.swing.event.DroomsEventPublisher
+import org.drooms.gui.swing.event.NewGameReportChosen
 import org.drooms.gui.swing.event.PlaygroundGridDisabled
 import org.drooms.gui.swing.event.PlaygroundGridEnabled
+import org.drooms.gui.swing.event.TurnStepPerformed
+
 import javax.swing.BorderFactory
 import javax.swing.ImageIcon
-import org.drooms.gui.swing.event.NewGameReportChosen
-import java.awt.Font
-import org.drooms.gui.swing.event.TurnStepPerformed
-import org.drooms.gui.swing.event.DroomsEventPublisher
-import javax.swing.table.DefaultTableModel
-import org.drooms.gui.swing.event.PlaygroundGridEnabled
-import scala.swing.Alignment
-import scala.swing.BoxPanel
-import scala.swing.FlowPanel
 import javax.swing.UIManager
-import org.drooms.gui.swing.event.CoordinantsVisibilityChanged
+import javax.swing.table.DefaultTableModel
 
 class Playground extends ScrollPane with Reactor {
   val CELL_SIZE = 15
@@ -59,14 +59,18 @@ class Playground extends ScrollPane with Reactor {
         case _ => new RuntimeException("Unrecognized TurnStep: " + step)
       }
   }
+  var playgroundWidth: Int = _
+  var playgroundHeight: Int = _
   var actualTableWidth: Int = _
   var actualTableHeight: Int =_
   
   def createNew(width: Int, height: Int): Unit = {
     cellModel = new PlaygroundModel(width, height)
+    playgroundWidth = width
+    playgroundHeight = height
     // plus two in each direction (x and y) for border around the playground
-    actualTableWidth = width + 2 + 1 // +2 for wall border and +1 for coordinate numbers
-    actualTableHeight = height + 2 + 1 // +2 for wall border and +1 for coordinate numbers
+    actualTableWidth = playgroundWidth + 2 + 1 // +2 for wall border and +1 for coordinate numbers
+    actualTableHeight = playgroundHeight + 2 + 1 // +2 for wall border and +1 for coordinate numbers
     table = Some(new Table(actualTableHeight, actualTableWidth) {
       val widthPixels = CELL_SIZE * actualTableWidth - 1 // minus one so the line at the end is not rendered
       val heightPixels = CELL_SIZE * actualTableHeight - 1 // minus one so the line at the end is not rendered
@@ -242,6 +246,7 @@ class Playground extends ScrollPane with Reactor {
        */
       def updateWormIfLegal(node: Node, ownerName: String, wormType: String): Unit = {
         // we can only update Empty nodes and Collectibles, if the worm crashed into wall or other worm, piece must not be updated!
+        if (node.x >= playgroundWidth || node.y >= playgroundHeight) return
         cellModel.positions(node.x)(node.y) match {
           case Empty(node) =>
             updateWorm(ownerName, new WormPiece(node, wormType, ownerName))
