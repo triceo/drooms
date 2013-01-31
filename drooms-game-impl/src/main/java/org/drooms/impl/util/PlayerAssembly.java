@@ -48,6 +48,11 @@ public class PlayerAssembly {
         }
 
         @Override
+        public boolean enableAudit() {
+            return this.strategy.enableAudit();
+        }
+
+        @Override
         public boolean equals(final Object obj) {
             return this.strategy.equals(obj);
         }

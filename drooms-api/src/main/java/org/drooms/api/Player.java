@@ -33,18 +33,22 @@ public class Player {
      * @param strategyClassLoader
      *            Class loader used to load player's strategy.
      */
-    public Player(final String name, final CustomPathBasedStrategy strategy,
-            final ClassLoader strategyClassLoader) {
+    public Player(final String name, final CustomPathBasedStrategy strategy, final ClassLoader strategyClassLoader) {
         if (name == null || strategy == null || strategyClassLoader == null) {
-            throw new IllegalArgumentException(
-                    "None of the parameters can be null.");
+            throw new IllegalArgumentException("None of the parameters can be null.");
         }
-        final KnowledgeBuilder kb = strategy
-                .getKnowledgeBuilder(strategyClassLoader);
+        final KnowledgeBuilder kb = strategy.getKnowledgeBuilder(strategyClassLoader);
         this.packages = kb.getKnowledgePackages();
         this.strategy = strategy;
         this.name = name;
         this.classLoader = strategyClassLoader;
+    }
+
+    /**
+     * See {@link Strategy#enableAudit()}.
+     */
+    public boolean auditSession() {
+        return this.strategy.enableAudit();
     }
 
     /**
@@ -53,13 +57,12 @@ public class Player {
      * @return The strategy.
      */
     public KnowledgeBase constructKnowledgeBase() {
-        final KnowledgeBaseConfiguration kbconf = KnowledgeBaseFactory
-                .newKnowledgeBaseConfiguration(null, this.classLoader);
+        final KnowledgeBaseConfiguration kbconf = KnowledgeBaseFactory.newKnowledgeBaseConfiguration(null,
+                this.classLoader);
         kbconf.setOption(PermGenThresholdOption.get(0)); // workaround for
                                                          // https://github.com/triceo/drooms/issues/3
         kbconf.setOption(EventProcessingOption.STREAM);
-        final KnowledgeBase kbase = KnowledgeBaseFactory
-                .newKnowledgeBase(kbconf);
+        final KnowledgeBase kbase = KnowledgeBaseFactory.newKnowledgeBase(kbconf);
         kbase.addKnowledgePackages(this.packages);
         return kbase;
     }
@@ -99,8 +102,7 @@ public class Player {
      * See {@link CustomPathBasedStrategy#getShortestPathAlgorithm(Graph)}. This
      * method just relays there.
      */
-    public ShortestPath<Node, Edge> getShortestPathAlgorithm(
-            final Graph<Node, Edge> graph) {
+    public ShortestPath<Node, Edge> getShortestPathAlgorithm(final Graph<Node, Edge> graph) {
         return this.strategy.getShortestPathAlgorithm(graph);
     }
 
@@ -108,8 +110,7 @@ public class Player {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result
-                + ((this.name == null) ? 0 : this.name.hashCode());
+        result = prime * result + ((this.name == null) ? 0 : this.name.hashCode());
         return result;
     }
 

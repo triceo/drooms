@@ -29,4 +29,9 @@ public class RandomStrategy implements Strategy {
     public String getName() {
         return "Random";
     }
+
+    @Override
+    public boolean enableAudit() {
+        return false;
+    }
 }

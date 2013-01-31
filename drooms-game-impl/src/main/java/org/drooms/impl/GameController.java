@@ -95,11 +95,7 @@ import org.slf4j.LoggerFactory;
  * <dt>worm.survival.bonus (defaults to 1)</dt>
  * <dd>The amount of points that the worm will be awarded upon surviving another
  * worm.</dd>
- * <dt>worm.audit (defaults to false)</dt>
- * <dd>Whether or not the Drools sessions should be audited.</dd>
  * </dl>
- * 
- * FIXME worm.audit to be player-based in 0.4.
  */
 public abstract class GameController implements Game {
 
@@ -266,7 +262,6 @@ public abstract class GameController implements Game {
         final int allowedTurns = Integer.valueOf(gameConfig.getProperty("worm.max.turns", "1000"));
         final int wormSurvivalBonus = Integer.valueOf(gameConfig.getProperty("worm.survival.bonus", "1"));
         final int wormTimeout = Integer.valueOf(gameConfig.getProperty("worm.timeout.seconds", "1"));
-        final boolean wormAudit = Boolean.valueOf(gameConfig.getProperty("worm.audit", "false"));
         // prepare players and their starting positions
         final List<Node> startingPositions = playground.getStartingPositions();
         final int playersSupported = startingPositions.size();
@@ -287,7 +282,7 @@ public abstract class GameController implements Game {
         // prepare situation
         this.reporter = new XmlProgressListener(playground, players, gameConfig);
         final CommandDistributor playerControl = new CommandDistributor(playground, players, this.reporter,
-                reportFolder, wormTimeout, wormAudit);
+                reportFolder, wormTimeout);
         final Set<Player> currentPlayers = new HashSet<Player>(players);
         Map<Player, Move> decisions = new HashMap<Player, Move>();
         for (final Player p : currentPlayers) { // initialize players

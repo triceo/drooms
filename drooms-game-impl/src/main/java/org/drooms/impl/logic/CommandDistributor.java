@@ -107,11 +107,11 @@ public class CommandDistributor {
      *            move decisions.
      */
     public CommandDistributor(final Playground playground, final Collection<Player> players,
-            final GameProgressListener report, final File reportFolder, final int playerTimeoutInSeconds, final boolean decisionAudit) {
+            final GameProgressListener report, final File reportFolder, final int playerTimeoutInSeconds) {
         for (final Player player : players) {
             final PathTracker tracker = new PathTracker(playground, player);
             this.trackers.put(player, tracker);
-            this.players.put(player, new DecisionMaker(player, tracker, reportFolder, decisionAudit));
+            this.players.put(player, new DecisionMaker(player, tracker, reportFolder));
         }
         this.listeners.add(report);
         this.playerTimeoutInSeconds = playerTimeoutInSeconds;

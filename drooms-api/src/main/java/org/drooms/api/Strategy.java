@@ -18,6 +18,14 @@ import edu.uci.ics.jung.algorithms.shortestpath.UnweightedShortestPath;
 public interface Strategy {
 
     /**
+     * Whether or not the Drools session for this strategy should be audited. If
+     * enabled, will produce vast amounts of audit data.
+     * 
+     * @return True if the strategy should be audited.
+     */
+    public boolean enableAudit();
+
+    /**
      * Provide a means of obtaining a {@link KnowledgeBase}.
      * 
      * @param cls
@@ -35,5 +43,4 @@ public interface Strategy {
      * @return Name of the strategy.
      */
     public String getName();
-
 }

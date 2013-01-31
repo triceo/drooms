@@ -122,11 +122,11 @@ public class DecisionMaker implements Channel {
 
     private final Map<Player, Map<Node, FactHandle>> handles = new HashMap<Player, Map<Node, FactHandle>>();
 
-    public DecisionMaker(final Player p, final PathTracker tracker, final File reportFolder, final boolean auditDrools) {
+    public DecisionMaker(final Player p, final PathTracker tracker, final File reportFolder) {
         this.player = p;
         this.session = p.constructKnowledgeBase().newStatefulKnowledgeSession(DecisionMaker.getSessionConfiguration(),
                 null);
-        if (auditDrools) {
+        if (p.auditSession()) {
             DecisionMaker.LOGGER.info("Auditing the Drools session is enabled.");
             this.sessionAudit = KnowledgeRuntimeLoggerFactory.newFileLogger(this.session,
                     reportFolder.getAbsolutePath() + File.separator + "player-" + this.player.getName() + "-session");

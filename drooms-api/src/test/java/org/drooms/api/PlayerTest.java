@@ -22,6 +22,12 @@ public class PlayerTest {
         return new CustomPathBasedStrategy() {
 
             @Override
+            public boolean enableAudit() {
+                // TODO Auto-generated method stub
+                return false;
+            }
+
+            @Override
             public KnowledgeBuilder getKnowledgeBuilder(final ClassLoader cls) {
                 return KnowledgeBuilderFactory.newKnowledgeBuilder();
             }
@@ -32,8 +38,7 @@ public class PlayerTest {
             }
 
             @Override
-            public ShortestPath<Node, Edge> getShortestPathAlgorithm(
-                    final Graph<Node, Edge> graph) {
+            public ShortestPath<Node, Edge> getShortestPathAlgorithm(final Graph<Node, Edge> graph) {
                 return new UnweightedShortestPath<Node, Edge>(graph);
             }
         };
@@ -48,8 +53,7 @@ public class PlayerTest {
     @SuppressWarnings("unused")
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorNullName() {
-        new Player(null, PlayerTest.obtainStrategy(),
-                PlayerTest.obtainClassLoader());
+        new Player(null, PlayerTest.obtainStrategy(), PlayerTest.obtainClassLoader());
     }
 
     @SuppressWarnings("unused")
