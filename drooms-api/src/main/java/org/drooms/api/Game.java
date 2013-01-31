@@ -32,7 +32,6 @@ public interface Game {
      *            Where to output data, if necessary.
      * @return Points gained by each player.
      */
-    public Map<Player, Integer> play(Playground p, Properties config,
-            Collection<Player> players, File reportFolder);
+    public Map<Player, Integer> play(Playground playground, Properties config, Collection<Player> players, File reportFolder);
 
 }

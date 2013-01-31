@@ -22,11 +22,11 @@ import org.drooms.impl.GameController;
  * played out..</dd>
  * <dt>-p &lt;file&gt;</dt>
  * <dd>Provides a player configuration file, as described in
- * {@link GameController#play(String, java.util.Properties, java.util.Properties)}
+ * {@link GameController#play(Playground, java.util.Properties, java.util.Collection, File)}
  * .</dd>
  * <dt>-g &lt;file&gt;</dt>
  * <dd>Provides a game configuration file, as described in
- * {@link GameController#play(String, java.util.Properties, java.util.Properties)}
+ * {@link GameController#play(Playground, java.util.Properties, java.util.Collection, File)}
  * .</dd>
  * </dl>
  * 
@@ -49,14 +49,10 @@ public class GameCLI {
 
     private final Options options = new Options();
 
-    private final Option reports = new Option("r", "reports", true,
-            "A folder to store reports in.");
-    private final Option playground = new Option("s", "scenario", true,
-            "A path to the playground config file.");
-    private final Option players = new Option("p", "players", true,
-            "A path to the player config file.");
-    private final Option game = new Option("g", "game", true,
-            "A path to the game config file.");
+    private final Option reports = new Option("r", "reports", true, "A folder to store reports in.");
+    private final Option playground = new Option("s", "scenario", true, "A path to the playground config file.");
+    private final Option players = new Option("p", "players", true, "A path to the player config file.");
+    private final Option game = new Option("g", "game", true, "A path to the game config file.");
 
     private String errorMessage = null;
     private boolean isError = false;
@@ -100,20 +96,17 @@ public class GameCLI {
         final CommandLineParser parser = new GnuParser();
         try {
             final CommandLine cli = parser.parse(this.options, args);
-            final File scenario = new File(cli.getOptionValue(this.playground
-                    .getOpt()));
+            final File scenario = new File(cli.getOptionValue(this.playground.getOpt()));
             if (!scenario.exists() || !scenario.canRead()) {
                 this.setError("Provided scenario file cannot be read!");
                 return null;
             }
-            final File gameConfig = new File(cli.getOptionValue(this.game
-                    .getOpt()));
+            final File gameConfig = new File(cli.getOptionValue(this.game.getOpt()));
             if (!gameConfig.exists() || !gameConfig.canRead()) {
                 this.setError("Provided game config file cannot be read!");
                 return null;
             }
-            final File playerConfig = new File(cli.getOptionValue(this.players
-                    .getOpt()));
+            final File playerConfig = new File(cli.getOptionValue(this.players.getOpt()));
             if (!playerConfig.exists() || !playerConfig.canRead()) {
                 this.setError("Provided player config file cannot be read!");
                 return null;
@@ -124,8 +117,7 @@ public class GameCLI {
             } else {
                 final File reportsDir = new File(reports + File.separator);
                 reportsDir.mkdirs();
-                return new File[] { scenario, gameConfig, playerConfig,
-                        reportsDir };
+                return new File[] { scenario, gameConfig, playerConfig, reportsDir };
             }
         } catch (final ParseException e) {
             this.setError(e.getMessage());

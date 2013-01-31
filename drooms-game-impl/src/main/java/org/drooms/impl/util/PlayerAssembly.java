@@ -101,7 +101,7 @@ public class PlayerAssembly {
     /**
      * Initialize the class.
      * 
-     * @param config
+     * @param f
      *            Game config as described in
      *            {@link GameController#play(org.drooms.api.Playground, Properties, Collection, File)}
      *            .
