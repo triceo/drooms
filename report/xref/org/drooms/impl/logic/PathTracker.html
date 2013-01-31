@@ -15,21 +15,21 @@
 <a class="jxr_linenumber" name="5" href="#5">5</a>   <strong class="jxr_keyword">import</strong> java.util.Collections;
 <a class="jxr_linenumber" name="6" href="#6">6</a>   <strong class="jxr_keyword">import</strong> java.util.Deque;
 <a class="jxr_linenumber" name="7" href="#7">7</a>   <strong class="jxr_keyword">import</strong> java.util.HashSet;
-<a class="jxr_linenumber" name="8" href="#8">8</a>   <strong class="jxr_keyword">import</strong> java.util.LinkedList;
-<a class="jxr_linenumber" name="9" href="#9">9</a>   <strong class="jxr_keyword">import</strong> java.util.List;
-<a class="jxr_linenumber" name="10" href="#10">10</a>  <strong class="jxr_keyword">import</strong> java.util.Map;
-<a class="jxr_linenumber" name="11" href="#11">11</a>  <strong class="jxr_keyword">import</strong> java.util.Set;
-<a class="jxr_linenumber" name="12" href="#12">12</a>  
-<a class="jxr_linenumber" name="13" href="#13">13</a>  <strong class="jxr_keyword">import</strong> org.drooms.api.Edge;
-<a class="jxr_linenumber" name="14" href="#14">14</a>  <strong class="jxr_keyword">import</strong> org.drooms.api.Node;
-<a class="jxr_linenumber" name="15" href="#15">15</a>  <strong class="jxr_keyword">import</strong> org.drooms.api.Player;
-<a class="jxr_linenumber" name="16" href="#16">16</a>  <strong class="jxr_keyword">import</strong> org.drooms.api.Playground;
-<a class="jxr_linenumber" name="17" href="#17">17</a>  
-<a class="jxr_linenumber" name="18" href="#18">18</a>  <strong class="jxr_keyword">import</strong> edu.uci.ics.jung.algorithms.shortestpath.ShortestPath;
-<a class="jxr_linenumber" name="19" href="#19">19</a>  <strong class="jxr_keyword">import</strong> edu.uci.ics.jung.algorithms.shortestpath.ShortestPathUtils;
-<a class="jxr_linenumber" name="20" href="#20">20</a>  <strong class="jxr_keyword">import</strong> edu.uci.ics.jung.algorithms.shortestpath.UnweightedShortestPath;
-<a class="jxr_linenumber" name="21" href="#21">21</a>  <strong class="jxr_keyword">import</strong> edu.uci.ics.jung.graph.Graph;
-<a class="jxr_linenumber" name="22" href="#22">22</a>  <strong class="jxr_keyword">import</strong> edu.uci.ics.jung.graph.UndirectedSparseGraph;
+<a class="jxr_linenumber" name="8" href="#8">8</a>   <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="9" href="#9">9</a>   <strong class="jxr_keyword">import</strong> java.util.Map;
+<a class="jxr_linenumber" name="10" href="#10">10</a>  <strong class="jxr_keyword">import</strong> java.util.Set;
+<a class="jxr_linenumber" name="11" href="#11">11</a>  
+<a class="jxr_linenumber" name="12" href="#12">12</a>  <strong class="jxr_keyword">import</strong> org.drooms.api.Edge;
+<a class="jxr_linenumber" name="13" href="#13">13</a>  <strong class="jxr_keyword">import</strong> org.drooms.api.Node;
+<a class="jxr_linenumber" name="14" href="#14">14</a>  <strong class="jxr_keyword">import</strong> org.drooms.api.Player;
+<a class="jxr_linenumber" name="15" href="#15">15</a>  <strong class="jxr_keyword">import</strong> org.drooms.api.Playground;
+<a class="jxr_linenumber" name="16" href="#16">16</a>  
+<a class="jxr_linenumber" name="17" href="#17">17</a>  <strong class="jxr_keyword">import</strong> edu.uci.ics.jung.algorithms.shortestpath.ShortestPath;
+<a class="jxr_linenumber" name="18" href="#18">18</a>  <strong class="jxr_keyword">import</strong> edu.uci.ics.jung.algorithms.shortestpath.ShortestPathUtils;
+<a class="jxr_linenumber" name="19" href="#19">19</a>  <strong class="jxr_keyword">import</strong> edu.uci.ics.jung.graph.Graph;
+<a class="jxr_linenumber" name="20" href="#20">20</a>  <strong class="jxr_keyword">import</strong> edu.uci.ics.jung.graph.UndirectedGraph;
+<a class="jxr_linenumber" name="21" href="#21">21</a>  <strong class="jxr_keyword">import</strong> edu.uci.ics.jung.graph.UndirectedSparseGraph;
+<a class="jxr_linenumber" name="22" href="#22">22</a>  <strong class="jxr_keyword">import</strong> edu.uci.ics.jung.graph.util.Graphs;
 <a class="jxr_linenumber" name="23" href="#23">23</a>  
 <a class="jxr_linenumber" name="24" href="#24">24</a>  <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="25" href="#25">25</a>  <em class="jxr_javadoccomment"> * A helper class for the strategies to be able to quickly and easily find paths</em>
@@ -37,24 +37,24 @@
 <a class="jxr_linenumber" name="27" href="#27">27</a>  <em class="jxr_javadoccomment"> */</em>
 <a class="jxr_linenumber" name="28" href="#28">28</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../org/drooms/impl/logic/PathTracker.html">PathTracker</a> {
 <a class="jxr_linenumber" name="29" href="#29">29</a>  
-<a class="jxr_linenumber" name="30" href="#30">30</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> Graph&lt;Node, Edge&gt; cloneGraph(<strong class="jxr_keyword">final</strong> Graph&lt;Node, Edge&gt; src,
+<a class="jxr_linenumber" name="30" href="#30">30</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> UndirectedGraph&lt;Node, Edge&gt; cloneGraph(<strong class="jxr_keyword">final</strong> Graph&lt;Node, Edge&gt; src,
 <a class="jxr_linenumber" name="31" href="#31">31</a>              <strong class="jxr_keyword">final</strong> Collection&lt;Node&gt; removeNodes) {
-<a class="jxr_linenumber" name="32" href="#32">32</a>          <strong class="jxr_keyword">final</strong> Graph&lt;Node, Edge&gt; clone = <strong class="jxr_keyword">new</strong> UndirectedSparseGraph&lt;&gt;();
-<a class="jxr_linenumber" name="33" href="#33">33</a>          <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">final</strong> Node v : src.getVertices()) {
-<a class="jxr_linenumber" name="34" href="#34">34</a>              clone.addVertex(v);
-<a class="jxr_linenumber" name="35" href="#35">35</a>          }
-<a class="jxr_linenumber" name="36" href="#36">36</a>          <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">final</strong> Edge e : src.getEdges()) {
-<a class="jxr_linenumber" name="37" href="#37">37</a>              clone.addEdge(e, src.getIncidentVertices(e));
+<a class="jxr_linenumber" name="32" href="#32">32</a>          <strong class="jxr_keyword">final</strong> UndirectedGraph&lt;Node, Edge&gt; clone = <strong class="jxr_keyword">new</strong> UndirectedSparseGraph&lt;&gt;();
+<a class="jxr_linenumber" name="33" href="#33">33</a>          <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">final</strong> Edge e : src.getEdges()) {
+<a class="jxr_linenumber" name="34" href="#34">34</a>              <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> isEdgeAdded = clone.addEdge(e, src.getIncidentVertices(e));
+<a class="jxr_linenumber" name="35" href="#35">35</a>              <strong class="jxr_keyword">if</strong> (!isEdgeAdded) {
+<a class="jxr_linenumber" name="36" href="#36">36</a>                  <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(<span class="jxr_string">"Failed cloning graph. This surely is a bug in Drooms."</span>);
+<a class="jxr_linenumber" name="37" href="#37">37</a>              }
 <a class="jxr_linenumber" name="38" href="#38">38</a>          }
 <a class="jxr_linenumber" name="39" href="#39">39</a>          <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">final</strong> Node node : removeNodes) {
 <a class="jxr_linenumber" name="40" href="#40">40</a>              clone.removeVertex(node);
 <a class="jxr_linenumber" name="41" href="#41">41</a>          }
-<a class="jxr_linenumber" name="42" href="#42">42</a>          <strong class="jxr_keyword">return</strong> clone;
+<a class="jxr_linenumber" name="42" href="#42">42</a>          <strong class="jxr_keyword">return</strong> Graphs.unmodifiableUndirectedGraph(clone);
 <a class="jxr_linenumber" name="43" href="#43">43</a>      }
 <a class="jxr_linenumber" name="44" href="#44">44</a>  
 <a class="jxr_linenumber" name="45" href="#45">45</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/api/Playground.html">Playground</a> playground;
 <a class="jxr_linenumber" name="46" href="#46">46</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/api/Player.html">Player</a> player;
-<a class="jxr_linenumber" name="47" href="#47">47</a>      <strong class="jxr_keyword">private</strong> Graph&lt;Node, Edge&gt; currentGraph;
+<a class="jxr_linenumber" name="47" href="#47">47</a>      <strong class="jxr_keyword">private</strong> UndirectedGraph&lt;Node, Edge&gt; currentGraph;
 <a class="jxr_linenumber" name="48" href="#48">48</a>  
 <a class="jxr_linenumber" name="49" href="#49">49</a>      <strong class="jxr_keyword">private</strong> ShortestPath&lt;Node, Edge&gt; currentPath;
 <a class="jxr_linenumber" name="50" href="#50">50</a>      <strong class="jxr_keyword">private</strong> <a href="../../../../org/drooms/api/Node.html">Node</a> currentPosition;
@@ -94,84 +94,72 @@
 <a class="jxr_linenumber" name="84" href="#84">84</a>  <em class="jxr_javadoccomment">     *         end. Empty if path cannot be found.</em>
 <a class="jxr_linenumber" name="85" href="#85">85</a>  <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="86" href="#86">86</a>      <strong class="jxr_keyword">public</strong> List&lt;Edge&gt; getPath(<strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/api/Node.html">Node</a> start, <strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/api/Node.html">Node</a> end) {
-<a class="jxr_linenumber" name="87" href="#87">87</a>          <strong class="jxr_keyword">return</strong> Collections.unmodifiableList(ShortestPathUtils.getPath(
-<a class="jxr_linenumber" name="88" href="#88">88</a>                  <strong class="jxr_keyword">this</strong>.currentGraph, <strong class="jxr_keyword">this</strong>.currentPath, start, end));
-<a class="jxr_linenumber" name="89" href="#89">89</a>      }
-<a class="jxr_linenumber" name="90" href="#90">90</a>  
-<a class="jxr_linenumber" name="91" href="#91">91</a>      <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="92" href="#92">92</a>  <em class="jxr_javadoccomment">     * Find the shortest path from the start node that leads through the other</em>
-<a class="jxr_linenumber" name="93" href="#93">93</a>  <em class="jxr_javadoccomment">     * two nodes in any order.</em>
-<a class="jxr_linenumber" name="94" href="#94">94</a>  <em class="jxr_javadoccomment">     * </em>
-<a class="jxr_linenumber" name="95" href="#95">95</a>  <em class="jxr_javadoccomment">     * @param start</em>
-<a class="jxr_linenumber" name="96" href="#96">96</a>  <em class="jxr_javadoccomment">     *            Beginning of the path.</em>
-<a class="jxr_linenumber" name="97" href="#97">97</a>  <em class="jxr_javadoccomment">     * @param node2</em>
-<a class="jxr_linenumber" name="98" href="#98">98</a>  <em class="jxr_javadoccomment">     *            Any of the other two nodes.</em>
-<a class="jxr_linenumber" name="99" href="#99">99</a>  <em class="jxr_javadoccomment">     * @param node3</em>
-<a class="jxr_linenumber" name="100" href="#100">100</a> <em class="jxr_javadoccomment">     *            Any of the other two nodes.</em>
-<a class="jxr_linenumber" name="101" href="#101">101</a> <em class="jxr_javadoccomment">     * @return Unmodifiable list of nodes on the path, ordered from start to</em>
-<a class="jxr_linenumber" name="102" href="#102">102</a> <em class="jxr_javadoccomment">     *         end. Empty if path cannot be found.</em>
-<a class="jxr_linenumber" name="103" href="#103">103</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="104" href="#104">104</a>     <strong class="jxr_keyword">public</strong> List&lt;Edge&gt; getPath(<strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/api/Node.html">Node</a> start, <strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/api/Node.html">Node</a> node2,
-<a class="jxr_linenumber" name="105" href="#105">105</a>             <strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/api/Node.html">Node</a> node3) {
-<a class="jxr_linenumber" name="106" href="#106">106</a>         <strong class="jxr_keyword">final</strong> List&lt;Edge&gt; path2 = <strong class="jxr_keyword">this</strong>.getPath(start, node2);
-<a class="jxr_linenumber" name="107" href="#107">107</a>         <strong class="jxr_keyword">final</strong> List&lt;Edge&gt; path3 = <strong class="jxr_keyword">this</strong>.getPath(start, node3);
-<a class="jxr_linenumber" name="108" href="#108">108</a>         <strong class="jxr_keyword">final</strong> List&lt;Edge&gt; path23 = <strong class="jxr_keyword">new</strong> ArrayList&lt;Edge&gt;(
-<a class="jxr_linenumber" name="109" href="#109">109</a>                 <strong class="jxr_keyword">this</strong>.getPath(node2, node3));
-<a class="jxr_linenumber" name="110" href="#110">110</a>         <strong class="jxr_keyword">final</strong> List&lt;Edge&gt; result = <strong class="jxr_keyword">new</strong> ArrayList&lt;Edge&gt;();
-<a class="jxr_linenumber" name="111" href="#111">111</a>         <strong class="jxr_keyword">if</strong> (path2.size() &gt; path3.size()) {
-<a class="jxr_linenumber" name="112" href="#112">112</a>             result.addAll(path3);
-<a class="jxr_linenumber" name="113" href="#113">113</a>             Collections.reverse(path23);
-<a class="jxr_linenumber" name="114" href="#114">114</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="115" href="#115">115</a>             result.addAll(path2);
-<a class="jxr_linenumber" name="116" href="#116">116</a>         }
-<a class="jxr_linenumber" name="117" href="#117">117</a>         result.addAll(path23);
-<a class="jxr_linenumber" name="118" href="#118">118</a>         <strong class="jxr_keyword">return</strong> Collections.unmodifiableList(result);
-<a class="jxr_linenumber" name="119" href="#119">119</a>     }
-<a class="jxr_linenumber" name="120" href="#120">120</a> 
-<a class="jxr_linenumber" name="121" href="#121">121</a>     <strong class="jxr_keyword">public</strong> <a href="../../../../org/drooms/api/Player.html">Player</a> getPlayer() {
-<a class="jxr_linenumber" name="122" href="#122">122</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">this</strong>.player;
-<a class="jxr_linenumber" name="123" href="#123">123</a>     }
-<a class="jxr_linenumber" name="124" href="#124">124</a> 
-<a class="jxr_linenumber" name="125" href="#125">125</a>     <strong class="jxr_keyword">public</strong> <a href="../../../../org/drooms/api/Playground.html">Playground</a> getPlayground() {
-<a class="jxr_linenumber" name="126" href="#126">126</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">this</strong>.playground;
-<a class="jxr_linenumber" name="127" href="#127">127</a>     }
-<a class="jxr_linenumber" name="128" href="#128">128</a> 
-<a class="jxr_linenumber" name="129" href="#129">129</a>     <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="130" href="#130">130</a> <em class="jxr_javadoccomment">     * Update the internal state of this class so that future paths can avoid</em>
-<a class="jxr_linenumber" name="131" href="#131">131</a> <em class="jxr_javadoccomment">     * places where the worms currently reside.</em>
-<a class="jxr_linenumber" name="132" href="#132">132</a> <em class="jxr_javadoccomment">     * </em>
-<a class="jxr_linenumber" name="133" href="#133">133</a> <em class="jxr_javadoccomment">     * @param newPositions</em>
-<a class="jxr_linenumber" name="134" href="#134">134</a> <em class="jxr_javadoccomment">     *            New current positions of all the worms.</em>
-<a class="jxr_linenumber" name="135" href="#135">135</a> <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="136" href="#136">136</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> movePlayers(<strong class="jxr_keyword">final</strong> Map&lt;Player, Deque&lt;Node&gt;&gt; newPositions) {
-<a class="jxr_linenumber" name="137" href="#137">137</a>         <strong class="jxr_keyword">final</strong> Set&lt;Node&gt; unavailable = <strong class="jxr_keyword">new</strong> HashSet&lt;&gt;();
-<a class="jxr_linenumber" name="138" href="#138">138</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">final</strong> Map.Entry&lt;Player, Deque&lt;Node&gt;&gt; entry : newPositions
-<a class="jxr_linenumber" name="139" href="#139">139</a>                 .entrySet()) {
-<a class="jxr_linenumber" name="140" href="#140">140</a>             <strong class="jxr_keyword">if</strong> (entry.getKey() == <strong class="jxr_keyword">this</strong>.player) {
-<a class="jxr_linenumber" name="141" href="#141">141</a>                 <em class="jxr_comment">/*</em>
-<a class="jxr_linenumber" name="142" href="#142">142</a> <em class="jxr_comment">                 * remove all the nodes occupied by the current player, except</em>
-<a class="jxr_linenumber" name="143" href="#143">143</a> <em class="jxr_comment">                 * for the one node with the player's head. that node needs to</em>
-<a class="jxr_linenumber" name="144" href="#144">144</a> <em class="jxr_comment">                 * remain, so that we can always calculate the path to other</em>
-<a class="jxr_linenumber" name="145" href="#145">145</a> <em class="jxr_comment">                 * nodes.</em>
-<a class="jxr_linenumber" name="146" href="#146">146</a> <em class="jxr_comment">                 */</em>
-<a class="jxr_linenumber" name="147" href="#147">147</a>                 <strong class="jxr_keyword">final</strong> Deque&lt;Node&gt; player = <strong class="jxr_keyword">new</strong> LinkedList&lt;&gt;(entry.getValue());
-<a class="jxr_linenumber" name="148" href="#148">148</a>                 player.pop();
-<a class="jxr_linenumber" name="149" href="#149">149</a>                 unavailable.addAll(player);
-<a class="jxr_linenumber" name="150" href="#150">150</a>             } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="151" href="#151">151</a>                 <em class="jxr_comment">// remove all the nodes occupied by other players</em>
-<a class="jxr_linenumber" name="152" href="#152">152</a>                 unavailable.addAll(entry.getValue());
-<a class="jxr_linenumber" name="153" href="#153">153</a>             }
-<a class="jxr_linenumber" name="154" href="#154">154</a>         }
-<a class="jxr_linenumber" name="155" href="#155">155</a>         <strong class="jxr_keyword">final</strong> Graph&lt;Node, Edge&gt; graphWithoutPlayers = <strong class="jxr_keyword">this</strong>.playground
-<a class="jxr_linenumber" name="156" href="#156">156</a>                 .getGraph();
-<a class="jxr_linenumber" name="157" href="#157">157</a>         <strong class="jxr_keyword">this</strong>.currentGraph = PathTracker.cloneGraph(graphWithoutPlayers,
-<a class="jxr_linenumber" name="158" href="#158">158</a>                 unavailable);
-<a class="jxr_linenumber" name="159" href="#159">159</a>         <strong class="jxr_keyword">this</strong>.currentPath = <strong class="jxr_keyword">new</strong> UnweightedShortestPath&lt;Node, Edge&gt;(
-<a class="jxr_linenumber" name="160" href="#160">160</a>                 <strong class="jxr_keyword">this</strong>.currentGraph);
-<a class="jxr_linenumber" name="161" href="#161">161</a>         <strong class="jxr_keyword">this</strong>.currentPosition = newPositions.get(<strong class="jxr_keyword">this</strong>.player).getFirst();
-<a class="jxr_linenumber" name="162" href="#162">162</a>     }
-<a class="jxr_linenumber" name="163" href="#163">163</a> 
-<a class="jxr_linenumber" name="164" href="#164">164</a> }
+<a class="jxr_linenumber" name="87" href="#87">87</a>          <strong class="jxr_keyword">return</strong> Collections.unmodifiableList(ShortestPathUtils.getPath(<strong class="jxr_keyword">this</strong>.currentGraph, <strong class="jxr_keyword">this</strong>.currentPath, start, end));
+<a class="jxr_linenumber" name="88" href="#88">88</a>      }
+<a class="jxr_linenumber" name="89" href="#89">89</a>  
+<a class="jxr_linenumber" name="90" href="#90">90</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="91" href="#91">91</a>  <em class="jxr_javadoccomment">     * Find the shortest path from the start node that leads through the other</em>
+<a class="jxr_linenumber" name="92" href="#92">92</a>  <em class="jxr_javadoccomment">     * two nodes in any order.</em>
+<a class="jxr_linenumber" name="93" href="#93">93</a>  <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="94" href="#94">94</a>  <em class="jxr_javadoccomment">     * @param start</em>
+<a class="jxr_linenumber" name="95" href="#95">95</a>  <em class="jxr_javadoccomment">     *            Beginning of the path.</em>
+<a class="jxr_linenumber" name="96" href="#96">96</a>  <em class="jxr_javadoccomment">     * @param node2</em>
+<a class="jxr_linenumber" name="97" href="#97">97</a>  <em class="jxr_javadoccomment">     *            Any of the other two nodes.</em>
+<a class="jxr_linenumber" name="98" href="#98">98</a>  <em class="jxr_javadoccomment">     * @param node3</em>
+<a class="jxr_linenumber" name="99" href="#99">99</a>  <em class="jxr_javadoccomment">     *            Any of the other two nodes.</em>
+<a class="jxr_linenumber" name="100" href="#100">100</a> <em class="jxr_javadoccomment">     * @return Unmodifiable list of nodes on the path, ordered from start to</em>
+<a class="jxr_linenumber" name="101" href="#101">101</a> <em class="jxr_javadoccomment">     *         end. Empty if path cannot be found.</em>
+<a class="jxr_linenumber" name="102" href="#102">102</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="103" href="#103">103</a>     <strong class="jxr_keyword">public</strong> List&lt;Edge&gt; getPath(<strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/api/Node.html">Node</a> start, <strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/api/Node.html">Node</a> node2, <strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/api/Node.html">Node</a> node3) {
+<a class="jxr_linenumber" name="104" href="#104">104</a>         <strong class="jxr_keyword">final</strong> List&lt;Edge&gt; path2 = <strong class="jxr_keyword">this</strong>.getPath(start, node2);
+<a class="jxr_linenumber" name="105" href="#105">105</a>         <strong class="jxr_keyword">final</strong> List&lt;Edge&gt; path3 = <strong class="jxr_keyword">this</strong>.getPath(start, node3);
+<a class="jxr_linenumber" name="106" href="#106">106</a>         <strong class="jxr_keyword">final</strong> List&lt;Edge&gt; path23 = <strong class="jxr_keyword">new</strong> ArrayList&lt;Edge&gt;(<strong class="jxr_keyword">this</strong>.getPath(node2, node3));
+<a class="jxr_linenumber" name="107" href="#107">107</a>         <strong class="jxr_keyword">final</strong> List&lt;Edge&gt; result = <strong class="jxr_keyword">new</strong> ArrayList&lt;Edge&gt;();
+<a class="jxr_linenumber" name="108" href="#108">108</a>         <strong class="jxr_keyword">if</strong> (path2.size() &gt; path3.size()) {
+<a class="jxr_linenumber" name="109" href="#109">109</a>             result.addAll(path3);
+<a class="jxr_linenumber" name="110" href="#110">110</a>             Collections.reverse(path23);
+<a class="jxr_linenumber" name="111" href="#111">111</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="112" href="#112">112</a>             result.addAll(path2);
+<a class="jxr_linenumber" name="113" href="#113">113</a>         }
+<a class="jxr_linenumber" name="114" href="#114">114</a>         result.addAll(path23);
+<a class="jxr_linenumber" name="115" href="#115">115</a>         <strong class="jxr_keyword">return</strong> Collections.unmodifiableList(result);
+<a class="jxr_linenumber" name="116" href="#116">116</a>     }
+<a class="jxr_linenumber" name="117" href="#117">117</a> 
+<a class="jxr_linenumber" name="118" href="#118">118</a>     <strong class="jxr_keyword">public</strong> <a href="../../../../org/drooms/api/Player.html">Player</a> getPlayer() {
+<a class="jxr_linenumber" name="119" href="#119">119</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">this</strong>.player;
+<a class="jxr_linenumber" name="120" href="#120">120</a>     }
+<a class="jxr_linenumber" name="121" href="#121">121</a> 
+<a class="jxr_linenumber" name="122" href="#122">122</a>     <strong class="jxr_keyword">public</strong> <a href="../../../../org/drooms/api/Playground.html">Playground</a> getPlayground() {
+<a class="jxr_linenumber" name="123" href="#123">123</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">this</strong>.playground;
+<a class="jxr_linenumber" name="124" href="#124">124</a>     }
+<a class="jxr_linenumber" name="125" href="#125">125</a> 
+<a class="jxr_linenumber" name="126" href="#126">126</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="127" href="#127">127</a> <em class="jxr_javadoccomment">     * Update the internal state of this class so that future paths can avoid</em>
+<a class="jxr_linenumber" name="128" href="#128">128</a> <em class="jxr_javadoccomment">     * places where the worms currently reside.</em>
+<a class="jxr_linenumber" name="129" href="#129">129</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="130" href="#130">130</a> <em class="jxr_javadoccomment">     * @param newPositions</em>
+<a class="jxr_linenumber" name="131" href="#131">131</a> <em class="jxr_javadoccomment">     *            New current positions of all the worms.</em>
+<a class="jxr_linenumber" name="132" href="#132">132</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="133" href="#133">133</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> movePlayers(<strong class="jxr_keyword">final</strong> Map&lt;Player, Deque&lt;Node&gt;&gt; newPositions) {
+<a class="jxr_linenumber" name="134" href="#134">134</a>         <strong class="jxr_keyword">final</strong> Set&lt;Node&gt; unavailable = <strong class="jxr_keyword">new</strong> HashSet&lt;&gt;();
+<a class="jxr_linenumber" name="135" href="#135">135</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">final</strong> Map.Entry&lt;Player, Deque&lt;Node&gt;&gt; entry : newPositions.entrySet()) {
+<a class="jxr_linenumber" name="136" href="#136">136</a>             Deque&lt;Node&gt; playerNodes = entry.getValue(); 
+<a class="jxr_linenumber" name="137" href="#137">137</a>             unavailable.addAll(playerNodes);
+<a class="jxr_linenumber" name="138" href="#138">138</a>             <strong class="jxr_keyword">if</strong> (entry.getKey() == <strong class="jxr_keyword">this</strong>.player) {
+<a class="jxr_linenumber" name="139" href="#139">139</a>                 <em class="jxr_comment">/*</em>
+<a class="jxr_linenumber" name="140" href="#140">140</a> <em class="jxr_comment">                 * the head node needs to remain, since otherwise there would be</em>
+<a class="jxr_linenumber" name="141" href="#141">141</a> <em class="jxr_comment">                 * no path between the current position and any other position.</em>
+<a class="jxr_linenumber" name="142" href="#142">142</a> <em class="jxr_comment">                 */</em>
+<a class="jxr_linenumber" name="143" href="#143">143</a>                 unavailable.remove(playerNodes.getFirst());
+<a class="jxr_linenumber" name="144" href="#144">144</a>             }
+<a class="jxr_linenumber" name="145" href="#145">145</a>         }
+<a class="jxr_linenumber" name="146" href="#146">146</a>         <strong class="jxr_keyword">final</strong> Graph&lt;Node, Edge&gt; graphWithoutPlayers = <strong class="jxr_keyword">this</strong>.playground.getGraph();
+<a class="jxr_linenumber" name="147" href="#147">147</a>         <strong class="jxr_keyword">this</strong>.currentGraph = PathTracker.cloneGraph(graphWithoutPlayers, unavailable);
+<a class="jxr_linenumber" name="148" href="#148">148</a>         <strong class="jxr_keyword">this</strong>.currentPath = <strong class="jxr_keyword">this</strong>.player.getShortestPathAlgorithm(<strong class="jxr_keyword">this</strong>.currentGraph);
+<a class="jxr_linenumber" name="149" href="#149">149</a>         <strong class="jxr_keyword">this</strong>.currentPosition = newPositions.get(<strong class="jxr_keyword">this</strong>.player).getFirst();
+<a class="jxr_linenumber" name="150" href="#150">150</a>     }
+<a class="jxr_linenumber" name="151" href="#151">151</a> 
+<a class="jxr_linenumber" name="152" href="#152">152</a> }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>
