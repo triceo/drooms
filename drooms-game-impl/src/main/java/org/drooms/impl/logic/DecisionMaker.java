@@ -96,18 +96,15 @@ import org.slf4j.LoggerFactory;
  */
 public class DecisionMaker implements Channel {
 
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(DecisionMaker.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DecisionMaker.class);
 
     private static KnowledgeSessionConfiguration getSessionConfiguration() {
-        final KnowledgeSessionConfiguration config = KnowledgeBaseFactory
-                .newKnowledgeSessionConfiguration();
+        final KnowledgeSessionConfiguration config = KnowledgeBaseFactory.newKnowledgeSessionConfiguration();
         config.setOption(ClockTypeOption.get("pseudo"));
         return config;
     }
 
-    private static void setGlobal(final StatefulKnowledgeSession session,
-            final String global, final Object value) {
+    private static void setGlobal(final StatefulKnowledgeSession session, final String global, final Object value) {
         try {
             session.setGlobal(global, value);
         } catch (final RuntimeException ex) {
@@ -119,51 +116,45 @@ public class DecisionMaker implements Channel {
     private final StatefulKnowledgeSession session;
     private final KnowledgeRuntimeLogger sessionAudit;
     private final boolean isDisposed = false;
-    private final WorkingMemoryEntryPoint gameEvents, playerEvents,
-            rewardEvents;
+    private final WorkingMemoryEntryPoint gameEvents, playerEvents, rewardEvents;
     private Move latestDecision = null;
     private final FactHandle currentTurn;
 
     private final Map<Player, Map<Node, FactHandle>> handles = new HashMap<Player, Map<Node, FactHandle>>();
 
-    public DecisionMaker(final Player p, final PathTracker tracker,
-            final File reportFolder) {
+    public DecisionMaker(final Player p, final PathTracker tracker, final File reportFolder, final boolean auditDrools) {
         this.player = p;
-        this.session = p.constructKnowledgeBase().newStatefulKnowledgeSession(
-                DecisionMaker.getSessionConfiguration(), null);
-        this.sessionAudit = KnowledgeRuntimeLoggerFactory.newFileLogger(
-                this.session, reportFolder.getAbsolutePath() + File.separator
-                        + "player-" + this.player.getName() + "-session");
+        this.session = p.constructKnowledgeBase().newStatefulKnowledgeSession(DecisionMaker.getSessionConfiguration(),
+                null);
+        if (auditDrools) {
+            DecisionMaker.LOGGER.info("Auditing the Drools session is enabled.");
+            this.sessionAudit = KnowledgeRuntimeLoggerFactory.newFileLogger(this.session,
+                    reportFolder.getAbsolutePath() + File.separator + "player-" + this.player.getName() + "-session");
+        } else {
+            DecisionMaker.LOGGER.info("Auditing the Drools session is disabled.");
+            this.sessionAudit = null;
+        }
         // this is where we listen for decisions
         this.session.registerChannel("decision", this);
         // validate session
-        final DroomsKnowledgeSessionValidator validator = new DroomsKnowledgeSessionValidator(
-                this.session);
+        final DroomsKnowledgeSessionValidator validator = new DroomsKnowledgeSessionValidator(this.session);
         if (!validator.isValid()) {
-            throw new IllegalStateException("Player " + this.player.getName()
-                    + " has a malformed strategy: "
+            throw new IllegalStateException("Player " + this.player.getName() + " has a malformed strategy: "
                     + validator.getErrors().get(0));
         }
         if (!validator.isClean()) {
             for (final String message : validator.getWarnings()) {
-                DecisionMaker.LOGGER.info(
-                        "Player {} has an incomplete strategy: {}",
-                        this.player.getName(), message);
+                DecisionMaker.LOGGER.info("Player {} has an incomplete strategy: {}", this.player.getName(), message);
             }
         }
         // this is where we will send events from the game
-        this.rewardEvents = this.session
-                .getWorkingMemoryEntryPoint("rewardEvents");
+        this.rewardEvents = this.session.getWorkingMemoryEntryPoint("rewardEvents");
         this.gameEvents = this.session.getWorkingMemoryEntryPoint("gameEvents");
-        this.playerEvents = this.session
-                .getWorkingMemoryEntryPoint("playerEvents");
+        this.playerEvents = this.session.getWorkingMemoryEntryPoint("playerEvents");
         // configure the globals for the session
         DecisionMaker.setGlobal(this.session, "tracker", tracker);
-        DecisionMaker.setGlobal(
-                this.session,
-                "logger",
-                LoggerFactory.getLogger("org.drooms.players."
-                        + this.player.getName()));
+        DecisionMaker.setGlobal(this.session, "logger",
+                LoggerFactory.getLogger("org.drooms.players." + this.player.getName()));
         /*
          * insert playground walls; make sure the playground is always
          * surrounded with walls.
@@ -189,42 +180,35 @@ public class DecisionMaker implements Channel {
      */
     public Move decideNextMove() {
         this.validate();
-        DecisionMaker.LOGGER.trace("Player {} advancing time. ",
-                new Object[] { this.player.getName() });
+        DecisionMaker.LOGGER.trace("Player {} advancing time. ", new Object[] { this.player.getName() });
         final SessionPseudoClock clock = this.session.getSessionClock();
         clock.advanceTime(1, TimeUnit.MINUTES);
         // decide
-        DecisionMaker.LOGGER.trace("Player {} deciding. ",
-                new Object[] { this.player.getName() });
+        DecisionMaker.LOGGER.trace("Player {} deciding. ", new Object[] { this.player.getName() });
         this.latestDecision = null;
         this.session.fireAllRules();
         // increase turn number
-        final CurrentTurn turn = (CurrentTurn) this.session
-                .getObject(this.currentTurn);
-        this.session.update(this.currentTurn, new CurrentTurn(
-                turn.getNumber() + 1));
+        final CurrentTurn turn = (CurrentTurn) this.session.getObject(this.currentTurn);
+        this.session.update(this.currentTurn, new CurrentTurn(turn.getNumber() + 1));
         // store the decision
         if (this.latestDecision == null) {
-            DecisionMaker.LOGGER.info(
-                    "Player {} didn't make a decision. STAY forced.",
-                    this.player.getName());
+            DecisionMaker.LOGGER.info("Player {} didn't make a decision. STAY forced.", this.player.getName());
             return Move.STAY;
         } else {
-            DecisionMaker.LOGGER.info("Player {} final decision is {}. ",
-                    this.player.getName(), this.latestDecision);
+            DecisionMaker.LOGGER.info("Player {} final decision is {}. ", this.player.getName(), this.latestDecision);
             return this.latestDecision;
         }
     }
-    
+
+    public Player getPlayer() {
+        return this.player;
+    }
+
     /**
      * Stop the decision-making process, no matter where it currently is.
      */
     public void halt() {
         this.session.halt();
-    }
-
-    public Player getPlayer() {
-        return this.player;
     }
 
     /**
@@ -252,8 +236,7 @@ public class DecisionMaker implements Channel {
         this.playerEvents.insert(evt);
         final Player p = evt.getPlayer();
         // remove player from the WM
-        for (final Map.Entry<Node, FactHandle> entry : this.handles.remove(p)
-                .entrySet()) {
+        for (final Map.Entry<Node, FactHandle> entry : this.handles.remove(p).entrySet()) {
             this.session.retract(entry.getValue());
         }
     }
@@ -266,8 +249,7 @@ public class DecisionMaker implements Channel {
             this.handles.put(p, new HashMap<Node, FactHandle>());
         }
         final Map<Node, FactHandle> playerHandles = this.handles.get(p);
-        final Set<Node> untraversedNodes = new HashSet<Node>(
-                playerHandles.keySet());
+        final Set<Node> untraversedNodes = new HashSet<Node>(playerHandles.keySet());
         for (final Node n : evt.getNodes()) {
             if (!playerHandles.containsKey(n)) { // worm occupies a new node
                 final FactHandle fh = this.session.insert(new Worm(p, n));
@@ -291,16 +273,13 @@ public class DecisionMaker implements Channel {
         this.validate();
         if (object instanceof Move) {
             if (this.latestDecision != null) {
-                DecisionMaker.LOGGER.debug(
-                        "Player {} has changed the decision from {} to {}.",
-                        new Object[] { this.player.getName(),
-                                this.latestDecision, object });
+                DecisionMaker.LOGGER.debug("Player {} has changed the decision from {} to {}.", new Object[] {
+                        this.player.getName(), this.latestDecision, object });
             }
             this.latestDecision = (Move) object;
         } else {
-            DecisionMaker.LOGGER.warn(
-                    "Player {} indicated an invalid move {}.", new Object[] {
-                            this.player.getName(), this.latestDecision });
+            DecisionMaker.LOGGER.warn("Player {} indicated an invalid move {}.", new Object[] { this.player.getName(),
+                    this.latestDecision });
         }
     }
 
@@ -313,13 +292,13 @@ public class DecisionMaker implements Channel {
      */
     public boolean terminate() {
         if (this.isDisposed) {
-            DecisionMaker.LOGGER.warn("Player {} already terminated.",
-                    new Object[] { this.player.getName() });
+            DecisionMaker.LOGGER.warn("Player {} already terminated.", new Object[] { this.player.getName() });
             return false;
         } else {
-            DecisionMaker.LOGGER.info("Terminating player {}.",
-                    new Object[] { this.player.getName() });
-            this.sessionAudit.close();
+            DecisionMaker.LOGGER.info("Terminating player {}.", new Object[] { this.player.getName() });
+            if (this.sessionAudit != null) {
+                this.sessionAudit.close();
+            }
             this.session.dispose();
             return true;
         }
@@ -327,8 +306,7 @@ public class DecisionMaker implements Channel {
 
     private void validate() {
         if (this.isDisposed) {
-            throw new IllegalStateException("Player " + this.player.getName()
-                    + " already terminated!");
+            throw new IllegalStateException("Player " + this.player.getName() + " already terminated!");
         }
     }
 

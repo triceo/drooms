@@ -95,14 +95,17 @@ import org.slf4j.LoggerFactory;
  * <dt>worm.survival.bonus (defaults to 1)</dt>
  * <dd>The amount of points that the worm will be awarded upon surviving another
  * worm.</dd>
+ * <dt>worm.audit (defaults to false)</dt>
+ * <dd>Whether or not the Drools sessions should be audited.</dd>
  * </dl>
+ * 
+ * FIXME worm.audit to be player-based in 0.4.
  */
 public abstract class GameController implements Game {
 
     private final AtomicBoolean played = new AtomicBoolean(false);
 
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(GameController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(GameController.class);
 
     private GameProgressListener reporter;
 
@@ -138,8 +141,7 @@ public abstract class GameController implements Game {
 
     protected List<Move> getDecisionRecord(final Player p) {
         final LinkedList<Move> moves = new LinkedList<Move>();
-        for (final SortedMap.Entry<Integer, Move> entry : this.decisionRecord
-                .get(p).entrySet()) {
+        for (final SortedMap.Entry<Integer, Move> entry : this.decisionRecord.get(p).entrySet()) {
             moves.add(entry.getKey(), entry.getValue());
         }
         return moves;
@@ -151,16 +153,14 @@ public abstract class GameController implements Game {
 
     protected int getPlayerLength(final Player p) {
         if (!this.lengths.containsKey(p)) {
-            throw new IllegalStateException(
-                    "Player doesn't have any length assigned: " + p);
+            throw new IllegalStateException("Player doesn't have any length assigned: " + p);
         }
         return this.lengths.get(p);
     }
 
     protected Deque<Node> getPlayerPosition(final Player p) {
         if (!this.positions.containsKey(p)) {
-            throw new IllegalStateException(
-                    "Player doesn't have any position assigned: " + p);
+            throw new IllegalStateException("Player doesn't have any position assigned: " + p);
         }
         return this.positions.get(p);
     }
@@ -178,8 +178,7 @@ public abstract class GameController implements Game {
      *            Players still in the game.
      * @return Which collectible is collected by which player.
      */
-    protected abstract Map<Collectible, Player> performCollectibleCollection(
-            final Collection<Player> players);
+    protected abstract Map<Collectible, Player> performCollectibleCollection(final Collection<Player> players);
 
     /**
      * Decide which new {@link Collectible}s should be distributed.
@@ -195,9 +194,8 @@ public abstract class GameController implements Game {
      *            Current turn number.
      * @return Which collectibles should be put where.
      */
-    protected abstract Map<Collectible, Node> performCollectibleDistribution(
-            final Properties gameConfig, final Playground playground,
-            final Collection<Player> players, final int currentTurnNumber);
+    protected abstract Map<Collectible, Node> performCollectibleDistribution(final Properties gameConfig,
+            final Playground playground, final Collection<Player> players, final int currentTurnNumber);
 
     /**
      * Perform collision detection for worms.
@@ -208,8 +206,8 @@ public abstract class GameController implements Game {
      *            Players still in the game.
      * @return Which players should be considered crashed.
      */
-    protected abstract Set<Player> performCollisionDetection(
-            final Playground playground, final Collection<Player> currentPlayers);
+    protected abstract Set<Player> performCollisionDetection(final Playground playground,
+            final Collection<Player> currentPlayers);
 
     /**
      * Decide which worms should be considered inactive.
@@ -223,8 +221,7 @@ public abstract class GameController implements Game {
      *            inactive.
      * @return Which players should be considered inactive.
      */
-    protected abstract Set<Player> performInactivityDetection(
-            final Collection<Player> currentPlayers,
+    protected abstract Set<Player> performInactivityDetection(final Collection<Player> currentPlayers,
             final int currentTurnNumber, final int allowedInactiveTurns);
 
     /**
@@ -236,8 +233,7 @@ public abstract class GameController implements Game {
      *            The move to perform.
      * @return New positions for the worm, head-first.
      */
-    protected abstract Deque<Node> performPlayerMove(final Player player,
-            final Move decision);
+    protected abstract Deque<Node> performPlayerMove(final Player player, final Move decision);
 
     /**
      * Decide which players should be rewarded for survival in this round.
@@ -253,39 +249,31 @@ public abstract class GameController implements Game {
      * @return How much each player should be rewarded. Players not mentioned
      *         are not rewarded.
      */
-    protected abstract Map<Player, Integer> performSurvivalRewarding(
-            Collection<Player> allPlayers, Collection<Player> survivingPlayers,
-            int removedInThisRound, int rewardAmount);
+    protected abstract Map<Player, Integer> performSurvivalRewarding(Collection<Player> allPlayers,
+            Collection<Player> survivingPlayers, int removedInThisRound, int rewardAmount);
 
     @Override
-    public Map<Player, Integer> play(final Playground playground,
-            final Properties gameConfig, final Collection<Player> players,
-            final File reportFolder) {
+    public Map<Player, Integer> play(final Playground playground, final Properties gameConfig,
+            final Collection<Player> players, final File reportFolder) {
         // make sure a game isn't played more than once
         if (this.played.get()) {
-            throw new IllegalStateException(
-                    "This game had already been played.");
+            throw new IllegalStateException("This game had already been played.");
         }
         this.played.set(true);
         // prepare the playground
-        final int wormLength = Integer.valueOf(gameConfig.getProperty(
-                "worm.length.start", "3"));
-        final int allowedInactiveTurns = Integer.valueOf(gameConfig
-                .getProperty("worm.max.inactive.turns", "3"));
-        final int allowedTurns = Integer.valueOf(gameConfig.getProperty(
-                "worm.max.turns", "1000"));
-        final int wormSurvivalBonus = Integer.valueOf(gameConfig.getProperty(
-                "worm.survival.bonus", "1"));
-        final int wormTimeout = Integer.valueOf(gameConfig.getProperty(
-                "worm.timeout.seconds", "1"));
+        final int wormLength = Integer.valueOf(gameConfig.getProperty("worm.length.start", "3"));
+        final int allowedInactiveTurns = Integer.valueOf(gameConfig.getProperty("worm.max.inactive.turns", "3"));
+        final int allowedTurns = Integer.valueOf(gameConfig.getProperty("worm.max.turns", "1000"));
+        final int wormSurvivalBonus = Integer.valueOf(gameConfig.getProperty("worm.survival.bonus", "1"));
+        final int wormTimeout = Integer.valueOf(gameConfig.getProperty("worm.timeout.seconds", "1"));
+        final boolean wormAudit = Boolean.valueOf(gameConfig.getProperty("worm.audit", "false"));
         // prepare players and their starting positions
         final List<Node> startingPositions = playground.getStartingPositions();
         final int playersSupported = startingPositions.size();
         final int playersAvailable = players.size();
         if (playersSupported < playersAvailable) {
-            throw new IllegalArgumentException(
-                    "The playground doesn't support " + playersAvailable
-                            + " players, only " + playersSupported + "! ");
+            throw new IllegalArgumentException("The playground doesn't support " + playersAvailable + " players, only "
+                    + playersSupported + "! ");
         }
         int i = 0;
         for (final Player player : players) {
@@ -293,14 +281,13 @@ public abstract class GameController implements Game {
             pos.push(startingPositions.get(i));
             this.setPlayerPosition(player, pos);
             this.setPlayerLength(player, wormLength);
-            GameController.LOGGER.info("Player {} assigned position {}.",
-                    player.getName(), i);
+            GameController.LOGGER.info("Player {} assigned position {}.", player.getName(), i);
             i++;
         }
         // prepare situation
         this.reporter = new XmlProgressListener(playground, players, gameConfig);
-        final CommandDistributor playerControl = new CommandDistributor(
-                playground, players, this.reporter, reportFolder, wormTimeout);
+        final CommandDistributor playerControl = new CommandDistributor(playground, players, this.reporter,
+                reportFolder, wormTimeout, wormAudit);
         final Set<Player> currentPlayers = new HashSet<Player>(players);
         Map<Player, Move> decisions = new HashMap<Player, Move>();
         for (final Player p : currentPlayers) { // initialize players
@@ -313,13 +300,11 @@ public abstract class GameController implements Game {
             final int preRemoval = currentPlayers.size();
             final List<Command> commands = new LinkedList<>();
             // remove inactive worms
-            for (final Player player : this.performInactivityDetection(
-                    currentPlayers, turnNumber, allowedInactiveTurns)) {
+            for (final Player player : this
+                    .performInactivityDetection(currentPlayers, turnNumber, allowedInactiveTurns)) {
                 currentPlayers.remove(player);
                 commands.add(new DeactivatePlayerCommand(player));
-                GameController.LOGGER.info(
-                        "Player {} will be removed for inactivity.",
-                        player.getName());
+                GameController.LOGGER.info("Player {} will be removed for inactivity.", player.getName());
             }
             // move the worms
             for (final Player p : currentPlayers) {
@@ -330,16 +315,13 @@ public abstract class GameController implements Game {
                 commands.add(new MovePlayerCommand(p, m, newPosition));
             }
             // resolve worms colliding
-            for (final Player player : this.performCollisionDetection(
-                    playground, currentPlayers)) {
+            for (final Player player : this.performCollisionDetection(playground, currentPlayers)) {
                 currentPlayers.remove(player);
                 commands.add(new CrashPlayerCommand(player));
             }
             final int postRemoval = currentPlayers.size();
-            for (final Map.Entry<Player, Integer> entry : this
-                    .performSurvivalRewarding(players, currentPlayers,
-                            preRemoval - postRemoval, wormSurvivalBonus)
-                    .entrySet()) {
+            for (final Map.Entry<Player, Integer> entry : this.performSurvivalRewarding(players, currentPlayers,
+                    preRemoval - postRemoval, wormSurvivalBonus).entrySet()) {
                 final Player p = entry.getKey();
                 final int amount = entry.getValue();
                 this.reward(p, amount);
@@ -357,20 +339,18 @@ public abstract class GameController implements Game {
                 this.removeCollectible(c);
             }
             // add points for collected collectibles
-            for (final Map.Entry<Collectible, Player> entry : this
-                    .performCollectibleCollection(currentPlayers).entrySet()) {
+            for (final Map.Entry<Collectible, Player> entry : this.performCollectibleCollection(currentPlayers)
+                    .entrySet()) {
                 final Collectible c = entry.getKey();
                 final Player p = entry.getValue();
                 this.reward(p, c.getPoints());
-                commands.add(new CollectCollectibleCommand(c, p, this
-                        .getNode(c)));
+                commands.add(new CollectCollectibleCommand(c, p, this.getNode(c)));
                 this.removeCollectible(c);
                 this.setPlayerLength(p, this.getPlayerLength(p) + 1);
             }
             // distribute new collectibles
-            for (final Map.Entry<Collectible, Node> entry : this
-                    .performCollectibleDistribution(gameConfig, playground,
-                            currentPlayers, turnNumber).entrySet()) {
+            for (final Map.Entry<Collectible, Node> entry : this.performCollectibleDistribution(gameConfig, playground,
+                    currentPlayers, turnNumber).entrySet()) {
                 final Collectible c = entry.getKey();
                 final Node n = entry.getValue();
                 this.addCollectible(c, n);
@@ -380,23 +360,18 @@ public abstract class GameController implements Game {
             decisions = playerControl.execute(commands);
             turnNumber++;
             if (turnNumber == allowedTurns) {
-                GameController.LOGGER
-                        .info("Reached a pre-defined limit of {} turns. Terminating game.",
-                                allowedTurns);
+                GameController.LOGGER.info("Reached a pre-defined limit of {} turns. Terminating game.", allowedTurns);
                 break;
             } else if (currentPlayers.size() < 2) {
-                GameController.LOGGER
-                        .info("There are no more players. Terminating game.");
+                GameController.LOGGER.info("There are no more players. Terminating game.");
                 break;
             }
         } while (true);
         playerControl.terminate(); // clean up all the sessions
         // output player status
         GameController.LOGGER.info("--- Game over.");
-        for (final Map.Entry<Player, Integer> entry : this.playerPoints
-                .entrySet()) {
-            GameController.LOGGER.info("Player {} earned {} points.", entry
-                    .getKey().getName(), entry.getValue());
+        for (final Map.Entry<Player, Integer> entry : this.playerPoints.entrySet()) {
+            GameController.LOGGER.info("Player {} earned {} points.", entry.getKey().getName(), entry.getValue());
         }
         return Collections.unmodifiableMap(this.playerPoints);
     }
