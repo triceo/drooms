@@ -1,4 +1,4 @@
-package org.drooms.impl.util;
+package org.drooms.impl.util.cli;
 
 import java.io.File;
 
@@ -34,7 +34,7 @@ import org.drooms.impl.GameController;
  * should result in a help message being printed out and the application being
  * terminated.
  */
-public class GameCLI {
+public class GameCLI implements CommonCLI<File[]> {
 
     private static final GameCLI INSTANCE = new GameCLI();
 
@@ -74,6 +74,7 @@ public class GameCLI {
      * Prints a help message, describing the usage of the app from the
      * command-line.
      */
+    @Override
     public void printHelp() {
         if (this.isError) {
             System.out.println(this.errorMessage);
@@ -91,6 +92,7 @@ public class GameCLI {
      *         is the game config, third is the player config, fourth
      *         (optionally) the directory in which to store reports.
      */
+    @Override
     public File[] process(final String[] args) {
         this.isError = false;
         final CommandLineParser parser = new GnuParser();

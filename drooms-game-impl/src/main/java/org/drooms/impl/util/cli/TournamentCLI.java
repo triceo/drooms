@@ -1,4 +1,4 @@
-package org.drooms.impl.util;
+package org.drooms.impl.util.cli;
 
 import java.io.File;
 
@@ -24,10 +24,8 @@ import org.drooms.impl.DroomsTournament;
  * Not providing any of those or pointing to unreadable (non-existent) files
  * should result in a help message being printed out and the application being
  * terminated.
- * 
- * FIXME make a common interface with {@link GameCLI}.
  */
-public class TournamentCLI {
+public class TournamentCLI implements CommonCLI<File> {
 
     private static final TournamentCLI INSTANCE = new TournamentCLI();
 
@@ -42,8 +40,7 @@ public class TournamentCLI {
 
     private final Options options = new Options();
 
-    private final Option game = new Option("t", "tournament", true,
-            "A path to the tournament config file.");
+    private final Option game = new Option("t", "tournament", true, "A path to the tournament config file.");
 
     private String errorMessage = null;
     private boolean isError = false;
@@ -60,6 +57,7 @@ public class TournamentCLI {
      * Prints a help message, describing the usage of the app from the
      * command-line.
      */
+    @Override
     public void printHelp() {
         if (this.isError) {
             System.out.println(this.errorMessage);
@@ -75,13 +73,13 @@ public class TournamentCLI {
      *            The arguments.
      * @return The tournament config to read.
      */
+    @Override
     public File process(final String[] args) {
         this.isError = false;
         final CommandLineParser parser = new GnuParser();
         try {
             final CommandLine cli = parser.parse(this.options, args);
-            final File gameConfig = new File(cli.getOptionValue(this.game
-                    .getOpt()));
+            final File gameConfig = new File(cli.getOptionValue(this.game.getOpt()));
             if (!gameConfig.exists() || !gameConfig.canRead()) {
                 this.setError("Provided game config file cannot be read!");
                 return null;
