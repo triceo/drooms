@@ -299,6 +299,7 @@ public class DecisionMaker implements Channel {
             if (this.sessionAudit != null) {
                 this.sessionAudit.close();
             }
+            this.halt();
             this.session.dispose();
             return true;
         }
