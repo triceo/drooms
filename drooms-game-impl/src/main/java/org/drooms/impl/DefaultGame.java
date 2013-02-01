@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 import org.drooms.api.Collectible;
@@ -17,6 +16,8 @@ import org.drooms.api.Move;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
+import org.drooms.impl.util.GameProperties;
+import org.drooms.impl.util.GameProperties.CollectibleType;
 
 /**
  * On top of the rules implemented by {@link GameController}, this game
@@ -49,37 +50,6 @@ import org.drooms.api.Playground;
  */
 public class DefaultGame extends GameController {
 
-    private enum CollectibleType {
-
-        CHEAP("cheap"), GOOD("good"), EXTREME("extreme");
-
-        private static final String COMMON_PREFIX = "collectible.";
-        private static final String PROBABILITY_PREFIX = CollectibleType.COMMON_PREFIX + "probability.";
-        private static final String PRICE_PREFIX = CollectibleType.COMMON_PREFIX + "price.";
-        private static final String EXPIRATION_PREFIX = CollectibleType.COMMON_PREFIX + "expiration.";
-        private final String collectibleName;
-
-        CollectibleType(final String propertyName) {
-            this.collectibleName = propertyName;
-        }
-
-        public int getExpiration(final Properties config) {
-            final String price = config.getProperty(CollectibleType.EXPIRATION_PREFIX + this.collectibleName, "1");
-            return Integer.valueOf(price);
-        }
-
-        public int getPoints(final Properties config) {
-            final String price = config.getProperty(CollectibleType.PRICE_PREFIX + this.collectibleName, "1");
-            return Integer.valueOf(price);
-        }
-
-        public BigDecimal getProbabilityOfAppearance(final Properties config) {
-            final String probability = config.getProperty(CollectibleType.PROBABILITY_PREFIX + this.collectibleName,
-                    "0.1");
-            return new BigDecimal(probability);
-        }
-    }
-
     @Override
     protected Map<Collectible, Player> performCollectibleCollection(final Collection<Player> players) {
         final Map<Collectible, Player> collections = new HashMap<Collectible, Player>();
@@ -94,17 +64,17 @@ public class DefaultGame extends GameController {
     }
 
     @Override
-    protected Map<Collectible, Node> performCollectibleDistribution(final Properties gameConfig,
+    protected Map<Collectible, Node> performCollectibleDistribution(final GameProperties gameConfig,
             final Playground playground, final Collection<Player> players, final int currentTurnNumber) {
         final Map<Collectible, Node> collectibles = new HashMap<Collectible, Node>();
-        for (final CollectibleType ct : CollectibleType.values()) {
-            final BigDecimal probability = ct.getProbabilityOfAppearance(gameConfig);
+        for (final CollectibleType ct : gameConfig.getCollectibleTypes()) {
+            final BigDecimal probability = ct.getProbabilityOfAppearance();
             final BigDecimal chosen = BigDecimal.valueOf(GameController.RANDOM.nextDouble());
             if (probability.compareTo(chosen) > 0) {
                 final double expirationAdjustmentRate = GameController.RANDOM.nextDouble() + 0.5;
-                final double turnsToLast = expirationAdjustmentRate * ct.getExpiration(gameConfig);
+                final double turnsToLast = expirationAdjustmentRate * ct.getExpiration();
                 final int expiresIn = (int) Math.round(currentTurnNumber + turnsToLast);
-                final int points = ct.getPoints(gameConfig);
+                final int points = ct.getPoints();
                 final Collectible c = new Collectible(points, expiresIn);
                 collectibles.put(c, this.pickRandomUnusedNode(playground, players));
             }

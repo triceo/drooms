@@ -3,7 +3,6 @@ package org.drooms.api;
 import java.io.File;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Properties;
 
 /**
  * Represents a certain type of game, with its own rules and constraints.
@@ -20,18 +19,29 @@ public interface Game {
 
     /**
      * Initialize the game and play it through. Will throw an exception in case
-     * of a repeated call of this method on the same class instance.
+     * of a repeated call of this method on the same class instance. May throw
+     * {@link IllegalStateException} if {@link #setContext(Object)} wasn't
+     * called first.
      * 
      * @param playground
      *            The playground on which this game will be played out.
-     * @param config
-     *            Game configuration.
      * @param players
      *            A list of players to participate in the game.
      * @param reportFolder
      *            Where to output data, if necessary.
      * @return Points gained by each player.
      */
-    public Map<Player, Integer> play(Playground playground, Properties config, Collection<Player> players, File reportFolder);
+    public Map<Player, Integer> play(Playground playground, Collection<Player> players, File reportFolder);
+
+    /**
+     * Sets the context for this game. The context should provide properties
+     * that the game should use to decide various situations.
+     * 
+     * @param context
+     *            This is a simple Object, since we don't want to enforce
+     *            anything on the game implementations. Neither we know what to
+     *            enforce.
+     */
+    public void setContext(Object context);
 
 }

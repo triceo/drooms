@@ -54,10 +54,8 @@ import org.drooms.impl.DroomsTournament;
  * </dl>
  * 
  * FIXME document player config file format.
- * 
- * FIXME document playgrounds dependencies.
  */
-public class TournamentProperties {
+public class TournamentProperties extends CommonProperties {
 
     @SuppressWarnings("unchecked")
     private static Class<? extends Game> getGameImpl(final String id) {
@@ -66,18 +64,6 @@ public class TournamentProperties {
         } catch (final ClassNotFoundException e) {
             throw new IllegalArgumentException("Cannot instantiate game class.", e);
         }
-    }
-
-    private static String getMandatoryProperty(final Properties p, final String key) {
-        final String value = p.getProperty(key);
-        if (value == null) {
-            throw new IllegalStateException("Mandatory property not found: " + key);
-        }
-        return value;
-    }
-
-    private static String getOptionalProperty(final Properties p, final String key, final String defaultValue) {
-        return p.getProperty(key, defaultValue);
     }
 
     private static Playground loadPlayground(final File source, final String name) {
@@ -89,60 +75,41 @@ public class TournamentProperties {
         }
     }
 
-    private static Properties loadPlaygroundProperties(final File source, final String name) {
-        final File propsFile = new File(source, name + ".cfg");
-        final Properties gameProps = TournamentProperties.loadPropertiesFromFile(propsFile);
-        if (gameProps == null) {
-            throw new IllegalStateException("Failed reading game config file for playground: " + name);
-        }
-        return gameProps;
-    }
-
-    private static Properties loadPropertiesFromFile(final File f) {
-        try (InputStream is = new FileInputStream(f)) {
-            final Properties props = new Properties();
-            props.load(is);
-            return props;
-        } catch (final IOException e) {
-            throw new IllegalArgumentException("Failed reading properties from file: " + f);
-        }
-    }
-
     public static TournamentProperties read(final File f) {
-        return new TournamentProperties(TournamentProperties.loadPropertiesFromFile(f));
+        return new TournamentProperties(CommonProperties.loadPropertiesFromFile(f));
     }
 
     private final Class<? extends Game> gameClass;
     private final File resourceFolder;
     private final File targetFolder;
-    private final Collection<ImmutablePair<Playground, Properties>> playgrounds;
+    private final Collection<ImmutablePair<Playground, GameProperties>> playgrounds;
 
     private final int numberOfRunsPerPlayground;
 
     private final Collection<Player> players;
 
     private TournamentProperties(final Properties p) {
-        this.gameClass = TournamentProperties.getGameImpl(TournamentProperties.getMandatoryProperty(p, "game.class"));
-        this.numberOfRunsPerPlayground = Integer.valueOf(TournamentProperties.getOptionalProperty(p, "runs", "1"));
+        super(p);
+        this.gameClass = TournamentProperties.getGameImpl(this.getMandatoryProperty("game.class"));
+        this.numberOfRunsPerPlayground = Integer.valueOf(this.getOptionalProperty("runs", "1"));
         // prepare folders
-        this.resourceFolder = new File(TournamentProperties.getOptionalProperty(p, "folder.resources",
-                "src/main/resources"));
+        this.resourceFolder = new File(this.getOptionalProperty("folder.resources", "src/main/resources"));
         if (!this.resourceFolder.exists()) {
             this.resourceFolder.mkdirs();
         }
-        this.targetFolder = new File(TournamentProperties.getOptionalProperty(p, "folder.target", "target/drooms"));
+        this.targetFolder = new File(this.getOptionalProperty("folder.target", "target/drooms"));
         if (!this.targetFolder.exists()) {
             this.targetFolder.mkdirs();
         }
         // prepare a list of players
-        final File playerConfigFile = new File(TournamentProperties.getMandatoryProperty(p, "players"));
+        final File playerConfigFile = new File(this.getMandatoryProperty("players"));
         this.players = Collections.unmodifiableList(new PlayerAssembly(playerConfigFile).assemblePlayers());
         // parse the playgrounds
-        final Collection<ImmutablePair<Playground, Properties>> playgrounds = new ArrayList<>();
-        for (final String playgroundName : TournamentProperties.getMandatoryProperty(p, "playgrounds").split("\\Q,\\E")) {
+        final Collection<ImmutablePair<Playground, GameProperties>> playgrounds = new ArrayList<>();
+        for (final String playgroundName : this.getMandatoryProperty("playgrounds").split("\\Q,\\E")) {
             final Playground playground = TournamentProperties.loadPlayground(this.resourceFolder, playgroundName);
-            final Properties props = TournamentProperties.loadPlaygroundProperties(this.resourceFolder, playgroundName);
-            playgrounds.add(new ImmutablePair<Playground, Properties>(playground, props));
+            final GameProperties props = GameProperties.read(new File(this.resourceFolder, playgroundName + ".cfg"));
+            playgrounds.add(new ImmutablePair<Playground, GameProperties>(playground, props));
         }
         this.playgrounds = Collections.unmodifiableCollection(playgrounds);
     }
@@ -159,7 +126,7 @@ public class TournamentProperties {
         return this.players;
     }
 
-    public Collection<ImmutablePair<Playground, Properties>> getPlaygrounds() {
+    public Collection<ImmutablePair<Playground, GameProperties>> getPlaygrounds() {
         return this.playgrounds;
     }
 

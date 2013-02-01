@@ -10,7 +10,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -23,7 +22,6 @@ import org.drooms.api.Move;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
-import org.drooms.api.Strategy;
 import org.drooms.impl.logic.CommandDistributor;
 import org.drooms.impl.logic.commands.AddCollectibleCommand;
 import org.drooms.impl.logic.commands.CollectCollectibleCommand;
@@ -33,6 +31,7 @@ import org.drooms.impl.logic.commands.DeactivatePlayerCommand;
 import org.drooms.impl.logic.commands.MovePlayerCommand;
 import org.drooms.impl.logic.commands.RemoveCollectibleCommand;
 import org.drooms.impl.logic.commands.RewardSurvivalCommand;
+import org.drooms.impl.util.GameProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,34 +67,10 @@ import org.slf4j.LoggerFactory;
  * 
  * <p>
  * Some of the decisions can be made by classes extending this one. These are
- * clearly described above.
+ * clearly described above. This class depends on properties as defined in
+ * {@link GameProperties}.
  * </p>
  * 
- * <p>
- * This class depends on a couple properties from the game config:
- * </p>
- * 
- * <dl>
- * <dt>worm.length.start (defaults to 3)</dt>
- * <dd>Length of the worm at the start of the game. Actually, initially each
- * worm will only have a length of 1. But as it first moves its head, the tail
- * of the worm will stay where the head was, until the worm reaches the
- * specified starting length. From then on, the length will be kept constant and
- * only changed upon collecting an item.</dd>
- * <dt>worm.max.turns (defaults to 1000)</dt>
- * <dd>Maximum length of the game, in case more than 1 worm keeps on surviving.</dd>
- * <dt>worm.max.inactive.turns (defaults to 3)</dt>
- * <dd>Maximum number of turns of inactivity after which a player may be
- * terminated, if the game decides so.</dd>
- * <dt>worm.timeout.seconds (defaults to 1)</dt>
- * <dd>The maximum amount of time that the {@link Player}'s {@link Strategy} has
- * to make a decision on the next movement of the worm. If it doesn't make it in
- * time, STAY is enforced, potentially leading to the worm being terminated for
- * inactivity.</dd>
- * <dt>worm.survival.bonus (defaults to 1)</dt>
- * <dd>The amount of points that the worm will be awarded upon surviving another
- * worm.</dd>
- * </dl>
  */
 public abstract class GameController implements Game {
 
@@ -118,6 +93,8 @@ public abstract class GameController implements Game {
     private final Map<Node, Collectible> collectiblesByNode = new HashMap<Node, Collectible>();
 
     private final Map<Player, SortedMap<Integer, Move>> decisionRecord = new HashMap<Player, SortedMap<Integer, Move>>();
+
+    private GameProperties gameConfig;
 
     private void addCollectible(final Collectible c, final Node n) {
         this.collectiblesByNode.put(n, c);
@@ -190,7 +167,7 @@ public abstract class GameController implements Game {
      *            Current turn number.
      * @return Which collectibles should be put where.
      */
-    protected abstract Map<Collectible, Node> performCollectibleDistribution(final Properties gameConfig,
+    protected abstract Map<Collectible, Node> performCollectibleDistribution(final GameProperties gameConfig,
             final Playground playground, final Collection<Player> players, final int currentTurnNumber);
 
     /**
@@ -249,19 +226,22 @@ public abstract class GameController implements Game {
             Collection<Player> survivingPlayers, int removedInThisRound, int rewardAmount);
 
     @Override
-    public Map<Player, Integer> play(final Playground playground, final Properties gameConfig,
-            final Collection<Player> players, final File reportFolder) {
+    public Map<Player, Integer> play(final Playground playground, final Collection<Player> players,
+            final File reportFolder) {
+        if (this.gameConfig == null) {
+            throw new IllegalStateException("Game context had not been set!");
+        }
         // make sure a game isn't played more than once
         if (this.played.get()) {
             throw new IllegalStateException("This game had already been played.");
         }
         this.played.set(true);
         // prepare the playground
-        final int wormLength = Integer.valueOf(gameConfig.getProperty("worm.length.start", "3"));
-        final int allowedInactiveTurns = Integer.valueOf(gameConfig.getProperty("worm.max.inactive.turns", "3"));
-        final int allowedTurns = Integer.valueOf(gameConfig.getProperty("worm.max.turns", "1000"));
-        final int wormSurvivalBonus = Integer.valueOf(gameConfig.getProperty("worm.survival.bonus", "1"));
-        final int wormTimeout = Integer.valueOf(gameConfig.getProperty("worm.timeout.seconds", "1"));
+        final int wormLength = this.gameConfig.getStartingWormLength();
+        final int allowedInactiveTurns = this.gameConfig.getMaximumInactiveTurns();
+        final int allowedTurns = this.gameConfig.getMaximumTurns();
+        final int wormSurvivalBonus = this.gameConfig.getDeadWormBonus();
+        final int wormTimeout = this.gameConfig.getStrategyTimeoutInSeconds();
         // prepare players and their starting positions
         final List<Node> startingPositions = playground.getStartingPositions();
         final int playersSupported = startingPositions.size();
@@ -280,7 +260,7 @@ public abstract class GameController implements Game {
             i++;
         }
         // prepare situation
-        this.reporter = new XmlProgressListener(playground, players, gameConfig);
+        this.reporter = new XmlProgressListener(playground, players, this.gameConfig);
         final CommandDistributor playerControl = new CommandDistributor(playground, players, this.reporter,
                 reportFolder, wormTimeout);
         final Set<Player> currentPlayers = new HashSet<Player>(players);
@@ -344,8 +324,8 @@ public abstract class GameController implements Game {
                 this.setPlayerLength(p, this.getPlayerLength(p) + 1);
             }
             // distribute new collectibles
-            for (final Map.Entry<Collectible, Node> entry : this.performCollectibleDistribution(gameConfig, playground,
-                    currentPlayers, turnNumber).entrySet()) {
+            for (final Map.Entry<Collectible, Node> entry : this.performCollectibleDistribution(this.gameConfig,
+                    playground, currentPlayers, turnNumber).entrySet()) {
                 final Collectible c = entry.getKey();
                 final Node n = entry.getValue();
                 this.addCollectible(c, n);
@@ -381,6 +361,17 @@ public abstract class GameController implements Game {
             this.playerPoints.put(p, 0);
         }
         this.playerPoints.put(p, this.playerPoints.get(p) + points);
+    }
+
+    /**
+     * 
+     */
+    @Override
+    public void setContext(final Object context) {
+        if (!(context instanceof GameProperties)) {
+            throw new IllegalArgumentException("Context must be instanceof " + GameProperties.class);
+        }
+        this.gameConfig = (GameProperties) context;
     }
 
     private void setPlayerLength(final Player p, final int length) {

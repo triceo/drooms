@@ -5,7 +5,6 @@ import java.io.Writer;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
 import org.drooms.api.Collectible;
 import org.drooms.api.GameProgressListener;
@@ -13,17 +12,16 @@ import org.drooms.api.Move;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
+import org.drooms.impl.util.GameProperties;
 import org.drooms.impl.util.XmlUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class XmlProgressListener implements GameProgressListener {
-    private static Logger logger = LoggerFactory
-            .getLogger(XmlProgressListener.class);
+    private static Logger logger = LoggerFactory.getLogger(XmlProgressListener.class);
 
     private static String collectibleXml(final Collectible c) {
-        return "<collectible points='" + c.getPoints() + "' expiresInTurn='"
-                + c.expiresInTurn() + "' />";
+        return "<collectible points='" + c.getPoints() + "' expiresInTurn='" + c.expiresInTurn() + "' />";
     }
 
     private static String nodeXml(final Node c) {
@@ -40,16 +38,14 @@ public class XmlProgressListener implements GameProgressListener {
 
     private final Map<Player, Integer> playerPoints = new HashMap<>();
 
-    public XmlProgressListener(final Playground p,
-            final Collection<Player> players, final Properties gameConfig) {
+    public XmlProgressListener(final Playground p, final Collection<Player> players, final GameProperties gameConfig) {
         this.report.append("<game>");
         // report game config
         this.report.append("<config>");
-        for (final Map.Entry<Object, Object> pair : gameConfig.entrySet()) {
+        for (final Map.Entry<Object, Object> pair : gameConfig.getTextEntries()) {
             final String key = (String) pair.getKey();
             final String value = (String) pair.getValue();
-            this.report.append("<property name='" + key + "' value='" + value
-                    + "' />");
+            this.report.append("<property name='" + key + "' value='" + value + "' />");
         }
         this.report.append("</config>");
         // report players
@@ -63,8 +59,7 @@ public class XmlProgressListener implements GameProgressListener {
         for (int x = -1; x <= p.getWidth(); x++) {
             for (int y = -1; y <= p.getHeight(); y++) {
                 if (p.isAvailable(x, y)) {
-                    this.report.append(XmlProgressListener.nodeXml(Node
-                            .getNode(x, y)));
+                    this.report.append(XmlProgressListener.nodeXml(Node.getNode(x, y)));
                 }
             }
         }
@@ -89,8 +84,7 @@ public class XmlProgressListener implements GameProgressListener {
     }
 
     @Override
-    public void collectibleCollected(final Collectible c, final Player p,
-            final Node where, final int points) {
+    public void collectibleCollected(final Collectible c, final Player p, final Node where, final int points) {
         this.addPoints(p, points);
         this.report.append("<collectedCollectible points='" + points + "'>");
         this.report.append(XmlProgressListener.collectibleXml(c));
@@ -156,8 +150,7 @@ public class XmlProgressListener implements GameProgressListener {
         }
         result.append("</turns>");
         result.append("<results>");
-        for (final Map.Entry<Player, Integer> entry : this.playerPoints
-                .entrySet()) {
+        for (final Map.Entry<Player, Integer> entry : this.playerPoints.entrySet()) {
             result.append("<score points='" + entry.getValue() + "'>");
             result.append(XmlProgressListener.playerXml(entry.getKey()));
             result.append("</score>");
@@ -172,8 +165,7 @@ public class XmlProgressListener implements GameProgressListener {
         try {
             resultingXml = XmlUtil.prettyPrint(result.toString());
         } catch (final RuntimeException re) {
-            XmlProgressListener.logger.error(
-                    "Error while pretty printing XML report, !\n", re);
+            XmlProgressListener.logger.error("Error while pretty printing XML report, !\n", re);
         }
         w.write(resultingXml);
     }

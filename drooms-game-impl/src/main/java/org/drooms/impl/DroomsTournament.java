@@ -10,7 +10,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Properties;
 import java.util.SortedMap;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -18,6 +17,7 @@ import org.drooms.api.Game;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
 import org.drooms.impl.util.DroomsTournamentResults;
+import org.drooms.impl.util.GameProperties;
 import org.drooms.impl.util.TournamentCLI;
 import org.drooms.impl.util.TournamentProperties;
 import org.drooms.impl.util.TournamentResults;
@@ -58,7 +58,7 @@ public class DroomsTournament {
         // prepare a result tracker
         final TournamentResults result = new DroomsTournamentResults(id, players);
         // for each playground...
-        for (final ImmutablePair<Playground, Properties> gameConfig : props.getPlaygrounds()) {
+        for (final ImmutablePair<Playground, GameProperties> gameConfig : props.getPlaygrounds()) {
             final String playgroundName = gameConfig.getLeft().getName();
             // run N games on the playground
             DroomsTournament.LOGGER.info("Starting games on playground {}.", playgroundName);
