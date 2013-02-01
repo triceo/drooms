@@ -10,7 +10,7 @@ import org.drools.runtime.rule.WorkingMemoryEntryPoint;
 /**
  * A helper class to validate some of the properties of the Drools session.
  */
-public class KnowledgeSessionValidationHelper {
+class KnowledgeSessionValidationHelper {
 
     /**
      * Uses internal Drools API to figure out the actual global declarations.
