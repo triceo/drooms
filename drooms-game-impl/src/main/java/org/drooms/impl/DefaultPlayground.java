@@ -41,7 +41,9 @@ public class DefaultPlayground implements Playground {
      */
     public static DefaultPlayground read(final InputStream s)
             throws IOException {
-        return new DefaultPlayground(IOUtils.readLines(s));
+        List<String> lines = IOUtils.readLines(s);
+        Collections.reverse(lines); // this way, 0,0 is bottom left
+        return new DefaultPlayground(lines);
     }
 
     private final Set<Node> nodes = new HashSet<Node>();
