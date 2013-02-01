@@ -1,4 +1,4 @@
-package org.drooms.impl.util;
+package org.drooms.impl.util.properties;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -9,7 +9,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 
-public class CommonProperties {
+abstract class CommonProperties {
 
     protected static Properties loadPropertiesFromFile(final File f) {
         try (InputStream is = new FileInputStream(f)) {

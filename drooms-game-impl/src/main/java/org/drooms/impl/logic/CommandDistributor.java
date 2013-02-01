@@ -28,7 +28,7 @@ import org.drooms.impl.GameController;
 import org.drooms.impl.logic.commands.Command;
 import org.drooms.impl.logic.commands.DeactivatePlayerCommand;
 import org.drooms.impl.logic.commands.MovePlayerCommand;
-import org.drooms.impl.util.GameProperties;
+import org.drooms.impl.util.properties.GameProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

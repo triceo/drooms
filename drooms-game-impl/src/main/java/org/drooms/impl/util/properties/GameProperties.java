@@ -1,4 +1,4 @@
-package org.drooms.impl.util;
+package org.drooms.impl.util.properties;
 
 import java.io.File;
 import java.math.BigDecimal;

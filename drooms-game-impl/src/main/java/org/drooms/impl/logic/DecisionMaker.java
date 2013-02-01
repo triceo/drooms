@@ -35,7 +35,7 @@ import org.drooms.impl.logic.facts.Wall;
 import org.drooms.impl.logic.facts.Worm;
 import org.drooms.impl.util.DroomsKnowledgeSessionValidator;
 import org.drooms.impl.util.DroomsTestHelper;
-import org.drooms.impl.util.GameProperties;
+import org.drooms.impl.util.properties.GameProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

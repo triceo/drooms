@@ -1,4 +1,4 @@
-package org.drooms.impl.util;
+package org.drooms.impl.util.properties;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,6 +15,7 @@ import org.drooms.api.Player;
 import org.drooms.api.Playground;
 import org.drooms.impl.DefaultPlayground;
 import org.drooms.impl.DroomsTournament;
+import org.drooms.impl.util.PlayerAssembly;
 
 /**
  * Prepares the tournament properties by reading them from a property file.

@@ -17,10 +17,10 @@ import org.drooms.api.Game;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
 import org.drooms.impl.util.DroomsTournamentResults;
-import org.drooms.impl.util.GameProperties;
 import org.drooms.impl.util.TournamentCLI;
-import org.drooms.impl.util.TournamentProperties;
 import org.drooms.impl.util.TournamentResults;
+import org.drooms.impl.util.properties.GameProperties;
+import org.drooms.impl.util.properties.TournamentProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

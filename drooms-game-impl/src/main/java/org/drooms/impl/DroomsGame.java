@@ -16,8 +16,8 @@ import org.drooms.api.Game;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
 import org.drooms.impl.util.GameCLI;
-import org.drooms.impl.util.GameProperties;
 import org.drooms.impl.util.PlayerAssembly;
+import org.drooms.impl.util.properties.GameProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
