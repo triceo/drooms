@@ -56,8 +56,9 @@ public class DroomsGame {
             // prepare configs
             gameConfig.load(gameConfigFile);
             // play and report
-            final DroomsGame d = new DroomsGame(DefaultGame.class, DefaultPlayground.read(playgroundFile),
-                    new PlayerAssembly(configs[2]).assemblePlayers(), gameConfig, reportFolder);
+            // FIXME configs[0].getName() will return file name with extension
+            final DroomsGame d = new DroomsGame(DefaultGame.class, DefaultPlayground.read(configs[0].getName(),
+                    playgroundFile), new PlayerAssembly(configs[2]).assemblePlayers(), gameConfig, reportFolder);
             d.play(configs[0].getName());
         } catch (final IOException e) {
             throw new IllegalStateException("Failed reading config files.", e);

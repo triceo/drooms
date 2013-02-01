@@ -2,10 +2,8 @@ package org.drooms.impl;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,6 +13,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.SortedMap;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.drooms.api.Game;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
@@ -32,16 +31,6 @@ public class DroomsTournament {
     private static String getTimestamp() {
         final Date date = new java.util.Date();
         return new Timestamp(date.getTime()).toString();
-    }
-
-    private static Properties loadFromFile(final File f) {
-        try (InputStream is = new FileInputStream(f)) {
-            final Properties props = new Properties();
-            props.load(is);
-            return props;
-        } catch (final IOException e) {
-            return null;
-        }
     }
 
     public static void main(final String[] args) {
@@ -69,21 +58,8 @@ public class DroomsTournament {
         // prepare a result tracker
         final TournamentResults result = new DroomsTournamentResults(id, players);
         // for each playground...
-        for (final String playgroundName : props.getPlaygroundNames()) {
-            // load playground
-            final File playgroundFile = new File(props.getResourceFolder(), playgroundName + ".playground");
-            Playground p = null;
-            try (InputStream is = new FileInputStream(playgroundFile)) {
-                p = DefaultPlayground.read(is);
-            } catch (final IOException e) {
-                throw new IllegalStateException("Cannot read playground file " + playgroundFile, e);
-            }
-            // load game properties
-            final File propsFile = new File(props.getResourceFolder(), playgroundName + ".cfg");
-            final Properties gameProps = DroomsTournament.loadFromFile(propsFile);
-            if (gameProps == null) {
-                throw new IllegalStateException("Failed reading game config file for playground: " + playgroundName);
-            }
+        for (final ImmutablePair<Playground, Properties> gameConfig : props.getPlaygrounds()) {
+            final String playgroundName = gameConfig.getLeft().getName();
             // run N games on the playground
             DroomsTournament.LOGGER.info("Starting games on playground {}.", playgroundName);
             for (int i = 1; i <= Integer.valueOf(props.getNumberOfRunsPerPlayground()); i++) {
@@ -92,7 +68,8 @@ public class DroomsTournament {
                 final List<Player> randomPlayers = new ArrayList<>(players);
                 Collections.shuffle(randomPlayers);
                 // play the game
-                final DroomsGame dg = new DroomsGame(game, p, randomPlayers, gameProps, reports);
+                final DroomsGame dg = new DroomsGame(game, gameConfig.getLeft(), randomPlayers, gameConfig.getRight(),
+                        reports);
                 result.addResults(playgroundName, dg.play(playgroundName + "_" + i));
             }
         }

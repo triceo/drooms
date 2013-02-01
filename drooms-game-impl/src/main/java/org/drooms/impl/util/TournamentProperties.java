@@ -1,16 +1,19 @@
 package org.drooms.impl.util;
 
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.Reader;
-import java.util.Arrays;
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Properties;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.drooms.api.Game;
 import org.drooms.api.Player;
+import org.drooms.api.Playground;
+import org.drooms.impl.DefaultPlayground;
 import org.drooms.impl.DroomsTournament;
 
 /**
@@ -77,28 +80,49 @@ public class TournamentProperties {
         return p.getProperty(key, defaultValue);
     }
 
-    public static TournamentProperties read(final File f) {
-        try (Reader r = new FileReader(f)) {
-            final Properties p = new Properties();
-            p.load(r);
-            return new TournamentProperties(p);
-        } catch (final IOException ex) {
-            throw new IllegalArgumentException("Cannot read property file " + f, ex);
+    private static Playground loadPlayground(final File source, final String name) {
+        final File playgroundFile = new File(source, name + ".playground");
+        try (InputStream is = new FileInputStream(playgroundFile)) {
+            return DefaultPlayground.read(name, is);
+        } catch (final IOException e) {
+            throw new IllegalStateException("Cannot read playground file " + playgroundFile, e);
         }
     }
 
-    private final Class<? extends Game> gameClass;
+    private static Properties loadPlaygroundProperties(final File source, final String name) {
+        final File propsFile = new File(source, name + ".cfg");
+        final Properties gameProps = TournamentProperties.loadPropertiesFromFile(propsFile);
+        if (gameProps == null) {
+            throw new IllegalStateException("Failed reading game config file for playground: " + name);
+        }
+        return gameProps;
+    }
 
+    private static Properties loadPropertiesFromFile(final File f) {
+        try (InputStream is = new FileInputStream(f)) {
+            final Properties props = new Properties();
+            props.load(is);
+            return props;
+        } catch (final IOException e) {
+            throw new IllegalArgumentException("Failed reading properties from file: " + f);
+        }
+    }
+
+    public static TournamentProperties read(final File f) {
+        return new TournamentProperties(TournamentProperties.loadPropertiesFromFile(f));
+    }
+
+    private final Class<? extends Game> gameClass;
     private final File resourceFolder;
     private final File targetFolder;
-    private final Collection<String> playgroundNames;
+    private final Collection<ImmutablePair<Playground, Properties>> playgrounds;
+
     private final int numberOfRunsPerPlayground;
+
     private final Collection<Player> players;
 
     private TournamentProperties(final Properties p) {
         this.gameClass = TournamentProperties.getGameImpl(TournamentProperties.getMandatoryProperty(p, "game.class"));
-        this.playgroundNames = Collections.unmodifiableList(Arrays.asList(TournamentProperties.getMandatoryProperty(p,
-                "playgrounds").split("\\Q,\\E")));
         this.numberOfRunsPerPlayground = Integer.valueOf(TournamentProperties.getOptionalProperty(p, "runs", "1"));
         // prepare folders
         this.resourceFolder = new File(TournamentProperties.getOptionalProperty(p, "folder.resources",
@@ -113,6 +137,14 @@ public class TournamentProperties {
         // prepare a list of players
         final File playerConfigFile = new File(TournamentProperties.getMandatoryProperty(p, "players"));
         this.players = Collections.unmodifiableList(new PlayerAssembly(playerConfigFile).assemblePlayers());
+        // parse the playgrounds
+        final Collection<ImmutablePair<Playground, Properties>> playgrounds = new ArrayList<>();
+        for (final String playgroundName : TournamentProperties.getMandatoryProperty(p, "playgrounds").split("\\Q,\\E")) {
+            final Playground playground = TournamentProperties.loadPlayground(this.resourceFolder, playgroundName);
+            final Properties props = TournamentProperties.loadPlaygroundProperties(this.resourceFolder, playgroundName);
+            playgrounds.add(new ImmutablePair<Playground, Properties>(playground, props));
+        }
+        this.playgrounds = Collections.unmodifiableCollection(playgrounds);
     }
 
     public Class<? extends Game> getGameClass() {
@@ -127,8 +159,8 @@ public class TournamentProperties {
         return this.players;
     }
 
-    public Collection<String> getPlaygroundNames() {
-        return this.playgroundNames;
+    public Collection<ImmutablePair<Playground, Properties>> getPlaygrounds() {
+        return this.playgrounds;
     }
 
     public File getResourceFolder() {

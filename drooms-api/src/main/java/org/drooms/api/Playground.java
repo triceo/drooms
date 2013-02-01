@@ -26,6 +26,13 @@ public interface Playground {
     public int getHeight();
 
     /**
+     * Return the playground name.
+     * 
+     * @return String representing the playground.
+     */
+    public String getName();
+
+    /**
      * Returns {@link Node}s at which {@link Player}s are allowed to start out
      * from.
      * 

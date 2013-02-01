@@ -33,17 +33,18 @@ public class DefaultPlayground implements Playground {
      * character represents a possible starting position for a worm. (Starting
      * positions also can be moved into.)
      * 
+     * @param name
+     *            Name for the new playground.
      * @param s
      *            Stream in question.
      * @return Playground constructed from that stream.
      * @throws IOException
      *             In case the stream cannot be read.
      */
-    public static DefaultPlayground read(final InputStream s)
-            throws IOException {
-        List<String> lines = IOUtils.readLines(s);
+    public static DefaultPlayground read(final String name, final InputStream s) throws IOException {
+        final List<String> lines = IOUtils.readLines(s);
         Collections.reverse(lines); // this way, 0,0 is bottom left
-        return new DefaultPlayground(lines);
+        return new DefaultPlayground(name, lines);
     }
 
     private final Set<Node> nodes = new HashSet<Node>();
@@ -55,8 +56,10 @@ public class DefaultPlayground implements Playground {
     private final Graph<Node, Edge> graph = new UndirectedSparseGraph<Node, Edge>();
     private final SortedMap<Character, Node> startingNodes = new TreeMap<Character, Node>();
     private final int width;
+    private final String name;
 
-    private DefaultPlayground(final List<String> lines) {
+    private DefaultPlayground(final String name, final List<String> lines) {
+        this.name = name;
         // assemble nodes
         int maxX = Integer.MIN_VALUE;
         for (final String line : lines) {
@@ -123,24 +126,25 @@ public class DefaultPlayground implements Playground {
         return this.nodeLocations.size();
     }
 
+    @Override
+    public String getName() {
+        return this.name;
+    }
+
     private Node getNode(final int x, final int y) {
         if (y < 0 || y >= this.nodeLocations.size()) {
-            throw new IllegalArgumentException(
-                    "There are no nodes with coordinates [x, " + y + "]");
+            throw new IllegalArgumentException("There are no nodes with coordinates [x, " + y + "]");
         }
         final Node[] nodes = this.nodeLocations.get(y);
         if (x < 0 || x >= nodes.length) {
-            throw new IllegalArgumentException(
-                    "There are no nodes with coordinates [" + x + ", " + y
-                            + "]");
+            throw new IllegalArgumentException("There are no nodes with coordinates [" + x + ", " + y + "]");
         }
         return this.nodeLocations.get(y)[x];
     }
 
     @Override
     public List<Node> getStartingPositions() {
-        final List<Node> nodes = new ArrayList<Node>(
-                this.startingNodes.values());
+        final List<Node> nodes = new ArrayList<Node>(this.startingNodes.values());
         return Collections.unmodifiableList(nodes);
     }
 
@@ -152,15 +156,13 @@ public class DefaultPlayground implements Playground {
     @Override
     public boolean isAvailable(final int x, final int y) {
         try {
-            return (this.getNode(x, y) == DefaultPlayground.WALL_NODE) ? false
-                    : true;
+            return (this.getNode(x, y) == DefaultPlayground.WALL_NODE) ? false : true;
         } catch (final IllegalArgumentException ex) {
             return false;
         }
     }
 
-    private Edge link(final int x, final int y, final int otherX,
-            final int otherY) {
+    private Edge link(final int x, final int y, final int otherX, final int otherY) {
         if (!this.isAvailable(x, y) || !this.isAvailable(otherX, otherY)) {
             return null;
         }
@@ -184,15 +186,13 @@ public class DefaultPlayground implements Playground {
      *             In case the stream cannot be written.
      */
     public void write(final OutputStream s) throws IOException {
-        try (final BufferedWriter bw = new BufferedWriter(
-                new OutputStreamWriter(s, "UTF-8"))) {
+        try (final BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(s, "UTF-8"))) {
             for (final Node[] line : this.nodeLocations) {
                 for (final Node n : line) {
                     if (n == DefaultPlayground.WALL_NODE) {
                         bw.append(DefaultPlayground.WALL_SIGN);
                     } else if (this.startingNodes.containsValue(n)) {
-                        for (final SortedMap.Entry<Character, Node> entry : this.startingNodes
-                                .entrySet()) {
+                        for (final SortedMap.Entry<Character, Node> entry : this.startingNodes.entrySet()) {
                             if (!entry.getValue().equals(n)) {
                                 continue;
                             }
