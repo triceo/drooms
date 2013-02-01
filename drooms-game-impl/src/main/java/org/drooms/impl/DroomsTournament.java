@@ -19,8 +19,8 @@ import org.drooms.api.Game;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
 import org.drooms.impl.util.DroomsTournamentResults;
-import org.drooms.impl.util.PlayerAssembly;
 import org.drooms.impl.util.TournamentCLI;
+import org.drooms.impl.util.TournamentProperties;
 import org.drooms.impl.util.TournamentResults;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,15 +28,6 @@ import org.slf4j.LoggerFactory;
 public class DroomsTournament {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DroomsTournament.class);
-
-    @SuppressWarnings("unchecked")
-    private static Class<? extends Game> getGameImpl(final String id) {
-        try {
-            return (Class<? extends Game>) Class.forName(id);
-        } catch (final ClassNotFoundException e) {
-            throw new IllegalArgumentException("Cannot instantiate game class.", e);
-        }
-    }
 
     private static String getTimestamp() {
         final Date date = new java.util.Date();
@@ -62,12 +53,10 @@ public class DroomsTournament {
             System.exit(-1);
         }
         // load players
-        final Properties props = DroomsTournament.loadFromFile(config);
+        final TournamentProperties props = TournamentProperties.read(config);
         if (props == null) {
             throw new IllegalStateException("Failed reading tournament config file.");
         }
-        final File playerConfigFile = new File(props.getProperty("players"));
-        final Collection<Player> players = new PlayerAssembly(playerConfigFile).assemblePlayers();
         // load report folder
         final String id = DroomsTournament.getTimestamp();
         final File reports = new File("target/reports/tournaments/" + id);
@@ -75,12 +64,12 @@ public class DroomsTournament {
             reports.mkdirs();
         }
         // load game class
-        final Class<? extends Game> game = DroomsTournament.getGameImpl(props.getProperty("game.class"));
+        final Class<? extends Game> game = props.getGameClass();
+        final Collection<Player> players = props.getPlayers();
         // prepare a result tracker
         final TournamentResults result = new DroomsTournamentResults(id, players);
         // for each playground...
-        final String[] playgroundNames = props.getProperty("playgrounds").split("\\Q,\\E");
-        for (final String playgroundName : playgroundNames) {
+        for (final String playgroundName : props.getPlaygroundNames()) {
             // load playground
             final File playgroundFile = new File("src/main/resources", playgroundName + ".playground");
             Playground p = null;
@@ -97,7 +86,7 @@ public class DroomsTournament {
             }
             // run N games on the playground
             DroomsTournament.LOGGER.info("Starting games on playground {}.", playgroundName);
-            for (int i = 1; i <= Integer.valueOf(props.getProperty("runs")); i++) {
+            for (int i = 1; i <= Integer.valueOf(props.getNumberOfRunsPerPlayground()); i++) {
                 DroomsTournament.LOGGER.info("Starting game #{} on playground {}.", i, playgroundName);
                 // randomize player order
                 final List<Player> randomPlayers = new ArrayList<>(players);
