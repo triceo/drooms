@@ -59,7 +59,7 @@ public class DroomsTournament {
         }
         // load report folder
         final String id = DroomsTournament.getTimestamp();
-        final File reports = new File("target/reports/tournaments/" + id);
+        final File reports = new File(props.getTargetFolder(), "tournaments/" + id);
         if (!reports.exists()) {
             reports.mkdirs();
         }
@@ -71,7 +71,7 @@ public class DroomsTournament {
         // for each playground...
         for (final String playgroundName : props.getPlaygroundNames()) {
             // load playground
-            final File playgroundFile = new File("src/main/resources", playgroundName + ".playground");
+            final File playgroundFile = new File(props.getResourceFolder(), playgroundName + ".playground");
             Playground p = null;
             try (InputStream is = new FileInputStream(playgroundFile)) {
                 p = DefaultPlayground.read(is);
@@ -79,10 +79,10 @@ public class DroomsTournament {
                 throw new IllegalStateException("Cannot read playground file " + playgroundFile, e);
             }
             // load game properties
-            final File propsFile = new File("src/main/resources", playgroundName + ".cfg");
+            final File propsFile = new File(props.getResourceFolder(), playgroundName + ".cfg");
             final Properties gameProps = DroomsTournament.loadFromFile(propsFile);
             if (gameProps == null) {
-                throw new IllegalStateException("Failed reading game config file for playgrond: " + playgroundName);
+                throw new IllegalStateException("Failed reading game config file for playground: " + playgroundName);
             }
             // run N games on the playground
             DroomsTournament.LOGGER.info("Starting games on playground {}.", playgroundName);

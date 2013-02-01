@@ -40,15 +40,19 @@ import org.drooms.impl.DroomsTournament;
  * <dt>runs</dt>
  * <dd>How many times should each playground be played. Number > 0, default
  * value is 1.</dd>
+ * <dt>folder.resources</dt>
+ * <dd>Where to load all input files from, relative to the current working
+ * directory. If it doesn't exist, it is created. Default value is
+ * "src/main/resources".</dd>
+ * <dt>folder.target</dt>
+ * <dd>Where to write all output data, relative to the current working
+ * directory. If it doesn't exist, it is created. Default value is
+ * "target/drooms".</dd>
  * </dl>
  * 
  * FIXME document player config file format.
  * 
  * FIXME document playgrounds dependencies.
- * 
- * FIXME provide resource folder
- * 
- * FIXME provide report data folder
  */
 public class TournamentProperties {
 
@@ -85,6 +89,8 @@ public class TournamentProperties {
 
     private final Class<? extends Game> gameClass;
 
+    private final File resourceFolder;
+    private final File targetFolder;
     private final Collection<String> playgroundNames;
     private final int numberOfRunsPerPlayground;
     private final Collection<Player> players;
@@ -94,10 +100,19 @@ public class TournamentProperties {
         this.playgroundNames = Collections.unmodifiableList(Arrays.asList(TournamentProperties.getMandatoryProperty(p,
                 "playgrounds").split("\\Q,\\E")));
         this.numberOfRunsPerPlayground = Integer.valueOf(TournamentProperties.getOptionalProperty(p, "runs", "1"));
+        // prepare folders
+        this.resourceFolder = new File(TournamentProperties.getOptionalProperty(p, "folder.resources",
+                "src/main/resources"));
+        if (!this.resourceFolder.exists()) {
+            this.resourceFolder.mkdirs();
+        }
+        this.targetFolder = new File(TournamentProperties.getOptionalProperty(p, "folder.target", "target/drooms"));
+        if (!this.targetFolder.exists()) {
+            this.targetFolder.mkdirs();
+        }
         // prepare a list of players
         final File playerConfigFile = new File(TournamentProperties.getMandatoryProperty(p, "players"));
         this.players = Collections.unmodifiableList(new PlayerAssembly(playerConfigFile).assemblePlayers());
-        // load report folder
     }
 
     public Class<? extends Game> getGameClass() {
@@ -114,6 +129,14 @@ public class TournamentProperties {
 
     public Collection<String> getPlaygroundNames() {
         return this.playgroundNames;
+    }
+
+    public File getResourceFolder() {
+        return this.resourceFolder;
+    }
+
+    public File getTargetFolder() {
+        return this.targetFolder;
     }
 
 }
