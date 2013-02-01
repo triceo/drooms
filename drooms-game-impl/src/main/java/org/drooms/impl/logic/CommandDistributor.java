@@ -28,6 +28,7 @@ import org.drooms.impl.GameController;
 import org.drooms.impl.logic.commands.Command;
 import org.drooms.impl.logic.commands.DeactivatePlayerCommand;
 import org.drooms.impl.logic.commands.MovePlayerCommand;
+import org.drooms.impl.util.GameProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,6 +101,8 @@ public class CommandDistributor {
      *            The players taking part in the game.
      * @param report
      *            The game listener.
+     * @param properties
+     *            Configuration of the game.
      * @param reportFolder
      *            Where to report to.
      * @param playerTimeoutInSeconds
@@ -107,11 +110,12 @@ public class CommandDistributor {
      *            move decisions.
      */
     public CommandDistributor(final Playground playground, final Collection<Player> players,
-            final GameProgressListener report, final File reportFolder, final int playerTimeoutInSeconds) {
+            final GameProgressListener report, final GameProperties properties, final File reportFolder,
+            final int playerTimeoutInSeconds) {
         for (final Player player : players) {
             final PathTracker tracker = new PathTracker(playground, player);
             this.trackers.put(player, tracker);
-            this.players.put(player, new DecisionMaker(player, tracker, reportFolder));
+            this.players.put(player, new DecisionMaker(player, tracker, properties, reportFolder));
         }
         this.listeners.add(report);
         this.playerTimeoutInSeconds = playerTimeoutInSeconds;

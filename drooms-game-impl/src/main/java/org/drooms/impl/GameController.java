@@ -262,7 +262,7 @@ public abstract class GameController implements Game {
         // prepare situation
         this.reporter = new XmlProgressListener(playground, players, this.gameConfig);
         final CommandDistributor playerControl = new CommandDistributor(playground, players, this.reporter,
-                reportFolder, wormTimeout);
+                this.gameConfig, reportFolder, wormTimeout);
         final Set<Player> currentPlayers = new HashSet<Player>(players);
         Map<Player, Move> decisions = new HashMap<Player, Move>();
         for (final Player p : currentPlayers) { // initialize players

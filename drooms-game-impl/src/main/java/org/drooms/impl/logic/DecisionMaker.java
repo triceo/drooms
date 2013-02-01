@@ -30,10 +30,12 @@ import org.drooms.impl.logic.events.PlayerMoveEvent;
 import org.drooms.impl.logic.events.SurvivalRewardEvent;
 import org.drooms.impl.logic.facts.CurrentPlayer;
 import org.drooms.impl.logic.facts.CurrentTurn;
+import org.drooms.impl.logic.facts.GameProperty;
 import org.drooms.impl.logic.facts.Wall;
 import org.drooms.impl.logic.facts.Worm;
 import org.drooms.impl.util.DroomsKnowledgeSessionValidator;
 import org.drooms.impl.util.DroomsTestHelper;
+import org.drooms.impl.util.GameProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,6 +88,8 @@ import org.slf4j.LoggerFactory;
  * </p>
  * 
  * <ul>
+ * <li>{@link GameProperty}, many. Will never change or be removed. For the
+ * various types of properties supported, see {@link GameProperty.Name}.</li>
  * <li>{@link CurrentPlayer}, once. Will never change or be removed.</li>
  * <li>{@link CurrentTurn}, once. Will change with every turn.</li>
  * <li>{@link Wall}, many. Will remain constant over the whole game.</li>
@@ -122,7 +126,8 @@ public class DecisionMaker implements Channel {
 
     private final Map<Player, Map<Node, FactHandle>> handles = new HashMap<Player, Map<Node, FactHandle>>();
 
-    public DecisionMaker(final Player p, final PathTracker tracker, final File reportFolder) {
+    public DecisionMaker(final Player p, final PathTracker tracker, final GameProperties properties,
+            final File reportFolder) {
         this.player = p;
         this.session = p.constructKnowledgeBase().newStatefulKnowledgeSession(DecisionMaker.getSessionConfiguration(),
                 null);
@@ -167,6 +172,13 @@ public class DecisionMaker implements Channel {
                 }
             }
         }
+        // insert info about the game configuration
+        this.session.insert(new GameProperty(GameProperty.Name.MAX_TURNS, properties.getMaximumTurns()));
+        this.session
+                .insert(new GameProperty(GameProperty.Name.MAX_INACTIVE_TURNS, properties.getMaximumInactiveTurns()));
+        this.session.insert(new GameProperty(GameProperty.Name.DEAD_WORM_BONUS, properties.getDeadWormBonus()));
+        this.session.insert(new GameProperty(GameProperty.Name.TIMEOUT_IN_SECONDS, properties
+                .getStrategyTimeoutInSeconds()));
         // insert info about the game status
         this.currentTurn = this.session.insert(new CurrentTurn(0));
         this.session.insert(new CurrentPlayer(p));
