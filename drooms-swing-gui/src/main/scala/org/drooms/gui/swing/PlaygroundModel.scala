@@ -9,7 +9,7 @@ import org.drooms.gui.swing.event.DroomsEventPublisher
  */
 class PlaygroundModel(val width: Int, val height: Int) {
   val eventPublisher = DroomsEventPublisher.get()
-  val positions = new Array[Array[Position]](width, height)
+  val positions = Array.ofDim[Position](width, height)
 
   // initialize the playground
   for (i <- 0 until width; j <- 0 until height) {

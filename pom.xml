@@ -14,7 +14,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <java.version>1.7</java.version>
-    <scala.version>2.9.2</scala.version>
+    <scala.version>2.10.0</scala.version>
     <jung.version>2.0.1</jung.version>
   </properties>
 
@@ -55,8 +55,8 @@
       </dependency>
       <dependency>
         <groupId>org.scalatest</groupId>
-        <artifactId>scalatest_${scala.version}</artifactId>
-        <version>1.8</version>
+        <artifactId>scalatest_2.10</artifactId>
+        <version>2.0.M6-SNAP8</version>
         <scope>test</scope>
       </dependency>
       <!-- Other dependencies -->
