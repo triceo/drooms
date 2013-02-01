@@ -47,7 +47,6 @@ public class DroomsGame {
         }
         // play the game
         final File reportFolder = (configs.length == 4) ? configs[3] : new File("reports/");
-        // FIXME standardize on InputStream or Reader
         try (InputStream playgroundFile = new FileInputStream(configs[0]);) {
             // play and report
             // FIXME configs[0].getName() will return file name with extension
