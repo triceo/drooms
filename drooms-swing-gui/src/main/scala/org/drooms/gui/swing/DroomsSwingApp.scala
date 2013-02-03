@@ -41,6 +41,7 @@ import org.drooms.gui.swing.event.TurnStepPerformed
 import javax.swing.filechooser.FileFilter
 import javax.swing.SwingUtilities
 import org.drooms.gui.swing.event.CoordinantsVisibilityChanged
+import scala.swing.TextField
 
 object DroomsSwingApp extends SimpleSwingApplication {
   val eventPublisher = DroomsEventPublisher.get()
@@ -52,7 +53,7 @@ object DroomsSwingApp extends SimpleSwingApplication {
 
   def top = new MainFrame {
     title = "Drooms"
-    minimumSize = new Dimension(1200, 700)
+    minimumSize = new Dimension(1300, 700)
     menuBar = new MainMenu()
     listenTo(eventPublisher)
 
@@ -119,261 +120,19 @@ object DroomsSwingApp extends SimpleSwingApplication {
     }
     centerOnScreen()
   }
-
-  class MainMenu extends MenuBar {
-    // TODO make this configurable and saved as preference in user's home dir
-    val REPORT_LOCATIONS = List(
-      "../../drooms-game-impl/reports", // in case the app is started from drooms-swing-gui/target
-      "../drooms-game-impl/reports" // in case the app is started from drooms-swing-gui
-      )
-    val eventPublisher = DroomsEventPublisher.get()
-    listenTo(eventPublisher)
-    // file menu
-    contents += new Menu("File") {
-      contents += new MenuItem(Action("Open game report...") {
-        openGameReport()
-      })
-      //      contents += new MenuItem(Action("Exit") {
-      //      })
-    }
-    // game menu
-    val nextTurnItem = new MenuItem(Action("Next turn") {
-      eventPublisher.publish(NextTurnInitiated())
-    }) {
-      enabled = false
-    }
-    val replayItem = new MenuItem(Action("Replay") {
-      eventPublisher.publish(ReplayInitiated())
-    }) {
-      enabled = false
-    }
-    val pauseItem = new MenuItem(Action("Pause") {
-      eventPublisher.publish(ReplayPaused())
-    }) {
-      enabled = false
-    }
-    val restartItem = new MenuItem(Action("Reset") {
-      eventPublisher.publish(GameRestarted())
-    }) {
-      enabled = false
-    }
-
-    contents += new Menu("Game") {
-      contents += nextTurnItem
-      contents += replayItem
-      contents += pauseItem
-      contents += restartItem
-    }
-    reactions += {
-      case ReplayInitiated() =>
-        replayItem.enabled = false
-        pauseItem.enabled = true
-        restartItem.enabled = false
-        nextTurnItem.enabled = false
-      case ReplayPaused() =>
-        replayItem.enabled = true
-        pauseItem.enabled = false
-        restartItem.enabled = true
-        nextTurnItem.enabled = true
-      case ReplayContinued() =>
-        replayItem.enabled = false
-        pauseItem.enabled = true
-        restartItem.enabled = false
-        nextTurnItem.enabled = false
-      case GameRestarted() =>
-        replayItem.enabled = true
-        pauseItem.enabled = false
-        restartItem.enabled = false
-        nextTurnItem.enabled = true
-      case NextTurnInitiated() =>
-        replayItem.enabled = true
-        pauseItem.enabled = false
-        restartItem.enabled = true
-        nextTurnItem.enabled = true
-    }
-    // players menu
-    //    contents += new Menu("Players") {
-    //      contents += new MenuItem("Settings...")
-    //    }
-    val showGridItem = new CheckMenuItem("Show grid")
-    val showCoordsItem = new CheckMenuItem("Show axis numbers")
-    // playground menu
-    contents += new Menu("Playground") {
-      contents += showGridItem
-      contents += showCoordsItem
-    }
-    // help menu
-    //    contents += new Menu("Help") {
-    //      contents += new MenuItem("About Drooms")
-    //    }
-    listenTo(showGridItem)
-    listenTo(showCoordsItem)
-    reactions += {
-      case ButtonClicked(`showGridItem`) => {
-        if (showGridItem.selected)
-          eventPublisher.publish(new PlaygroundGridEnabled)
-        else
-          eventPublisher.publish(new PlaygroundGridDisabled)
-      }
-      case ButtonClicked(`showCoordsItem`) => {
-        eventPublisher.publish(new CoordinantsVisibilityChanged(showCoordsItem.selected))
-      }
-
-      case NewGameReportChosen(_, _) => {
-        replayItem.enabled = true
-        pauseItem.enabled = false
-        restartItem.enabled = false
-        nextTurnItem.enabled = true
-      }
-    }
-    var lastUsedDir = {
-      var openIn = new File(System.getProperty("user.dir"))
-      for (dirName <- REPORT_LOCATIONS) {
-        val dir = new File(dirName)
-        if (dir.exists()) {
-          openIn = dir
-        }
-      }
-      openIn
-    }
-
-    val xmlFileFilter = new FileFilter() {
-      // filter files, because the reports are saved in XML
-      override def accept(f: File): Boolean = {
-        f.getPath().endsWith(".xml") || f.isDirectory()
-      }
-      override def getDescription() = "XML report file"
-    }
-    def openGameReport(): Unit = {
-      val fileChooser = new FileChooser(lastUsedDir)
-      fileChooser.fileFilter = xmlFileFilter
-      val res = fileChooser.showOpenDialog(this)
-      if (res == FileChooser.Result.Approve) {
-        val selectedFile = fileChooser.selectedFile
-        lastUsedDir = selectedFile.getParentFile()
-        val gameReport = GameReport.loadFromXml(selectedFile)
-        eventPublisher.publish(new NewGameReportChosen(gameReport, selectedFile))
-      }
-    }
-  }
 }
 
 class LeftPane extends BorderPanel {
-  val eventPublisher = DroomsEventPublisher.get()
   val playground = new Playground
   val controlPanel = new ControlPanel
 
   layout(playground) = BorderPanel.Position.Center
   layout(controlPanel) = BorderPanel.Position.South
-
-  class ControlPanel extends BorderPanel with Reactor with Publisher {
-    var currentLog: (GameReport, File) = _
-    var currentTurn = 0
-    var gameStatus: GameStatus = GameNotStarted()
-    val replayPauseBtn = new Button(Action("Replay") {
-      gameStatus match {
-        case GameNotStarted() =>
-          eventPublisher.publish(ReplayInitiated())
-        case GameReplaying() =>
-          eventPublisher.publish(ReplayPaused())
-        case GameReplayingPaused() =>
-          eventPublisher.publish(ReplayContinued())
-      }
-    }) {
-      enabled = false
-    }
-    val nextTurnBtn = new Button(Action("Next turn") {
-      eventPublisher.publish(NextTurnInitiated())
-    }) {
-      enabled = false
-    }
-    val restartBtn = new Button(Action("Reset game") {
-      eventPublisher.publish(new GameRestarted)
-    }) {
-      enabled = false
-    }
-    val progressBar = new ProgressBar {
-      labelPainted = true
-    }
-    val intervalSlider = new Slider {
-      min = 50
-      max = 1000
-      value = 100
-      paintLabels = true
-      //minorTickSpacing = 100
-      majorTickSpacing = 250
-      font = new Font("Serif", Font.PLAIN, 10)
-    }
-    listenTo(intervalSlider)
-    reactions += {
-      case ValueChanged(`intervalSlider`) =>
-        eventPublisher.publish(TurnDelayChanged(intervalSlider.value))
-    }
-
-    val rightBtns = new FlowPanel(FlowPanel.Alignment.Right)() {
-      contents += new Label("Turn delay ")
-      contents += intervalSlider
-
-      contents += nextTurnBtn
-      contents += replayPauseBtn
-      contents += restartBtn
-    }
-
-    layout(rightBtns) = BorderPanel.Position.East
-    layout(new BoxPanel(Orientation.Horizontal) {
-      contents += new Label("Game progress ")
-      contents += progressBar
-    }) = BorderPanel.Position.West
-
-    listenTo(eventPublisher)
-
-    reactions += {
-      case NewGameReportChosen(log, file) => {
-        nextTurnBtn.enabled = true
-        replayPauseBtn.enabled = true
-        replayPauseBtn.text = "Replay"
-        restartBtn.enabled = false
-        currentTurn = 0
-        progressBar.value = 0
-        progressBar.max = log.turns.size
-      }
-      case NextTurnInitiated() =>
-        currentTurn += 1
-        progressBar.value = currentTurn
-      case ReplayInitiated() =>
-        nextTurnBtn.enabled = false
-        restartBtn.enabled = false
-        replayPauseBtn.enabled = true
-        gameStatus = GameReplaying()
-        replayPauseBtn.text = "Pause"
-      case ReplayPaused() =>
-        restartBtn.enabled = true
-        nextTurnBtn.enabled = true
-        replayPauseBtn.enabled = true
-        gameStatus = GameReplayingPaused()
-        replayPauseBtn.text = "Continue"
-      case ReplayContinued() =>
-        restartBtn.enabled = false
-        nextTurnBtn.enabled = false
-        replayPauseBtn.enabled = true
-        gameStatus = GameReplaying()
-        replayPauseBtn.text = "Pause"
-      case GameFinished() =>
-        nextTurnBtn.enabled = false
-        restartBtn.enabled = true
-        replayPauseBtn.enabled = false
-        replayPauseBtn.text = "Replay"
-        gameStatus = GameNotStarted()
-    }
-  }
 }
 
 class RightPane extends BoxPanel(Orientation.Horizontal) with Reactor {
-  val eventPublisher = DroomsEventPublisher.get()
   val playersListView = new PlayersListView
   contents += playersListView
-
-  listenTo(eventPublisher)
 }
 
 trait GameStatus
