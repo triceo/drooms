@@ -5,6 +5,7 @@ import java.awt.Color
 import scala.io.Source
 import scala.xml.XML
 import scala.xml.NodeSeq
+import org.drooms.gui.swing.event.NoOpEventPublisher
 
 /**
  * Class that represents Drooms game report.
@@ -19,7 +20,51 @@ class GameReport(
   val playgroundInit: Set[Node],
   val wormInitPositions: Set[(String, List[Node])],
   val turns: List[GameTurn],
-  val results: List[(String, Int)])
+  val results: List[(String, Int)]) {
+
+  /**
+   * Creates list of TurnStates representing states for all game turns.
+   * It enable the game to be moved into particular turn very easily.
+   */
+  def createTurnsStates(): List[TurnState] = {
+    val initPlayground = new PlaygroundModel(playgroundWidth, playgroundHeight, NoOpEventPublisher)
+    initPlayground.emptyNodes(playgroundInit)
+    initPlayground.initWorms(wormInitPositions)
+    val initPlayers = players.map(_ -> 0).toMap
+    val initState = new TurnState(initPlayground, initPlayers)
+    var turnsStates = List[TurnState]()
+    turnsStates ::= initState
+    var prevState = initState
+    for (turn <- turns) {
+      val newState = new TurnState(updatePlaygroundModel(turn, prevState.playgroundModel), updatePlayers(turn, prevState.players))
+      turnsStates ::= newState
+      prevState = newState
+    }
+    turnsStates.reverse
+  }
+
+  private def updatePlaygroundModel(turn: GameTurn, model: PlaygroundModel): PlaygroundModel = {
+    val newModel = model.clone()
+    for (step <- turn.steps) {
+      newModel.update(step)
+    }
+    newModel
+  }
+
+  private def updatePlayers(turn: GameTurn, players: Map[String, Int]): Map[String, Int] = {
+    var newPlayers = players
+    for (step <- turn.steps) {
+      step match {
+        case WormSurvived(playerName, points) =>
+          newPlayers = newPlayers.updated(playerName, newPlayers(playerName) + points)
+        case CollectibleCollected(playerName, collectible) =>
+          newPlayers = newPlayers.updated(playerName, newPlayers(playerName) + collectible.points)
+        case _ =>
+      }
+    }
+    newPlayers
+  }
+}
 
 object GameReport {
   def loadFromXml(file: File): GameReport = GameReportXmlParser.parseReport(file)

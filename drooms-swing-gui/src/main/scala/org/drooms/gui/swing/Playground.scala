@@ -2,7 +2,6 @@ package org.drooms.gui.swing
 
 import java.awt.Dimension
 import java.awt.Font
-
 import scala.swing.Alignment
 import scala.swing.Component
 import scala.swing.FlowPanel
@@ -11,18 +10,17 @@ import scala.swing.Label
 import scala.swing.Reactor
 import scala.swing.ScrollPane
 import scala.swing.Table
-
 import org.drooms.gui.swing.event.CoordinantsVisibilityChanged
 import org.drooms.gui.swing.event.DroomsEventPublisher
 import org.drooms.gui.swing.event.NewGameReportChosen
 import org.drooms.gui.swing.event.PlaygroundGridDisabled
 import org.drooms.gui.swing.event.PlaygroundGridEnabled
 import org.drooms.gui.swing.event.TurnStepPerformed
-
 import javax.swing.BorderFactory
 import javax.swing.ImageIcon
 import javax.swing.UIManager
 import javax.swing.table.DefaultTableModel
+import org.drooms.gui.swing.event.GoToTurnState
 
 class Playground extends ScrollPane with Reactor {
   val CELL_SIZE = 15
@@ -42,35 +40,34 @@ class Playground extends ScrollPane with Reactor {
         cellModel.updatePosition(Empty(node))
       initWorms(gameReport.wormInitPositions)
     }
+    case GoToTurnState(number, state) => 
+      val newModel = state.playgroundModel
+      newModel.eventPublisher = eventPublisher
+      createNew(plwidth, plheight, newModel)
+      updateWholeTable()
 
     case TurnStepPerformed(step) =>
-      step match {
-        case WormMoved(ownerName, nodes) =>
-          moveWorm(ownerName, nodes)
-        case WormCrashed(ownerName) =>
-          removeWorm(ownerName)
-        case WormDeactivated(ownerName) =>
-          removeWorm(ownerName)
-        case CollectibleAdded(collectible) =>
-          updatePosition(collectible)
-        case CollectibleRemoved(collectible) =>
-          updatePosition(Empty(collectible.node))
-        case CollectibleCollected(player, collectible) =>
-        case _ => new RuntimeException("Unrecognized TurnStep: " + step)
-      }
+      cellModel.update(step)
   }
-  var playgroundWidth: Int = _
-  var playgroundHeight: Int = _
   var actualTableWidth: Int = _
-  var actualTableHeight: Int =_
+  var actualTableHeight: Int = _
+  var plwidth: Int = _
+  var plheight: Int = _
+
+  def updateWholeTable(): Unit = {
+    table.map(_.repaint())
+  }
   
   def createNew(width: Int, height: Int): Unit = {
-    cellModel = new PlaygroundModel(width, height)
-    playgroundWidth = width
-    playgroundHeight = height
+    createNew(width, height, new PlaygroundModel(width, height, eventPublisher))
+  }
+  def createNew(width: Int, height:Int, model: PlaygroundModel): Unit = {
+    cellModel = model
+    plwidth = width
+    plheight = height
     // plus two in each direction (x and y) for border around the playground
-    actualTableWidth = playgroundWidth + 2 + 1 // +2 for wall border and +1 for coordinate numbers
-    actualTableHeight = playgroundHeight + 2 + 1 // +2 for wall border and +1 for coordinate numbers
+    actualTableWidth = width + 2 + 1 // +2 for wall border and +1 for coordinate numbers
+    actualTableHeight = height + 2 + 1 // +2 for wall border and +1 for coordinate numbers
     table = Some(new Table(actualTableHeight, actualTableWidth) {
       val widthPixels = CELL_SIZE * actualTableWidth - 1 // minus one so the line at the end is not rendered
       val heightPixels = CELL_SIZE * actualTableHeight - 1 // minus one so the line at the end is not rendered
@@ -121,7 +118,7 @@ class Playground extends ScrollPane with Reactor {
             PlaygroundCell
           }
         }
-        
+
         val wallLabel = new Label("") {
           icon = wallIcon
         }
@@ -148,7 +145,7 @@ class Playground extends ScrollPane with Reactor {
             }
           }
           case PlaygroundCell => {
-            val pos = cellModel.positions(col - 2)(actualTableHeight - row - 3)
+            val pos = cellModel.getPosition(col - 2, actualTableHeight - row - 3) // modelRow(Int) or tableRow(Int)
             val cell = pos match {
               case Empty(_) => emptyComponent
               case WormPiece(_, wormType, playerName) => new Label() {
@@ -203,8 +200,7 @@ class Playground extends ScrollPane with Reactor {
   }
 
   def updatePositions(positions: List[Position]): Unit = {
-    for (pos <- positions)
-      updatePosition(pos)
+    cellModel.updatePositions(positions)
   }
 
   def updatePosition(pos: Position) {
@@ -213,87 +209,7 @@ class Playground extends ScrollPane with Reactor {
 
   /** Initialize worms from specified list of pairs 'ownerName' -> 'list of Nodes' */
   def initWorms(wormsInit: Set[(String, List[Node])]): Unit = {
-    worms.clear()
-    for ((name, nodes) <- wormsInit) {
-      worms.add(Worm(name, (for (node <- nodes) yield WormPiece(node, "Head", name)).toList))
-    }
-    // update model
-    for (worm <- worms) updatePositions(worm.pieces)
-  }
-
-  /** Moves the worm to the new position */
-  def moveWorm(ownerName: String, nodes: List[Node]): Unit = {
-    this.synchronized {
-      // removes current worm pieces
-      removeWormPieces(ownerName)
-      // worm must have at least head
-      val head = nodes.head
-      updateWormIfLegal(head, ownerName, "Head")
-
-      if (nodes.size > 2) {
-        for (node <- nodes.tail.init) {
-          updateWormIfLegal(node, ownerName, "Body")
-        }
-      }
-
-      if (nodes.size > 1) {
-        val tail = nodes.last
-        updateWormIfLegal(tail, ownerName, "Tail")
-      }
-
-      /**
-       * Updates the wom only if the underlaying node is empty or collectible, meaning eligible to be occupied by current worm
-       */
-      def updateWormIfLegal(node: Node, ownerName: String, wormType: String): Unit = {
-        // we can only update Empty nodes and Collectibles, if the worm crashed into wall or other worm, piece must not be updated!
-        if (node.x >= playgroundWidth || node.y >= playgroundHeight) return
-        cellModel.positions(node.x)(node.y) match {
-          case Empty(node) =>
-            updateWorm(ownerName, new WormPiece(node, wormType, ownerName))
-          case Collectible(node, _, _) =>
-            updateWorm(ownerName, new WormPiece(node, wormType, ownerName))
-          case _ =>
-        }
-      }
-    }
-  }
-
-  def updateWorm(ownerName: String, piece: WormPiece) = {
-    getWorm(ownerName).addPiece(piece)
-    updatePosition(piece)
-  }
-
-  def getWorm(ownerName: String): Worm = {
-    worms.find(_.ownerName == ownerName) match {
-      case Some(worm) => worm
-      case None => throw new RuntimeException("Can't update non existing worm! Owner=" + ownerName)
-    }
-  }
-
-  /**
-   * Removes the worm from the list of worms and also makes sure that all worm pieces are removed from playground
-   */
-  def removeWorm(ownerName: String): Unit = {
-    val worm = getWorm(ownerName)
-    removeWormPieces(ownerName)
-    worms.remove(worm)
-  }
-
-  def removeWormPieces(ownerName: String): Unit = {
-    worms.find(_.ownerName == ownerName) match {
-      case Some(worm) =>
-        for (piece <- worm.pieces) {
-          cellModel.positions(piece.node.x)(piece.node.y) match {
-            case WormPiece(node, t, owner) =>
-              if (piece.playerName == owner) {
-                updatePosition(Empty(node))
-              }
-            case _ =>
-          }
-          worm.pieces = List()
-        }
-      case None =>
-    }
+    cellModel.initWorms(wormsInit)
   }
 
   def isGridVisible(): Boolean = {
@@ -301,24 +217,23 @@ class Playground extends ScrollPane with Reactor {
   }
 
   def hideGrid(): Unit = {
-    table match {
-      case Some(table) =>
-        table.showGrid = false
-        table.peer.setIntercellSpacing(new Dimension(0, 0))
-      case None =>
-    }
+    setGridVisibility(false)
   }
 
   def showGrid(): Unit = {
+    setGridVisibility(true)
+  }
+
+  private def setGridVisibility(visible: Boolean): Unit = {
     table match {
       case Some(table) =>
-        table.showGrid = true
+        table.showGrid = visible
         table.peer.setIntercellSpacing(new Dimension(1, 1))
       case None =>
     }
   }
 
-  def createImageIcon(path: String, description: String): ImageIcon = {
+  private def createImageIcon(path: String, description: String): ImageIcon = {
     val imgUrl = getClass().getResource(path)
     if (imgUrl != null) {
       new ImageIcon(imgUrl, description)

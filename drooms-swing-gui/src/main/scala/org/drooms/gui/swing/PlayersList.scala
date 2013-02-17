@@ -16,6 +16,7 @@ import scala.swing.BoxPanel
 import scala.swing.Orientation
 import java.awt.BorderLayout
 import org.drooms.gui.swing.event.TurnStepPerformed
+import org.drooms.gui.swing.event.UpdatePlayers
 
 class PlayersList(val players: Buffer[Player], val colors: PlayerColors) {
   def this() = this(Buffer(), PlayerColors.getDefault())
@@ -29,6 +30,16 @@ class PlayersList(val players: Buffer[Player], val colors: PlayerColors) {
 
   def addPlayers(players: List[String]): Unit = {
     players.foreach(addPlayer(_))
+  }
+  
+  def updatePoints(newScores: Map[String, Int]): Unit = {
+    for (playerName <- newScores.keys) {
+      players.find(_.name == playerName) match {
+        case Some(p@Player(name, score, color)) => 
+          p.score = newScores(name)
+        case None => throw new IllegalStateException("Trying to update non-existing player '" + playerName + "'") 
+      }
+    }
   }
 
   def getPlayer(playerName: String): Player = {
@@ -76,6 +87,7 @@ class PlayersListView extends BorderPanel {
           update()
         case _ =>
       }
+    case UpdatePlayers() => update()
   }
 
   def update() {
@@ -102,4 +114,3 @@ class PlayersListView extends BorderPanel {
     }
   }
 }
-

@@ -5,11 +5,12 @@ import java.awt.Color
 /** 
  * Represents player. Each player has a unique name, current score value and color.
  */
-class Player(val name: String, var score: Int, var color: Color) {
+case class Player(val name: String, var score: Int, var color: Color) {
   def this(name: String) = this(name, 0, PlayerColors.DEFAULT_COLOR)
 
-  def addPoints(points: Int): Unit = score += points
-
+  def addPoints(points: Int): Unit = 
+    score += points
+  
   override def equals(obj: Any): Boolean = {
     obj.isInstanceOf[Player] && obj.asInstanceOf[Player].name == this.name
   }

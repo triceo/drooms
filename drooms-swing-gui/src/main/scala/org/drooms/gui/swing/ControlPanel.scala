@@ -2,7 +2,6 @@ package org.drooms.gui.swing
 
 import java.awt.Font
 import java.io.File
-
 import scala.swing.Action
 import scala.swing.BorderPanel
 import scala.swing.BoxPanel
@@ -16,16 +15,19 @@ import scala.swing.Reactor
 import scala.swing.Slider
 import scala.swing.TextField
 import scala.swing.event.ValueChanged
-
 import org.drooms.gui.swing.event.DroomsEventPublisher
 import org.drooms.gui.swing.event.GameFinished
 import org.drooms.gui.swing.event.GameRestarted
 import org.drooms.gui.swing.event.NewGameReportChosen
 import org.drooms.gui.swing.event.NextTurnInitiated
+import org.drooms.gui.swing.event.PreviousTurn
 import org.drooms.gui.swing.event.ReplayContinued
 import org.drooms.gui.swing.event.ReplayInitiated
 import org.drooms.gui.swing.event.ReplayPaused
 import org.drooms.gui.swing.event.TurnDelayChanged
+import org.drooms.gui.swing.event.GoToTurnState
+import org.drooms.gui.swing.event.GoToTurn
+import org.drooms.gui.swing.event.GameRestarted
 
 class ControlPanel extends BorderPanel with Reactor with Publisher {
   val eventPublisher = DroomsEventPublisher.get()
@@ -45,7 +47,7 @@ class ControlPanel extends BorderPanel with Reactor with Publisher {
     enabled = false
   }
   val prevTurnBtn = new Button(Action("Previous turn") {
-
+    eventPublisher.publish(PreviousTurn())
   })
   val nextTurnBtn = new Button(Action("Next turn") {
     eventPublisher.publish(NextTurnInitiated())
@@ -65,7 +67,7 @@ class ControlPanel extends BorderPanel with Reactor with Publisher {
     max = 1000
     value = 100
     paintLabels = true
-    //minorTickSpacing = 100
+    minorTickSpacing = 100
     majorTickSpacing = 250
     font = new Font("Serif", Font.PLAIN, 10)
   }
@@ -73,23 +75,29 @@ class ControlPanel extends BorderPanel with Reactor with Publisher {
   val turnSlider = new Slider {
     min = 0
     max = 1000
-    value = 100
+    value = 0
     paintLabels = true
-    majorTickSpacing = 250
+    //majorTickSpacing = 250
     font = new Font("Serif", Font.PLAIN, 10)
+  }
+  val currTurnText = new TextField("0") {
+    columns = 4
+    
   }
   listenTo(turnSlider)
   reactions += {
     case ValueChanged(`intervalSlider`) =>
       eventPublisher.publish(TurnDelayChanged(intervalSlider.value))
+      
+    case ValueChanged(`turnSlider`) =>
+      println(turnSlider.value)
+      //eventPublisher.publish(GoToTurn(turnSlider.value))
   }
 
   val rightBtns = new FlowPanel(FlowPanel.Alignment.Right)() {
     contents += new Label(" Current Turn ")
     contents += new BoxPanel(Orientation.Vertical) {
-      contents += new TextField("0") {
-        
-      }
+      contents += currTurnText
     }
     contents += turnSlider
 
@@ -118,33 +126,49 @@ class ControlPanel extends BorderPanel with Reactor with Publisher {
       currentTurn = 0
       progressBar.value = 0
       progressBar.max = log.turns.size
+      prevTurnBtn.enabled = false
+      turnSlider.max = log.turns.size
     }
+    
     case NextTurnInitiated() =>
       currentTurn += 1
       progressBar.value = currentTurn
+      currTurnText.text = currentTurn + ""
+      prevTurnBtn.enabled = true
+      turnSlider.value = currentTurn
+      
     case ReplayInitiated() =>
       nextTurnBtn.enabled = false
       restartBtn.enabled = false
       replayPauseBtn.enabled = true
       gameStatus = GameReplaying()
       replayPauseBtn.text = "Pause"
+      prevTurnBtn.enabled = true
+        
     case ReplayPaused() =>
       restartBtn.enabled = true
       nextTurnBtn.enabled = true
       replayPauseBtn.enabled = true
       gameStatus = GameReplayingPaused()
       replayPauseBtn.text = "Continue"
+        
     case ReplayContinued() =>
       restartBtn.enabled = false
       nextTurnBtn.enabled = false
       replayPauseBtn.enabled = true
       gameStatus = GameReplaying()
       replayPauseBtn.text = "Pause"
+        
     case GameFinished() =>
       nextTurnBtn.enabled = false
       restartBtn.enabled = true
       replayPauseBtn.enabled = false
       replayPauseBtn.text = "Replay"
       gameStatus = GameNotStarted()
+
+    case GoToTurn(number) =>
+      currentTurn = number
+      turnSlider.value = number
+      currTurnText.text = number + ""
   }
 }

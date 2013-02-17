@@ -5,6 +5,7 @@ import scala.swing.event.Event
 import org.drooms.gui.swing.TurnStep
 import java.io.File
 import org.drooms.gui.swing.GameReport
+import org.drooms.gui.swing.TurnState
 
 sealed class DroomsEventPublisher extends Publisher
 
@@ -29,9 +30,14 @@ case class ReplayContinued extends DroomsEvent
 
 case class TurnStepPerformed(val turnStep: TurnStep) extends DroomsEvent
 case class NextTurnInitiated extends DroomsEvent
+case class PreviousTurn extends DroomsEvent
+case class GoToTurn(turnNo: Int) extends DroomsEvent
+case class GoToTurnState(turnNo: Int, state: TurnState) extends DroomsEvent
 case class TurnDelayChanged(val value: Int) extends DroomsEvent
 
 case class CoordinantsVisibilityChanged(val value: Boolean) extends DroomsEvent
 case class PlaygroundGridDisabled extends DroomsEvent
 case class PlaygroundGridEnabled extends DroomsEvent
+
+case class UpdatePlayers extends DroomsEvent
 
