@@ -43,8 +43,8 @@ class Playground extends ScrollPane with Reactor {
     case GoToTurnState(number, state) => 
       val newModel = state.playgroundModel
       newModel.eventPublisher = eventPublisher
-      //worms.clear()
-      //worms ++= state.playgroundModel.worms
+      worms.clear()
+      worms ++= state.playgroundModel.worms
       createNew(plwidth, plheight, newModel)
       updateWholeTable()
 
@@ -230,7 +230,10 @@ class Playground extends ScrollPane with Reactor {
     table match {
       case Some(table) =>
         table.showGrid = visible
-        table.peer.setIntercellSpacing(new Dimension(1, 1))
+        if (visible)
+            table.peer.setIntercellSpacing(new Dimension(1, 1))
+        else
+          table.peer.setIntercellSpacing(new Dimension(0, 0))
       case None =>
     }
   }
