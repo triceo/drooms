@@ -90,10 +90,11 @@ class ControlPanel extends BorderPanel with Reactor with Publisher {
   reactions += {
     case ValueChanged(`intervalSlider`) =>
       eventPublisher.publish(TurnDelayChanged(intervalSlider.value))
-      
+
     case ValueChanged(`turnSlider`) =>
-      //eventPublisher.publish(GoToTurn(turnSlider.value))
-      
+      if (turnSlider.value + 1 != currentTurn)
+        eventPublisher.publish(GoToTurn(turnSlider.value))
+
     case EditDone(`currTurnText`) =>
       eventPublisher.publish(GoToTurn(currTurnText.text.toInt))
   }
@@ -131,9 +132,10 @@ class ControlPanel extends BorderPanel with Reactor with Publisher {
       progressBar.value = 0
       progressBar.max = log.turns.size
       prevTurnBtn.enabled = false
-      turnSlider.max = log.turns.size
+      turnSlider.max = log.turns.size - 1
+      turnSlider.value = 0
     }
-    
+
     case NextTurnInitiated() =>
       currentTurn += 1
       progressBar.value = currentTurn
@@ -143,7 +145,7 @@ class ControlPanel extends BorderPanel with Reactor with Publisher {
         case GameReplaying() => prevTurnBtn.enabled = false
         case _ => prevTurnBtn.enabled = true
       }
-      
+
     case ReplayInitiated() =>
       nextTurnBtn.enabled = false
       restartBtn.enabled = false
@@ -151,8 +153,7 @@ class ControlPanel extends BorderPanel with Reactor with Publisher {
       gameStatus = GameReplaying()
       replayPauseBtn.text = "Pause"
       prevTurnBtn.enabled = false
-      
-        
+
     case ReplayPaused() =>
       restartBtn.enabled = true
       nextTurnBtn.enabled = true
@@ -160,15 +161,15 @@ class ControlPanel extends BorderPanel with Reactor with Publisher {
       gameStatus = GameReplayingPaused()
       replayPauseBtn.text = "Continue"
       prevTurnBtn.enabled = true
-        
+
     case ReplayContinued() =>
       restartBtn.enabled = false
       nextTurnBtn.enabled = false
       replayPauseBtn.enabled = true
       gameStatus = GameReplaying()
       replayPauseBtn.text = "Pause"
-        prevTurnBtn.enabled = false
-        
+      prevTurnBtn.enabled = false
+
     case GameFinished() =>
       nextTurnBtn.enabled = false
       restartBtn.enabled = true
@@ -181,5 +182,11 @@ class ControlPanel extends BorderPanel with Reactor with Publisher {
       currentTurn = number
       turnSlider.value = number - 1
       currTurnText.text = number - 1 + ""
+      if (number != 0) 
+        prevTurnBtn.enabled = true
+      nextTurnBtn.enabled = true
+      replayPauseBtn.enabled = true
+      replayPauseBtn.text = "Continue"
+      restartBtn.enabled = true  
   }
 }
