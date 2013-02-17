@@ -127,6 +127,13 @@ case class PlaygroundModel(val width: Int, val height: Int, var positions: Array
   }
 
   def removeWormPieces(ownerName: String): Unit = {
+    for (i <- 0 until positions(0).size; j <- 0 until positions.size) {
+      positions(j)(i) match {
+        case WormPiece(node, t, owner) =>
+          if (owner == ownerName) updatePosition(Empty(node))
+        case _ =>
+      }
+    }
     worms.find(_.ownerName == ownerName) match {
       case Some(worm) =>
         for (piece <- worm.pieces) {

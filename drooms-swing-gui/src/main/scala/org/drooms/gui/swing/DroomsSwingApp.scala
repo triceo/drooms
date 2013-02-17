@@ -98,12 +98,9 @@ object DroomsSwingApp extends SimpleSwingApplication {
         timer = None
 
       case PreviousTurn() =>
-        val prevTurnNo = gameController.nextTurnNumber - 2
-        println(prevTurnNo)
-        eventPublisher.publish(GoToTurn(prevTurnNo))
+        eventPublisher.publish(GoToTurn(gameController.prevTurnNumber))
 
-      case GoToTurn(number) =>
-        val turnNo = number
+      case GoToTurn(turnNo) =>
         val turnState = gameController.getTurnState(turnNo)
         eventPublisher.publish(GoToTurnState(turnNo, turnState))
         

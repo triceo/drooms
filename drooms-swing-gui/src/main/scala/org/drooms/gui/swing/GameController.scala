@@ -7,16 +7,21 @@ trait GameController {
   def hasNextTurn(): Boolean
   def getTurnState(turn: Int): TurnState
   def nextTurnNumber(): Int
+  def prevTurnNumber(): Int
   def setNextTurnNumber(number: Int): Unit
 }
 
+/**
+ * Turns are numbered starting from 0, like in the XML report. Turn states are numbered from 0, but
+ * 0th turn state is the initial one (player starting positions), so 0th turn in XML report == 1st turn state.
+ */
 class ReplayGameController(val gameReport: GameReport) extends GameController {
   val totalTurns = gameReport.turns.size
-  var turnNumber = 0
+  var nextTurnNumber = 0
   val turnsStates = gameReport.createTurnsStates()
 
   def setNextTurnNumber(number: Int) = {
-    turnNumber = number
+    nextTurnNumber = number
   }
   
   /**
@@ -24,21 +29,20 @@ class ReplayGameController(val gameReport: GameReport) extends GameController {
    * should be performed within that turn.
    */
   override def nextTurn(): GameTurn = {
-    println(turnNumber)
     if (!hasNextTurn())
       throw new RuntimeException("Can't get next turn, game already finished!")
     else {
-      val turn = gameReport.turns(turnNumber)
-      turnNumber += 1
+      val turn = gameReport.turns(nextTurnNumber)
+      nextTurnNumber += 1
       turn
     }
   }
 
-  def hasNextTurn(): Boolean = turnNumber < totalTurns
+  def hasNextTurn(): Boolean = nextTurnNumber < totalTurns
 
-  def nextTurnNumber(): Int = turnNumber
+  def prevTurnNumber(): Int = nextTurnNumber - 2
 
-  def getTurnState(turnNo: Int): TurnState = turnsStates(turnNo)
+  def getTurnState(turnNo: Int): TurnState = turnsStates(turnNo + 1)
 
 }
 

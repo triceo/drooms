@@ -43,6 +43,8 @@ class Playground extends ScrollPane with Reactor {
     case GoToTurnState(number, state) => 
       val newModel = state.playgroundModel
       newModel.eventPublisher = eventPublisher
+      //worms.clear()
+      //worms ++= state.playgroundModel.worms
       createNew(plwidth, plheight, newModel)
       updateWholeTable()
 

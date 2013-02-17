@@ -28,6 +28,8 @@ import org.drooms.gui.swing.event.TurnDelayChanged
 import org.drooms.gui.swing.event.GoToTurnState
 import org.drooms.gui.swing.event.GoToTurn
 import org.drooms.gui.swing.event.GameRestarted
+import scala.swing.event.EditDone
+import org.drooms.gui.swing.event.GoToTurn
 
 class ControlPanel extends BorderPanel with Reactor with Publisher {
   val eventPublisher = DroomsEventPublisher.get()
@@ -82,16 +84,18 @@ class ControlPanel extends BorderPanel with Reactor with Publisher {
   }
   val currTurnText = new TextField("0") {
     columns = 4
-    
   }
+  listenTo(currTurnText)
   listenTo(turnSlider)
   reactions += {
     case ValueChanged(`intervalSlider`) =>
       eventPublisher.publish(TurnDelayChanged(intervalSlider.value))
       
     case ValueChanged(`turnSlider`) =>
-      println(turnSlider.value)
       //eventPublisher.publish(GoToTurn(turnSlider.value))
+      
+    case EditDone(`currTurnText`) =>
+      eventPublisher.publish(GoToTurn(currTurnText.text.toInt))
   }
 
   val rightBtns = new FlowPanel(FlowPanel.Alignment.Right)() {
@@ -133,9 +137,12 @@ class ControlPanel extends BorderPanel with Reactor with Publisher {
     case NextTurnInitiated() =>
       currentTurn += 1
       progressBar.value = currentTurn
-      currTurnText.text = currentTurn + ""
-      prevTurnBtn.enabled = true
-      turnSlider.value = currentTurn
+      currTurnText.text = currentTurn - 1 + ""
+      turnSlider.value = currentTurn - 1
+      gameStatus match {
+        case GameReplaying() => prevTurnBtn.enabled = false
+        case _ => prevTurnBtn.enabled = true
+      }
       
     case ReplayInitiated() =>
       nextTurnBtn.enabled = false
@@ -143,7 +150,8 @@ class ControlPanel extends BorderPanel with Reactor with Publisher {
       replayPauseBtn.enabled = true
       gameStatus = GameReplaying()
       replayPauseBtn.text = "Pause"
-      prevTurnBtn.enabled = true
+      prevTurnBtn.enabled = false
+      
         
     case ReplayPaused() =>
       restartBtn.enabled = true
@@ -151,6 +159,7 @@ class ControlPanel extends BorderPanel with Reactor with Publisher {
       replayPauseBtn.enabled = true
       gameStatus = GameReplayingPaused()
       replayPauseBtn.text = "Continue"
+      prevTurnBtn.enabled = true
         
     case ReplayContinued() =>
       restartBtn.enabled = false
@@ -158,6 +167,7 @@ class ControlPanel extends BorderPanel with Reactor with Publisher {
       replayPauseBtn.enabled = true
       gameStatus = GameReplaying()
       replayPauseBtn.text = "Pause"
+        prevTurnBtn.enabled = false
         
     case GameFinished() =>
       nextTurnBtn.enabled = false
@@ -165,10 +175,11 @@ class ControlPanel extends BorderPanel with Reactor with Publisher {
       replayPauseBtn.enabled = false
       replayPauseBtn.text = "Replay"
       gameStatus = GameNotStarted()
+      prevTurnBtn.enabled = true
 
     case GoToTurn(number) =>
       currentTurn = number
-      turnSlider.value = number
-      currTurnText.text = number + ""
+      turnSlider.value = number - 1
+      currTurnText.text = number - 1 + ""
   }
 }

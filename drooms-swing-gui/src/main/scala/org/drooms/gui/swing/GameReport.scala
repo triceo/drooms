@@ -23,7 +23,7 @@ class GameReport(
   val results: List[(String, Int)]) {
 
   /**
-   * Creates list of TurnStates representing states for all game turns.
+   * Creates list of {@code TurnState}s representing states for all game turns.
    * It enable the game to be moved into particular turn very easily.
    */
   def createTurnsStates(): List[TurnState] = {
