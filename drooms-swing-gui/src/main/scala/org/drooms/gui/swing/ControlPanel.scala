@@ -2,6 +2,7 @@ package org.drooms.gui.swing
 
 import java.awt.Font
 import java.io.File
+
 import scala.swing.Action
 import scala.swing.BorderPanel
 import scala.swing.BoxPanel
@@ -14,9 +15,15 @@ import scala.swing.Publisher
 import scala.swing.Reactor
 import scala.swing.Slider
 import scala.swing.TextField
+import scala.swing.event.EditDone
 import scala.swing.event.ValueChanged
+
+import org.drooms.gui.swing.event.AfterNewReportChosen
+import org.drooms.gui.swing.event.BeforeNewReportChosen
+import org.drooms.gui.swing.event.EventBusFactory
 import org.drooms.gui.swing.event.GameFinished
 import org.drooms.gui.swing.event.GameRestarted
+import org.drooms.gui.swing.event.GoToTurn
 import org.drooms.gui.swing.event.NewGameReportChosen
 import org.drooms.gui.swing.event.NextTurnInitiated
 import org.drooms.gui.swing.event.PreviousTurn
@@ -24,12 +31,6 @@ import org.drooms.gui.swing.event.ReplayContinued
 import org.drooms.gui.swing.event.ReplayInitiated
 import org.drooms.gui.swing.event.ReplayPaused
 import org.drooms.gui.swing.event.TurnDelayChanged
-import org.drooms.gui.swing.event.GoToTurnState
-import org.drooms.gui.swing.event.GoToTurn
-import org.drooms.gui.swing.event.GameRestarted
-import scala.swing.event.EditDone
-import org.drooms.gui.swing.event.GoToTurn
-import org.drooms.gui.swing.event.EventBusFactory
 
 class ControlPanel extends BorderPanel with Reactor with Publisher {
   val eventBus = EventBusFactory.get()
@@ -85,15 +86,19 @@ class ControlPanel extends BorderPanel with Reactor with Publisher {
   val currTurnText = new TextField("0") {
     columns = 4
   }
+  var gameInitialized = false
   listenTo(currTurnText)
   listenTo(turnSlider)
   reactions += {
+    case AfterNewReportChosen() => gameInitialized = true
+    case BeforeNewReportChosen() => gameInitialized = false
+    
     case ValueChanged(`intervalSlider`) =>
       eventBus.publish(TurnDelayChanged(intervalSlider.value))
 
     case ValueChanged(`turnSlider`) =>
-//      if (turnSlider.value + 1 != currentTurn)
-//        eventBus.publish(GoToTurn(turnSlider.value))
+      if (turnSlider.value + 1 != currentTurn && gameInitialized)
+        eventBus.publish(GoToTurn(turnSlider.value))
 
     case EditDone(`currTurnText`) =>
       eventBus.publish(GoToTurn(currTurnText.text.toInt))

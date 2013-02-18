@@ -1,7 +1,6 @@
 package org.drooms.gui.swing
 
 import java.io.File
-
 import scala.swing.Action
 import scala.swing.CheckMenuItem
 import scala.swing.FileChooser
@@ -9,7 +8,6 @@ import scala.swing.Menu
 import scala.swing.MenuBar
 import scala.swing.MenuItem
 import scala.swing.event.ButtonClicked
-
 import org.drooms.gui.swing.event.CoordinantsVisibilityChanged
 import org.drooms.gui.swing.event.EventBusFactory
 import org.drooms.gui.swing.event.GameRestarted
@@ -20,8 +18,9 @@ import org.drooms.gui.swing.event.PlaygroundGridEnabled
 import org.drooms.gui.swing.event.ReplayContinued
 import org.drooms.gui.swing.event.ReplayInitiated
 import org.drooms.gui.swing.event.ReplayPaused
-
 import javax.swing.filechooser.FileFilter
+import org.drooms.gui.swing.event.AfterNewReportChosen
+import org.drooms.gui.swing.event.BeforeNewReportChosen
 
 class MainMenu extends MenuBar {
   // TODO make this configurable and saved as preference in user's home dir
@@ -147,15 +146,18 @@ class MainMenu extends MenuBar {
     }
     override def getDescription() = "XML report file"
   }
+  
   def openGameReport(): Unit = {
     val fileChooser = new FileChooser(lastUsedDir)
     fileChooser.fileFilter = xmlFileFilter
     val res = fileChooser.showOpenDialog(this)
     if (res == FileChooser.Result.Approve) {
+      eventBus.publish(BeforeNewReportChosen())
       val selectedFile = fileChooser.selectedFile
       lastUsedDir = selectedFile.getParentFile()
       val gameReport = GameReport.loadFromXml(selectedFile)
       eventBus.publish(new NewGameReportChosen(gameReport, selectedFile))
+      eventBus.publish(AfterNewReportChosen())
     }
   }
 }

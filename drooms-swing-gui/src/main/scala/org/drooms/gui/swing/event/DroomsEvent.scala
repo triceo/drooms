@@ -8,7 +8,9 @@ import org.drooms.gui.swing.TurnState
 
 trait DroomsEvent extends Event
 
+case class BeforeNewReportChosen extends DroomsEvent
 case class NewGameReportChosen(val gameReport: GameReport, val file: File) extends DroomsEvent
+case class AfterNewReportChosen extends DroomsEvent
 
 case class PlayersListUpdated extends DroomsEvent
 
