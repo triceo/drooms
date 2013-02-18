@@ -1,22 +1,22 @@
 package org.drooms.gui.swing
 
-import scala.swing.UIElement
-import scala.swing.ListView
-import scala.swing.Component
-import scala.swing.BorderPanel
-import scala.swing.Label
 import java.awt.Color
-import scala.swing.ListView.Renderer
-import scala.swing.Alignment
-import javax.swing.BorderFactory
+
 import scala.collection.mutable.Buffer
-import org.drooms.gui.swing.event.DroomsEventPublisher
+import scala.swing.Alignment
+import scala.swing.BorderPanel
+import scala.swing.Component
+import scala.swing.Label
+import scala.swing.ListView
+import scala.swing.ListView.Renderer
+
+import org.drooms.gui.swing.event.EventBusFactory
 import org.drooms.gui.swing.event.NewGameReportChosen
-import scala.swing.BoxPanel
-import scala.swing.Orientation
-import java.awt.BorderLayout
 import org.drooms.gui.swing.event.TurnStepPerformed
 import org.drooms.gui.swing.event.UpdatePlayers
+
+import javax.swing.BorderFactory
+
 
 class PlayersList(val players: Buffer[Player], val colors: PlayerColors) {
   def this() = this(Buffer(), PlayerColors.getDefault())
@@ -62,12 +62,12 @@ object PlayersList {
 }
 
 class PlayersListView extends BorderPanel {
-  val eventPublisher = DroomsEventPublisher.get()
+  val eventBus = EventBusFactory.get()
   val playersList = PlayersList.get()
   val playersListView = new ListView(playersList.players) {
     renderer = new PlayersListRenderer
   }
-  listenTo(eventPublisher)
+  listenTo(eventBus)
 
   layout(new Label("Players")) = BorderPanel.Position.North
   layout(playersListView) = BorderPanel.Position.Center

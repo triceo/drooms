@@ -1,11 +1,11 @@
 package org.drooms.gui.swing
 
 import java.io.File
-import java.awt.Color
-import scala.io.Source
-import scala.xml.XML
+
 import scala.xml.NodeSeq
-import org.drooms.gui.swing.event.NoOpEventPublisher
+import scala.xml.XML
+
+import org.drooms.gui.swing.event.EventBusFactory
 
 /**
  * Class that represents Drooms game report.
@@ -27,7 +27,7 @@ class GameReport(
    * It enable the game to be moved into particular turn very easily.
    */
   def createTurnsStates(): List[TurnState] = {
-    val initPlayground = new PlaygroundModel(playgroundWidth, playgroundHeight, NoOpEventPublisher)
+    val initPlayground = new PlaygroundModel(playgroundWidth, playgroundHeight, EventBusFactory.getNoOp())
     initPlayground.emptyNodes(playgroundInit)
     initPlayground.initWorms(wormInitPositions)
     val initPlayers = players.map(_ -> 0).toMap
@@ -70,6 +70,9 @@ object GameReport {
   def loadFromXml(file: File): GameReport = GameReportXmlParser.parseReport(file)
 }
 
+/**
+ * Parser used for parsing game repot in XML data format. 
+ */
 object GameReportXmlParser {
   def parseReport(file: File): GameReport = {
     // parse game ID

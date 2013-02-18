@@ -2,6 +2,7 @@ package org.drooms.gui.swing
 
 import java.awt.Dimension
 import java.awt.Font
+
 import scala.swing.Alignment
 import scala.swing.Component
 import scala.swing.FlowPanel
@@ -10,27 +11,29 @@ import scala.swing.Label
 import scala.swing.Reactor
 import scala.swing.ScrollPane
 import scala.swing.Table
+
 import org.drooms.gui.swing.event.CoordinantsVisibilityChanged
-import org.drooms.gui.swing.event.DroomsEventPublisher
+import org.drooms.gui.swing.event.EventBusFactory
+import org.drooms.gui.swing.event.GoToTurnState
 import org.drooms.gui.swing.event.NewGameReportChosen
 import org.drooms.gui.swing.event.PlaygroundGridDisabled
 import org.drooms.gui.swing.event.PlaygroundGridEnabled
 import org.drooms.gui.swing.event.TurnStepPerformed
+
 import javax.swing.BorderFactory
 import javax.swing.ImageIcon
 import javax.swing.UIManager
 import javax.swing.table.DefaultTableModel
-import org.drooms.gui.swing.event.GoToTurnState
 
 class Playground extends ScrollPane with Reactor {
   val CELL_SIZE = 15
-  val eventPublisher = DroomsEventPublisher.get()
+  val eventBus = EventBusFactory.get()
   var cellModel: PlaygroundModel = _
   var table: Option[Table] = None
   val worms: collection.mutable.Set[Worm] = collection.mutable.Set()
   var showCoords = false
 
-  listenTo(eventPublisher)
+  listenTo(eventBus)
   reactions += {
     case PlaygroundGridEnabled() => showGrid
     case PlaygroundGridDisabled() => hideGrid
@@ -42,7 +45,7 @@ class Playground extends ScrollPane with Reactor {
     }
     case GoToTurnState(number, state) => 
       val newModel = state.playgroundModel
-      newModel.eventPublisher = eventPublisher
+      newModel.eventBus = eventBus
       worms.clear()
       worms ++= state.playgroundModel.worms
       createNew(plwidth, plheight, newModel)
@@ -61,7 +64,7 @@ class Playground extends ScrollPane with Reactor {
   }
   
   def createNew(width: Int, height: Int): Unit = {
-    createNew(width, height, new PlaygroundModel(width, height, eventPublisher))
+    createNew(width, height, new PlaygroundModel(width, height, eventBus))
   }
   def createNew(width: Int, height:Int, model: PlaygroundModel): Unit = {
     cellModel = model

@@ -15,7 +15,6 @@ import scala.swing.Reactor
 import scala.swing.Slider
 import scala.swing.TextField
 import scala.swing.event.ValueChanged
-import org.drooms.gui.swing.event.DroomsEventPublisher
 import org.drooms.gui.swing.event.GameFinished
 import org.drooms.gui.swing.event.GameRestarted
 import org.drooms.gui.swing.event.NewGameReportChosen
@@ -30,34 +29,35 @@ import org.drooms.gui.swing.event.GoToTurn
 import org.drooms.gui.swing.event.GameRestarted
 import scala.swing.event.EditDone
 import org.drooms.gui.swing.event.GoToTurn
+import org.drooms.gui.swing.event.EventBusFactory
 
 class ControlPanel extends BorderPanel with Reactor with Publisher {
-  val eventPublisher = DroomsEventPublisher.get()
+  val eventBus = EventBusFactory.get()
   var currentLog: (GameReport, File) = _
   var currentTurn = 0
   var gameStatus: GameStatus = GameNotStarted()
   val replayPauseBtn = new Button(Action("Replay") {
     gameStatus match {
       case GameNotStarted() =>
-        eventPublisher.publish(ReplayInitiated())
+        eventBus.publish(ReplayInitiated())
       case GameReplaying() =>
-        eventPublisher.publish(ReplayPaused())
+        eventBus.publish(ReplayPaused())
       case GameReplayingPaused() =>
-        eventPublisher.publish(ReplayContinued())
+        eventBus.publish(ReplayContinued())
     }
   }) {
     enabled = false
   }
   val prevTurnBtn = new Button(Action("Previous turn") {
-    eventPublisher.publish(PreviousTurn())
+    eventBus.publish(PreviousTurn())
   })
   val nextTurnBtn = new Button(Action("Next turn") {
-    eventPublisher.publish(NextTurnInitiated())
+    eventBus.publish(NextTurnInitiated())
   }) {
     enabled = false
   }
   val restartBtn = new Button(Action("Reset game") {
-    eventPublisher.publish(new GameRestarted)
+    eventBus.publish(new GameRestarted)
   }) {
     enabled = false
   }
@@ -89,14 +89,14 @@ class ControlPanel extends BorderPanel with Reactor with Publisher {
   listenTo(turnSlider)
   reactions += {
     case ValueChanged(`intervalSlider`) =>
-      eventPublisher.publish(TurnDelayChanged(intervalSlider.value))
+      eventBus.publish(TurnDelayChanged(intervalSlider.value))
 
     case ValueChanged(`turnSlider`) =>
 //      if (turnSlider.value + 1 != currentTurn)
-//        eventPublisher.publish(GoToTurn(turnSlider.value))
+//        eventBus.publish(GoToTurn(turnSlider.value))
 
     case EditDone(`currTurnText`) =>
-      eventPublisher.publish(GoToTurn(currTurnText.text.toInt))
+      eventBus.publish(GoToTurn(currTurnText.text.toInt))
   }
 
   val rightBtns = new FlowPanel(FlowPanel.Alignment.Right)() {
@@ -120,7 +120,7 @@ class ControlPanel extends BorderPanel with Reactor with Publisher {
     contents += intervalSlider
   }) = BorderPanel.Position.West
 
-  listenTo(eventPublisher)
+  listenTo(eventBus)
 
   reactions += {
     case NewGameReportChosen(log, file) => {

@@ -1,21 +1,11 @@
 package org.drooms.gui.swing.event
 
-import scala.swing.Publisher
 import scala.swing.event.Event
-import org.drooms.gui.swing.TurnStep
-import java.io.File
 import org.drooms.gui.swing.GameReport
+import java.io.File
+import org.drooms.gui.swing.TurnStep
 import org.drooms.gui.swing.TurnState
 
-sealed class DroomsEventPublisher extends Publisher
-
-object DroomsEventPublisher {
-  val publisher = new DroomsEventPublisher
-
-  def get(): DroomsEventPublisher = {
-    publisher
-  }
-}
 trait DroomsEvent extends Event
 
 case class NewGameReportChosen(val gameReport: GameReport, val file: File) extends DroomsEvent
@@ -40,4 +30,3 @@ case class PlaygroundGridDisabled extends DroomsEvent
 case class PlaygroundGridEnabled extends DroomsEvent
 
 case class UpdatePlayers extends DroomsEvent
-

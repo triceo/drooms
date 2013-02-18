@@ -4,6 +4,7 @@ import java.awt.Dimension
 import java.io.File
 import java.util.Timer
 import java.util.TimerTask
+
 import scala.swing.BorderPanel
 import scala.swing.BoxPanel
 import scala.swing.MainFrame
@@ -11,9 +12,12 @@ import scala.swing.Orientation
 import scala.swing.Reactor
 import scala.swing.SimpleSwingApplication
 import scala.swing.SplitPane
-import org.drooms.gui.swing.event.DroomsEventPublisher
+
+import org.drooms.gui.swing.event.EventBusFactory
 import org.drooms.gui.swing.event.GameFinished
 import org.drooms.gui.swing.event.GameRestarted
+import org.drooms.gui.swing.event.GameRestarted
+import org.drooms.gui.swing.event.GoToTurn
 import org.drooms.gui.swing.event.GoToTurnState
 import org.drooms.gui.swing.event.NewGameReportChosen
 import org.drooms.gui.swing.event.NextTurnInitiated
@@ -24,12 +28,11 @@ import org.drooms.gui.swing.event.ReplayPaused
 import org.drooms.gui.swing.event.TurnDelayChanged
 import org.drooms.gui.swing.event.TurnStepPerformed
 import org.drooms.gui.swing.event.UpdatePlayers
+
 import javax.swing.SwingUtilities
-import org.drooms.gui.swing.event.GameRestarted
-import org.drooms.gui.swing.event.GoToTurn
 
 object DroomsSwingApp extends SimpleSwingApplication {
-  val eventPublisher = DroomsEventPublisher.get()
+  val eventBus = EventBusFactory.get()
   val leftPane = new LeftPane
   val rightPane = new RightPane
   var gameController: GameController = _
@@ -40,7 +43,7 @@ object DroomsSwingApp extends SimpleSwingApplication {
     title = "Drooms"
     minimumSize = new Dimension(1300, 700)
     menuBar = new MainMenu()
-    listenTo(eventPublisher)
+    listenTo(eventBus)
 
     contents = new SplitPane(Orientation.Vertical, leftPane, rightPane) {
       resizeWeight = 1.0
@@ -57,14 +60,14 @@ object DroomsSwingApp extends SimpleSwingApplication {
       case NextTurnInitiated() =>
         val turn = gameController.nextTurn
         for (step <- turn.steps) {
-          eventPublisher.publish(new TurnStepPerformed(step))
+          eventBus.publish(new TurnStepPerformed(step))
         }
         if (!gameController.hasNextTurn()) {
-          eventPublisher.publish(new GameFinished)
+          eventBus.publish(new GameFinished)
         }
 
       case GameRestarted() =>
-        eventPublisher.publish(new NewGameReportChosen(gameReport._1, gameReport._2))
+        eventBus.publish(new NewGameReportChosen(gameReport._1, gameReport._2))
 
       case ReplayInitiated() | ReplayContinued() =>
         timer match {
@@ -98,23 +101,23 @@ object DroomsSwingApp extends SimpleSwingApplication {
         timer = None
 
       case PreviousTurn() =>
-        eventPublisher.publish(GoToTurn(gameController.prevTurnNumber))
+        eventBus.publish(GoToTurn(gameController.prevTurnNumber))
 
       case GoToTurn(turnNo) =>
         val turnState = gameController.getTurnState(turnNo)
-        eventPublisher.publish(GoToTurnState(turnNo, turnState))
+        eventBus.publish(GoToTurnState(turnNo, turnState))
         
       case GoToTurnState(number, state) =>
         PlayersList.get().updatePoints(state.players)
         if (number <= 0) 
-          eventPublisher.publish(GameRestarted())
+          eventBus.publish(GameRestarted())
         else {
           gameController.setNextTurnNumber(number)
           val turn = gameController.nextTurn
           for (step <- turn.steps) {
-            eventPublisher.publish(new TurnStepPerformed(step))
+            eventBus.publish(new TurnStepPerformed(step))
           }
-          eventPublisher.publish(UpdatePlayers())
+          eventBus.publish(UpdatePlayers())
         }
     }
 
@@ -123,7 +126,7 @@ object DroomsSwingApp extends SimpleSwingApplication {
         if (gameController.hasNextTurn()) {
           SwingUtilities.invokeAndWait(new Runnable() {
             override def run(): Unit = {
-              eventPublisher.publish(NextTurnInitiated())
+              eventBus.publish(NextTurnInitiated())
             }
           })
         }

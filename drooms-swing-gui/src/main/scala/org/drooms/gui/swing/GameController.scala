@@ -1,7 +1,5 @@
 package org.drooms.gui.swing
 
-import org.drooms.gui.swing.event.NoOpEventPublisher
-
 trait GameController {
   def nextTurn(): GameTurn
   def hasNextTurn(): Boolean

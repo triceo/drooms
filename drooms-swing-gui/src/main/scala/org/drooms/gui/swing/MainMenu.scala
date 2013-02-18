@@ -11,7 +11,7 @@ import scala.swing.MenuItem
 import scala.swing.event.ButtonClicked
 
 import org.drooms.gui.swing.event.CoordinantsVisibilityChanged
-import org.drooms.gui.swing.event.DroomsEventPublisher
+import org.drooms.gui.swing.event.EventBusFactory
 import org.drooms.gui.swing.event.GameRestarted
 import org.drooms.gui.swing.event.NewGameReportChosen
 import org.drooms.gui.swing.event.NextTurnInitiated
@@ -29,8 +29,8 @@ class MainMenu extends MenuBar {
     "../../drooms-game-impl/reports", // in case the app is started from drooms-swing-gui/target
     "../drooms-game-impl/reports" // in case the app is started from drooms-swing-gui
     )
-  val eventPublisher = DroomsEventPublisher.get()
-  listenTo(eventPublisher)
+  val eventBus = EventBusFactory.get()
+  listenTo(eventBus)
   // file menu
   contents += new Menu("File") {
     contents += new MenuItem(Action("Open game report...") {
@@ -41,22 +41,22 @@ class MainMenu extends MenuBar {
   }
   // game menu
   val nextTurnItem = new MenuItem(Action("Next turn") {
-    eventPublisher.publish(NextTurnInitiated())
+    eventBus.publish(NextTurnInitiated())
   }) {
     enabled = false
   }
   val replayItem = new MenuItem(Action("Replay") {
-    eventPublisher.publish(ReplayInitiated())
+    eventBus.publish(ReplayInitiated())
   }) {
     enabled = false
   }
   val pauseItem = new MenuItem(Action("Pause") {
-    eventPublisher.publish(ReplayPaused())
+    eventBus.publish(ReplayPaused())
   }) {
     enabled = false
   }
   val restartItem = new MenuItem(Action("Reset") {
-    eventPublisher.publish(GameRestarted())
+    eventBus.publish(GameRestarted())
   }) {
     enabled = false
   }
@@ -114,12 +114,12 @@ class MainMenu extends MenuBar {
   reactions += {
     case ButtonClicked(`showGridItem`) => {
       if (showGridItem.selected)
-        eventPublisher.publish(new PlaygroundGridEnabled)
+        eventBus.publish(new PlaygroundGridEnabled)
       else
-        eventPublisher.publish(new PlaygroundGridDisabled)
+        eventBus.publish(new PlaygroundGridDisabled)
     }
     case ButtonClicked(`showCoordsItem`) => {
-      eventPublisher.publish(new CoordinantsVisibilityChanged(showCoordsItem.selected))
+      eventBus.publish(new CoordinantsVisibilityChanged(showCoordsItem.selected))
     }
 
     case NewGameReportChosen(_, _) => {
@@ -155,7 +155,7 @@ class MainMenu extends MenuBar {
       val selectedFile = fileChooser.selectedFile
       lastUsedDir = selectedFile.getParentFile()
       val gameReport = GameReport.loadFromXml(selectedFile)
-      eventPublisher.publish(new NewGameReportChosen(gameReport, selectedFile))
+      eventBus.publish(new NewGameReportChosen(gameReport, selectedFile))
     }
   }
 }

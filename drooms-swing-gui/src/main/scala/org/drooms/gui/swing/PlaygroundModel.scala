@@ -2,12 +2,13 @@ package org.drooms.gui.swing
 
 import scala.swing.Publisher
 import scala.swing.event.Event
-import org.drooms.gui.swing.event.DroomsEventPublisher
+
+import org.drooms.gui.swing.event.EventBusFactory
 
 /**
  * Represents underlying model for Playground as array of arrays of Positions.
  */
-case class PlaygroundModel(val width: Int, val height: Int, var positions: Array[Array[Position]], var eventPublisher: Publisher) {
+case class PlaygroundModel(val width: Int, val height: Int, var positions: Array[Array[Position]], var eventBus: Publisher) {
   var worms: collection.mutable.Set[Worm] = collection.mutable.Set()
   def this(width: Int, height: Int, publisher: Publisher) = {
     this(width, height, Array.ofDim[Position](width, height), publisher)
@@ -18,7 +19,7 @@ case class PlaygroundModel(val width: Int, val height: Int, var positions: Array
   }
 
   def this(positions: Array[Array[Position]]) = {
-    this(positions.size, positions(0).size, positions, DroomsEventPublisher.get())
+    this(positions.size, positions(0).size, positions, EventBusFactory.get())
   }
 
   def this(positions: Array[Array[Position]], publisher: Publisher) = {
@@ -27,7 +28,7 @@ case class PlaygroundModel(val width: Int, val height: Int, var positions: Array
 
   def updatePosition(pos: Position): Unit = {
     positions(pos.node.x)(pos.node.y) = pos
-    eventPublisher.publish(new PositionChanged(pos))
+    eventBus.publish(new PositionChanged(pos))
   }
 
   def updatePositions(positions: Seq[Position]): Unit = {
