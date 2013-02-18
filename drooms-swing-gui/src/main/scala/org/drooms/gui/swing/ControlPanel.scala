@@ -92,8 +92,8 @@ class ControlPanel extends BorderPanel with Reactor with Publisher {
       eventPublisher.publish(TurnDelayChanged(intervalSlider.value))
 
     case ValueChanged(`turnSlider`) =>
-      if (turnSlider.value + 1 != currentTurn)
-        eventPublisher.publish(GoToTurn(turnSlider.value))
+//      if (turnSlider.value + 1 != currentTurn)
+//        eventPublisher.publish(GoToTurn(turnSlider.value))
 
     case EditDone(`currTurnText`) =>
       eventPublisher.publish(GoToTurn(currTurnText.text.toInt))
