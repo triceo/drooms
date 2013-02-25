@@ -4,4 +4,6 @@ org.drooms.impl.logic.commands
 org.drooms.impl.logic.events
 org.drooms.impl.logic.facts
 org.drooms.impl.util
+org.drooms.impl.util.cli
+org.drooms.impl.util.properties
 org.drooms.impl.util.shortestpath.astar
