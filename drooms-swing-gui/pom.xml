@@ -6,7 +6,7 @@
   <parent>
     <groupId>com.github.triceo.drooms</groupId>
     <artifactId>drooms</artifactId>
-    <version>0.9.Final</version>
+    <version>1.0-SNAPSHOT</version>
   </parent>
   <artifactId>drooms-swing-gui</artifactId>
   <name>Drooms: Swing GUI</name>
