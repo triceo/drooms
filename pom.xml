@@ -5,7 +5,7 @@
 
   <groupId>com.github.triceo.drooms</groupId>
   <artifactId>drooms</artifactId>
-  <version>0.9-SNAPSHOT</version>
+  <version>0.9.Final</version>
   <packaging>pom</packaging>
 
   <name>Drooms: Competition in a snake-like game</name>
