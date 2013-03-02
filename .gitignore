@@ -2,9 +2,8 @@
 .project
 .settings
 target
-**/*/.classpath
-**/*/.project
-**/*/.settings
 **/*.log
-**/*/target
 drooms-strategy-hungry
+drooms-game-impl/reports
+local
+
