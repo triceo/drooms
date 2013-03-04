@@ -20,6 +20,15 @@
       <artifactId>scala-swing</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.typesafe</groupId>
+      <artifactId>scalalogging-slf4j_2.10</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+    </dependency>
+    <!-- Test dependencies -->
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>
@@ -29,6 +38,7 @@
       <artifactId>scalatest_2.10</artifactId>
       <scope>test</scope>
     </dependency>
+
   </dependencies>
 
   <build>
