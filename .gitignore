@@ -4,6 +4,6 @@
 target
 **/*.log
 drooms-strategy-hungry
-drooms-game-impl/reports
+reports
 local
 
