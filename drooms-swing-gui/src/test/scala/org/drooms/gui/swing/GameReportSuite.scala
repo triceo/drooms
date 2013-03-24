@@ -42,14 +42,14 @@ class GameReportSuite extends FunSuite {
       assert(turnStates(1).playgroundModel.getPosition(5, 5) === Collectible(Node(5,5), 1, 10))
       assert(turnStates(1).playgroundModel.getPosition(1, 3) === Collectible(Node(1,3), 10, 20))
       assert(countEmpty(turnStates(1).playgroundModel.positions) === 96)
-      assert(turnStates(1).players(players(0)) === 0)
+      assert(turnStates(1).playersScore(players(0)) === 0)
       
       // verify second turn state
       assert(turnStates(2).playgroundModel.getPosition(1, 3) === WormPiece(Node(1,3), "Head", players(0)))
       assert(turnStates(2).playgroundModel.getPosition(1, 2) === WormPiece(Node(1,2), "Body", players(0)))
       assert(turnStates(2).playgroundModel.getPosition(1, 1) === WormPiece(Node(1,1), "Tail", players(0)))
       assert(turnStates(2).playgroundModel.getPosition(5, 5) === Empty(Node(5,5)))
-      assert(turnStates(2).players(players(0)) === 20)
+      assert(turnStates(2).playersScore(players(0)) === 20)
       assert(countEmpty(turnStates(2).playgroundModel.positions) === 97)
       
         

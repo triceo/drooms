@@ -15,84 +15,121 @@ import org.drooms.gui.swing.event.UpdatePlayers
 import javax.swing.BorderFactory
 import org.drooms.gui.swing.event.DroomsEventBus
 import org.drooms.gui.swing.event.PlayersListUpdated
+import org.drooms.gui.swing.event.GoToTurnState
 
-class PlayersList(val players: Buffer[Player], val colors: PlayerColors) {
-  val eventBus = EventBusFactory.get()
-  def this() = this(Buffer(), PlayerColors.getDefault())
-  def this(colors: PlayerColors) = this(Buffer(), colors)
-  
-  def addPlayer(player: Player): Unit = players += player
+/**
+ * Utility class used for creating {@link PlayersList}s.
+ */
+object PlayersListFactory {
+  def createPlayersList(players: List[String]): PlayersList = {
+    (new PlayersList).addPlayers(players)
+  }
+}
 
-  def addPlayer(name: String, color: Color): Unit = addPlayer(new Player(name, 0, color))
-  
-  def addPlayer(name: String): Unit = addPlayer(name, colors.getNext())
+/**
+ * List of {@link Player}s for current replay or real-time game
+ * 
+ * List is immutable. All operations that are altering the list are returning new instance with those
+ * changes applied.
+ */
+class PlayersList(val players: List[Player], val colors: PlayerColors) {
+  def this() = this(List(), PlayerColors.getDefault())
+  def this(colors: PlayerColors) = this(List(), colors)
 
-  def addPlayers(players: List[String]): Unit = {
-    players.foreach(addPlayer(_))
+  def addPlayer(player: Player): PlayersList = new PlayersList(player :: players, colors)
+
+  def addPlayer(name: String, color: Color): PlayersList = addPlayer(new Player(name, 0, color))
+
+  def addPlayer(name: String): PlayersList = addPlayer(name, colors.getNext())
+
+  /**
+   * Creates and adds players with specified names into the list.
+   *
+   * @param playersNames list of players names to be added
+   *
+   * @return new {@link PlayersList} that contains all original {@link Player}s and the newly created ones
+   */
+  def addPlayers(playersNames: List[String]): PlayersList = {
+    if (playersNames.isEmpty)
+      new PlayersList(players, colors)
+    else
+      addPlayers(playersNames.tail).addPlayer(playersNames.head)
+  }
+
+  /**
+   * Updates score for all specified players and returns new {@link PlayersList} with new {@link Player} scores.
+   *
+   * @param newScores map that contains playerName -> score mapping
+   *
+   * @return new {@link PlayersList} with updated players
+   */
+  def updateScores(newScores: Map[String, Int]): PlayersList = {
+    new PlayersList(
+      newScores.keys.map(name =>
+        players.find(_.name == name) match {
+          case Some(p @ Player(name, score, color)) =>
+            new Player(name, newScores(name), color)
+          case None => throw new IllegalStateException("Trying to update non-existing player '" + name + "'")
+        }).toList,
+      colors)
   }
   
-  def updatePoints(newScores: Map[String, Int]): Unit = {
-    for (playerName <- newScores.keys) {
-      players.find(_.name == playerName) match {
-        case Some(p@Player(name, score, color)) => 
-          p.score = newScores(name)
-        case None => throw new IllegalStateException("Trying to update non-existing player '" + playerName + "'") 
-      }
-    }
+  /**
+   * Add points to the specified {@link Player} and returns new {@link PlayersList} with the increased score for {@link Player}.
+   *
+   * @param playerName name of the player to which add the points
+   * @param points how many point to add
+   *
+   * @return new {@link PlayersList} with the specified player's score increased
+   */
+  def addPoints(playerName: String, points: Int): PlayersList = {
+    new PlayersList(getPlayer(playerName).addPoints(points) :: players.filter(_.name != playerName), colors)
   }
-
+  
+  /**
+   * Returns {@link Player} with the specified name.
+   *
+   * @param playerName name of the player
+   *
+   * @return {@link Player} if he exists, {@link NoSuchElementException} otherwise
+   */
   def getPlayer(playerName: String): Player = {
     players.find(_.name == playerName) match {
       case Some(player) => player
-      //case None => throw new RuntimeException("Player '" + playerName + "'not found!")
-      case None => 
-        addPlayer(playerName)
-        eventBus.publish(UpdatePlayers)
-        getPlayer(playerName)
+      case None => throw new NoSuchElementException("Player '" + playerName + "'not found!")
     }
   }
 
-  def clear(): Unit = {
-    players.clear()
-    colors.reset()
-  }
-}
-/**
- * Singleton instance of Players List shared between the components of the application
- */
-object PlayersList {
-  val playersList = new PlayersList()
-  
-  def get() = playersList
 }
 
-class PlayersListView extends BorderPanel {
+class PlayersListView(var playersList: PlayersList) extends BorderPanel {
   val eventBus = EventBusFactory.get()
-  val playersList = PlayersList.get()
   val playersListView = new ListView(playersList.players) {
     renderer = new PlayersListRenderer
   }
   listenTo(eventBus)
 
-  layout(new Label("Players")) = BorderPanel.Position.North
-  layout(playersListView) = BorderPanel.Position.Center
+  createUIContents()
 
   reactions += {
-    case NewGameReportChosen(gameReport, _) =>
-      playersList.clear()
-      playersList.addPlayers(gameReport.players)
-      update()
     case TurnStepPerformed(step) =>
       step match {
         case WormSurvived(ownerName, points) =>
-          playersList.getPlayer(ownerName).addPoints(points)
+          playersList = playersList.addPoints(ownerName, points)
           update()
         case CollectibleCollected(playerName, collectible) =>
-          playersList.getPlayer(playerName).addPoints(collectible.points)
+          playersList = playersList.addPoints(playerName, collectible.points)
           update()
         case _ =>
       }
-    case UpdatePlayers => update()
+    case GoToTurnState(_, state) =>
+      playersList = playersList.updateScores(state.playersScore)
+      update()
+  }
+  
+  def createUIContents(): Unit = {
+    layout(new Label("Players")) = BorderPanel.Position.North
+    layout(playersListView) = BorderPanel.Position.Center
   }
 
   def update() {

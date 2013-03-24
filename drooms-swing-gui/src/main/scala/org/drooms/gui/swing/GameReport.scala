@@ -36,7 +36,7 @@ class GameReport(
     //turnsStates ::= initState
     var prevState = initState
     for (turn <- turns) {
-      val newState = new TurnState(updatePlaygroundModel(turn, prevState.playgroundModel), updatePlayers(turn, prevState.players))
+      val newState = new TurnState(updatePlaygroundModel(turn, prevState.playgroundModel), updatePlayers(turn, prevState.playersScore))
       turnsStates ::= newState
       prevState = newState
     }

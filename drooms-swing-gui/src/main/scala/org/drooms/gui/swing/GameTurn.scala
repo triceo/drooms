@@ -44,4 +44,4 @@ case class CollectibleRemoved(val collectible: Collectible) extends TurnStep
  * State is defined by the playground model and and players data (mainly the points for each player).
  * Turn state for turn 0 is the playground and players state _after_ the turn 0 was performed (e.g. before turn 1 is initiated)
  */
-case class TurnState(val playgroundModel: PlaygroundModel, val players: Map[String, Int])
+case class TurnState(val playgroundModel: PlaygroundModel, val playersScore: Map[String, Int])

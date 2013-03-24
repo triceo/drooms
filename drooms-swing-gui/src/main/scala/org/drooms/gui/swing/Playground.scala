@@ -29,7 +29,7 @@ import org.drooms.gui.swing.event.NewGameCreated
  * Playground contains the grid (table) of all nodes and also some additional GUI elements
  * like border from walls or labels for the rows/columns numbers.
  */
-class Playground extends ScrollPane with Reactor {
+class Playground(var playersList: PlayersList) extends ScrollPane with Reactor {
   val CELL_SIZE = 15
   val eventBus = EventBusFactory.get()
   var cellModel: PlaygroundModel = _ // TODO use PlaygroundController
@@ -164,7 +164,7 @@ class Playground extends ScrollPane with Reactor {
               case Empty(_) => emptyComponent
               case WormPiece(_, wormType, playerName) => new Label() {
                 opaque = true
-                background = PlayersList.get().getPlayer(playerName).color
+                background = playersList.getPlayer(playerName).color
                 border = BorderFactory.createRaisedBevelBorder()
                 if (wormType == "Head") {
                   //border = BorderFactory.createLoweredBevelBorder()
