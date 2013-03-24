@@ -3,7 +3,7 @@ package org.drooms.gui.swing
 import java.awt.Color
 
 /** 
- * Represents player. Each player has a unique name, current score value and color.
+ * Represents player in the game. Each player has a unique name, current score (points) and color.
  */
 case class Player(val name: String, var score: Int, var color: Color) {
   def this(name: String) = this(name, 0, PlayerColors.DEFAULT_COLOR)
@@ -18,6 +18,9 @@ case class Player(val name: String, var score: Int, var color: Color) {
   override def hashCode(): Int = this.name.hashCode()
 }
 
+/**
+ * Used to handle colors assigned for players. Each player should have different {@link Color} 
+ */
 class PlayerColors(val colors: List[Color]) {
   var nextColorIndex: Int = 0
 
@@ -41,9 +44,9 @@ object PlayerColors {
     new Color(79, 0xBE, 0xDB),
     new Color(0xE8, 68, 50),
     new Color(0xC0, 0xC0, 0xC0),
-    new Color(0xFF, 99, 00),
-    new Color(0xFF, 0xCC, 00),
-    new Color(99, 0xFF, 00),
+    new Color(0xFF, 99, 0),
+    new Color(0xFF, 0xCC, 0),
+    new Color(99, 0xFF, 0),
     new Color(0xFF, 0xBA, 0xD2),
     new Color(0xC9, 0xA7, 98),
     new Color(20, 139, 66),

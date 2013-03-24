@@ -1,7 +1,6 @@
 package org.drooms.gui.swing
 
 import java.awt.Color
-
 import scala.collection.mutable.Buffer
 import scala.swing.Alignment
 import scala.swing.BorderPanel
@@ -9,16 +8,16 @@ import scala.swing.Component
 import scala.swing.Label
 import scala.swing.ListView
 import scala.swing.ListView.Renderer
-
 import org.drooms.gui.swing.event.EventBusFactory
 import org.drooms.gui.swing.event.NewGameReportChosen
 import org.drooms.gui.swing.event.TurnStepPerformed
 import org.drooms.gui.swing.event.UpdatePlayers
-
 import javax.swing.BorderFactory
-
+import org.drooms.gui.swing.event.DroomsEventBus
+import org.drooms.gui.swing.event.PlayersListUpdated
 
 class PlayersList(val players: Buffer[Player], val colors: PlayerColors) {
+  val eventBus = EventBusFactory.get()
   def this() = this(Buffer(), PlayerColors.getDefault())
   def this(colors: PlayerColors) = this(Buffer(), colors)
   
@@ -45,7 +44,11 @@ class PlayersList(val players: Buffer[Player], val colors: PlayerColors) {
   def getPlayer(playerName: String): Player = {
     players.find(_.name == playerName) match {
       case Some(player) => player
-      case None => throw new RuntimeException("Player '" + playerName + "'not found!")
+      //case None => throw new RuntimeException("Player '" + playerName + "'not found!")
+      case None => 
+        addPlayer(playerName)
+        eventBus.publish(UpdatePlayers)
+        getPlayer(playerName)
     }
   }
 
@@ -54,7 +57,9 @@ class PlayersList(val players: Buffer[Player], val colors: PlayerColors) {
     colors.reset()
   }
 }
-
+/**
+ * Singleton instance of Players List shared between the components of the application
+ */
 object PlayersList {
   val playersList = new PlayersList()
   
@@ -87,7 +92,7 @@ class PlayersListView extends BorderPanel {
           update()
         case _ =>
       }
-    case UpdatePlayers() => update()
+    case UpdatePlayers => update()
   }
 
   def update() {

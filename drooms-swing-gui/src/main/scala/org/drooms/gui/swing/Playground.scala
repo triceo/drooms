@@ -2,7 +2,6 @@ package org.drooms.gui.swing
 
 import java.awt.Dimension
 import java.awt.Font
-
 import scala.swing.Alignment
 import scala.swing.Component
 import scala.swing.FlowPanel
@@ -11,7 +10,6 @@ import scala.swing.Label
 import scala.swing.Reactor
 import scala.swing.ScrollPane
 import scala.swing.Table
-
 import org.drooms.gui.swing.event.CoordinantsVisibilityChanged
 import org.drooms.gui.swing.event.EventBusFactory
 import org.drooms.gui.swing.event.GoToTurnState
@@ -19,30 +17,41 @@ import org.drooms.gui.swing.event.NewGameReportChosen
 import org.drooms.gui.swing.event.PlaygroundGridDisabled
 import org.drooms.gui.swing.event.PlaygroundGridEnabled
 import org.drooms.gui.swing.event.TurnStepPerformed
-
 import javax.swing.BorderFactory
 import javax.swing.ImageIcon
 import javax.swing.UIManager
 import javax.swing.table.DefaultTableModel
+import org.drooms.gui.swing.event.NewGameCreated
 
+/**
+ * Represents the Playground in GUI as {@link ScrollPane}.
+ * 
+ * Playground contains the grid (table) of all nodes and also some additional GUI elements
+ * like border from walls or labels for the rows/columns numbers.
+ */
 class Playground extends ScrollPane with Reactor {
   val CELL_SIZE = 15
   val eventBus = EventBusFactory.get()
-  var cellModel: PlaygroundModel = _
+  var cellModel: PlaygroundModel = _ // TODO use PlaygroundController
   var table: Option[Table] = None
   val worms: collection.mutable.Set[Worm] = collection.mutable.Set()
   var showCoords = false
 
   listenTo(eventBus)
   reactions += {
-    case PlaygroundGridEnabled() => showGrid
-    case PlaygroundGridDisabled() => hideGrid
+    case PlaygroundGridEnabled => showGrid
+    case PlaygroundGridDisabled => hideGrid
     case NewGameReportChosen(gameReport, file) => {
       createNew(gameReport.playgroundWidth, gameReport.playgroundHeight)
       for (node <- gameReport.playgroundInit)
         cellModel.updatePosition(Empty(node))
       initWorms(gameReport.wormInitPositions)
     }
+    case NewGameCreated(config) =>
+      createNew(config.getPlaygroundWidth(), config.getPlaygroundHeight())
+      for (node <- config.getPlaygroundInit())
+        cellModel.updatePosition(Empty(node))
+      
     case GoToTurnState(number, state) => 
       val newModel = state.playgroundModel
       newModel.eventBus = eventBus

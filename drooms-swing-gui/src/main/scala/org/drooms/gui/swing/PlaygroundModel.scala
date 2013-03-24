@@ -28,7 +28,7 @@ case class PlaygroundModel(val width: Int, val height: Int, var positions: Array
 
   def updatePosition(pos: Position): Unit = {
     positions(pos.node.x)(pos.node.y) = pos
-    eventBus.publish(new PositionChanged(pos))
+    eventBus.publish(PositionChanged(pos))
   }
 
   def updatePositions(positions: Seq[Position]): Unit = {
@@ -46,14 +46,14 @@ case class PlaygroundModel(val width: Int, val height: Int, var positions: Array
     for (i <- 0 until width; j <- 0 until height) {
       val pos = positions(i)(j) match {
         case Empty(node) => Empty(node)
-        case Wall(node) =>  Wall(node)
+        case Wall(node) => Wall(node)
         case WormPiece(node, t, p) => WormPiece(node, t, p)
         case Collectible(node, exp, points) => Collectible(node, exp, points)
       }
       newPoss(i)(j) = pos
     }
     val newModel = new PlaygroundModel(newPoss)
-    
+
     newModel.worms = worms.clone()
     newModel
   }
@@ -107,7 +107,13 @@ case class PlaygroundModel(val width: Int, val height: Int, var positions: Array
   }
 
   def updateWorm(ownerName: String, piece: WormPiece) = {
-    getWorm(ownerName).addPiece(piece)
+    try {
+      getWorm(ownerName).addPiece(piece)
+    } catch {
+      case e: RuntimeException =>
+        worms.add(Worm(ownerName, List(piece)))
+
+    }
     updatePosition(piece)
   }
 
@@ -151,6 +157,7 @@ case class PlaygroundModel(val width: Int, val height: Int, var positions: Array
     }
   }
 
+  // TODO move to playground controller
   def update(step: TurnStep): Unit = {
     step match {
       case WormMoved(ownerName, nodes) =>
@@ -182,6 +189,8 @@ case class PositionChanged(val pos: Position) extends Event
 
 /**
  * Represents x and y coordinates for certain position on playground
+ * 
+ * @see org.drooms.api.Node
  */
 case class Node(val x: Int, val y: Int)
 
@@ -197,6 +206,11 @@ case class WormPiece(val node: Node, val wormType: String, val playerName: Strin
 case class Wall(val node: Node) extends Position
 case class Collectible(val node: Node, val expiresInTurn: Int, val points: Int) extends Position
 
+/**
+ * Represents a worm as list of {@link WormPiece}s. Worm also has a owner.
+ * 
+ * @see WormPiece
+ */
 case class Worm(val ownerName: String, var pieces: List[WormPiece]) {
   def addPiece(piece: WormPiece) = {
     pieces ::= piece
