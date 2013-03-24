@@ -10,7 +10,7 @@ import org.drooms.gui.swing.event.EventBusFactory
 /**
  * Class that represents Drooms game report.
  *
- * Report can be loaded from XML file.
+ * Report can be loaded from XML file using {@link GameReportXmlParser}.
  */
 class GameReport(
   val props: Map[String, String],
@@ -33,7 +33,7 @@ class GameReport(
     val initPlayers = players.map(_ -> 0).toMap
     val initState = new TurnState(initPlayground, initPlayers)
     var turnsStates = List[TurnState]()
-    turnsStates ::= initState
+    //turnsStates ::= initState
     var prevState = initState
     for (turn <- turns) {
       val newState = new TurnState(updatePlaygroundModel(turn, prevState.playgroundModel), updatePlayers(turn, prevState.players))
