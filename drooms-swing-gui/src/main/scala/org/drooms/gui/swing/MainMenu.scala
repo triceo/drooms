@@ -8,6 +8,8 @@ import scala.swing.Menu
 import scala.swing.MenuBar
 import scala.swing.MenuItem
 import scala.swing.event.ButtonClicked
+import org.drooms.gui.swing.event.AfterNewReportChosen
+import org.drooms.gui.swing.event.BeforeNewReportChosen
 import org.drooms.gui.swing.event.CoordinantsVisibilityChanged
 import org.drooms.gui.swing.event.EventBusFactory
 import org.drooms.gui.swing.event.GameRestarted
@@ -19,9 +21,11 @@ import org.drooms.gui.swing.event.ReplayContinued
 import org.drooms.gui.swing.event.ReplayInitiated
 import org.drooms.gui.swing.event.ReplayPaused
 import javax.swing.filechooser.FileFilter
-import org.drooms.gui.swing.event.AfterNewReportChosen
-import org.drooms.gui.swing.event.BeforeNewReportChosen
+import org.drooms.gui.swing.event.NewGameRequested
 
+/**
+ * Represents application's main menu as standard {@link scala.swing.MenuBar}.
+ */
 class MainMenu extends MenuBar {
   // TODO make this configurable and saved as preference in user's home dir
   val REPORT_LOCATIONS = List(
@@ -35,59 +39,67 @@ class MainMenu extends MenuBar {
     contents += new MenuItem(Action("Open game report...") {
       openGameReport()
     })
-    //      contents += new MenuItem(Action("Exit") {
-    //      })
+    contents += new MenuItem(Action("Quit") {
+      // TODO send event and let main app handle the exit
+      System.exit(0)
+    })
   }
   // game menu
+  val newGameItem = new MenuItem(Action("New Game") {
+    eventBus.publish(NewGameRequested)
+  }) {
+    enabled = true
+  }
   val nextTurnItem = new MenuItem(Action("Next turn") {
-    eventBus.publish(NextTurnInitiated())
+    eventBus.publish(NextTurnInitiated)
   }) {
     enabled = false
   }
   val replayItem = new MenuItem(Action("Replay") {
-    eventBus.publish(ReplayInitiated())
+    eventBus.publish(ReplayInitiated)
   }) {
     enabled = false
   }
   val pauseItem = new MenuItem(Action("Pause") {
-    eventBus.publish(ReplayPaused())
+    eventBus.publish(ReplayPaused)
   }) {
     enabled = false
   }
   val restartItem = new MenuItem(Action("Reset") {
-    eventBus.publish(GameRestarted())
+    eventBus.publish(GameRestarted)
   }) {
     enabled = false
   }
 
   contents += new Menu("Game") {
+    contents += newGameItem
     contents += nextTurnItem
     contents += replayItem
     contents += pauseItem
     contents += restartItem
   }
   reactions += {
-    case ReplayInitiated() =>
+    case ReplayInitiated =>
       replayItem.enabled = false
       pauseItem.enabled = true
       restartItem.enabled = false
       nextTurnItem.enabled = false
-    case ReplayPaused() =>
+    case ReplayPaused =>
       replayItem.enabled = true
       pauseItem.enabled = false
       restartItem.enabled = true
       nextTurnItem.enabled = true
-    case ReplayContinued() =>
+    case ReplayContinued =>
       replayItem.enabled = false
       pauseItem.enabled = true
       restartItem.enabled = false
       nextTurnItem.enabled = false
-    case GameRestarted() =>
+    case GameRestarted =>
       replayItem.enabled = true
       pauseItem.enabled = false
       restartItem.enabled = false
       nextTurnItem.enabled = true
-    case NextTurnInitiated() =>
+    case NextTurnInitiated =>
       replayItem.enabled = true
       pauseItem.enabled = false
       restartItem.enabled = true
@@ -113,9 +125,9 @@ class MainMenu extends MenuBar {
   reactions += {
     case ButtonClicked(`showGridItem`) => {
       if (showGridItem.selected)
-        eventBus.publish(new PlaygroundGridEnabled)
+        eventBus.publish(PlaygroundGridEnabled)
       else
-        eventBus.publish(new PlaygroundGridDisabled)
+        eventBus.publish(PlaygroundGridDisabled)
     }
     case ButtonClicked(`showCoordsItem`) => {
       eventBus.publish(new CoordinantsVisibilityChanged(showCoordsItem.selected))
@@ -146,18 +158,18 @@ class MainMenu extends MenuBar {
     }
     override def getDescription() = "XML report file"
   }
-  
+
   def openGameReport(): Unit = {
     val fileChooser = new FileChooser(lastUsedDir)
     fileChooser.fileFilter = xmlFileFilter
     val res = fileChooser.showOpenDialog(this)
     if (res == FileChooser.Result.Approve) {
-      eventBus.publish(BeforeNewReportChosen())
+      eventBus.publish(BeforeNewReportChosen)
       val selectedFile = fileChooser.selectedFile
       lastUsedDir = selectedFile.getParentFile()
       val gameReport = GameReport.loadFromXml(selectedFile)
       eventBus.publish(new NewGameReportChosen(gameReport, selectedFile))
-      eventBus.publish(AfterNewReportChosen())
+      eventBus.publish(AfterNewReportChosen)
     }
   }
 }

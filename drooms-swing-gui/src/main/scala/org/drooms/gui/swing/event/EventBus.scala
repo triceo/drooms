@@ -6,17 +6,15 @@ import org.drooms.gui.swing.TurnStep
 import java.io.File
 import org.drooms.gui.swing.GameReport
 import org.drooms.gui.swing.TurnState
+import com.typesafe.scalalogging.slf4j.Logging
 
 trait EventBus extends Publisher
 
-sealed case class DroomsEventBus extends EventBus
-
-case class NoOpEventBus extends EventBus {
+sealed class DroomsEventBus extends EventBus with Logging {
   override def publish(e: Event) = {
-    // no operation
+    logger.trace("Publishing event '" + e.getClass().getSimpleName() + "'.")
+    super.publish(e)
   }
-
-  def apply() = NoOpEventBus
 }
 
 object NoOpEventBus extends EventBus {
@@ -27,7 +25,7 @@ object NoOpEventBus extends EventBus {
 
 /**
  * Factory used for creating concrete bus implementations.
- * 
+ *
  * Currently there is:
  *   - standard DroomsEventBus which will propagate the events to
  *     all listeners.
