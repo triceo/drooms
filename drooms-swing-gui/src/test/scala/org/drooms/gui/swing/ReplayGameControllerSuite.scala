@@ -18,17 +18,15 @@ class ReplayGameControllerSuite extends FunSuite {
    
    test("next turns can be performed") {
      new SampleReplayer {
-       var nextTurnNumber = 0
+       var nextTurnNumber = 1
        assert(gameReplayer.nextTurnNumber === nextTurnNumber)
        while(gameReplayer.hasNextTurn()) {
-         val turn = gameReplayer.nextTurn()
+         val turn = gameReplayer.getNextTurn()
         nextTurnNumber += 1
         assert(gameReplayer.nextTurnNumber === nextTurnNumber)
        }
        // verify that all turns has been performed
        assert(nextTurnNumber - 1 === 8, "Not all turns has been performed!")
      }
-     
    }
-   
 }
