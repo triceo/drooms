@@ -10,8 +10,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
 
 import org.apache.commons.io.IOUtils;
 import org.drooms.api.Edge;
@@ -25,13 +23,15 @@ import edu.uci.ics.jung.graph.util.Graphs;
 public class DefaultPlayground implements Playground {
 
     private static final char WALL_SIGN = '#';
+    private static final char PLAYER_SIGN = '@';
 
     /**
      * Build the playground from an input stream. Each line in that stream
      * represents one row on the playground. Each '#' in that line represents a
-     * wall node, ' ' represents a node where the worm can move and any other
-     * character represents a possible starting position for a worm. (Starting
-     * positions also can be moved into.)
+     * wall node, ' ' represents a node where the worm can move, '@' represents
+     * a possible starting position for a worm. (Starting positions also can be
+     * moved into.) Any other sign, other than a line break, will result in an
+     * exception.
      * 
      * @param name
      *            Name for the new playground.
@@ -54,7 +54,7 @@ public class DefaultPlayground implements Playground {
     private static final Node WALL_NODE = Node.getNode(-1, -1);
 
     private final Graph<Node, Edge> graph = new UndirectedSparseGraph<Node, Edge>();
-    private final SortedMap<Character, Node> startingNodes = new TreeMap<Character, Node>();
+    private final List<Node> startingNodes = new ArrayList<Node>();
     private final int width;
     private final String name;
 
@@ -72,13 +72,15 @@ public class DefaultPlayground implements Playground {
                     case WALL_SIGN: // wall node
                         n = DefaultPlayground.WALL_NODE;
                         break;
+                    case PLAYER_SIGN: // player starting position
+                        n = Node.getNode(x, y);
+                        this.startingNodes.add(n);
+                        break;
                     case ' ': // regular node
                         n = Node.getNode(x, y);
                         break;
-                    default: // starting point for a worm
-                        n = Node.getNode(x, y);
-                        this.startingNodes.put(nodeLabel, n);
-                        break;
+                    default:
+                        throw new IllegalStateException("Unrecognized character in the playground: " + nodeLabel);
                 }
                 this.nodes.add(n);
                 locations[x] = n;
@@ -144,8 +146,7 @@ public class DefaultPlayground implements Playground {
 
     @Override
     public List<Node> getStartingPositions() {
-        final List<Node> nodes = new ArrayList<Node>(this.startingNodes.values());
-        return Collections.unmodifiableList(nodes);
+        return Collections.unmodifiableList(this.startingNodes);
     }
 
     @Override
@@ -191,14 +192,8 @@ public class DefaultPlayground implements Playground {
                 for (final Node n : line) {
                     if (n == DefaultPlayground.WALL_NODE) {
                         bw.append(DefaultPlayground.WALL_SIGN);
-                    } else if (this.startingNodes.containsValue(n)) {
-                        for (final SortedMap.Entry<Character, Node> entry : this.startingNodes.entrySet()) {
-                            if (!entry.getValue().equals(n)) {
-                                continue;
-                            }
-                            bw.append(entry.getKey());
-                            break;
-                        }
+                    } else if (this.startingNodes.contains(n)) {
+                        bw.append(DefaultPlayground.PLAYER_SIGN);
                     } else {
                         bw.append(' ');
                     }
