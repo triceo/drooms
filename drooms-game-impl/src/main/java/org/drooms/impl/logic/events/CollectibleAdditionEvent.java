@@ -6,11 +6,9 @@ import org.drooms.impl.logic.CollectibleRelated;
 
 public class CollectibleAdditionEvent implements CollectibleRelated {
 
-    private final Node node;
     private final Collectible collectible;
 
-    public CollectibleAdditionEvent(final Collectible c, final Node n) {
-        this.node = n;
+    public CollectibleAdditionEvent(final Collectible c) {
         this.collectible = c;
     }
 
@@ -21,7 +19,7 @@ public class CollectibleAdditionEvent implements CollectibleRelated {
 
     @Override
     public Node getNode() {
-        return this.node;
+        return this.collectible.getAt();
     }
 
 }

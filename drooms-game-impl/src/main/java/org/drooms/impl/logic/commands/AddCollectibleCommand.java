@@ -10,13 +10,11 @@ import org.drooms.impl.logic.events.CollectibleAdditionEvent;
 public class AddCollectibleCommand implements Command, CollectibleRelated {
 
     private final Collectible toAdd;
-    private final Node whereToAdd;
     private final CollectibleAdditionEvent event;
 
-    public AddCollectibleCommand(final Collectible c, final Node n) {
+    public AddCollectibleCommand(final Collectible c) {
         this.toAdd = c;
-        this.whereToAdd = n;
-        this.event = new CollectibleAdditionEvent(c, n);
+        this.event = new CollectibleAdditionEvent(c);
     }
 
     @Override
@@ -26,7 +24,7 @@ public class AddCollectibleCommand implements Command, CollectibleRelated {
 
     @Override
     public Node getNode() {
-        return this.whereToAdd;
+        return this.toAdd.getAt();
     }
 
     @Override
@@ -36,14 +34,14 @@ public class AddCollectibleCommand implements Command, CollectibleRelated {
 
     @Override
     public void report(final GameProgressListener report) {
-        report.collectibleAdded(this.toAdd, this.whereToAdd);
+        report.collectibleAdded(this.toAdd, this.getNode());
     }
 
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("AddCollectibleCommand [toAdd=").append(this.toAdd)
-                .append(", whereToAdd=").append(this.whereToAdd).append("]");
+                .append(", whereToAdd=").append(this.getNode()).append("]");
         return builder.toString();
     }
 

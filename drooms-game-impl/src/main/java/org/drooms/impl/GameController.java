@@ -80,8 +80,6 @@ public abstract class GameController implements Game {
 
     private final Map<Player, Deque<Node>> positions = new HashMap<Player, Deque<Node>>();
 
-    private final Map<Collectible, Node> nodesByCollectible = new HashMap<Collectible, Node>();
-
     private final Map<Node, Collectible> collectiblesByNode = new HashMap<Node, Collectible>();
 
     private final Map<Player, SortedMap<Integer, Move>> decisionRecord = new HashMap<Player, SortedMap<Integer, Move>>();
@@ -90,9 +88,8 @@ public abstract class GameController implements Game {
 
     private final Set<GameProgressListener> listeners = new HashSet<GameProgressListener>();
 
-    private void addCollectible(final Collectible c, final Node n) {
-        this.collectiblesByNode.put(n, c);
-        this.nodesByCollectible.put(c, n);
+    private void addCollectible(final Collectible c) {
+        this.collectiblesByNode.put(c.getAt(), c);
     }
 
     private void addDecision(final Player p, final Move m, final int turnNumber) {
@@ -117,10 +114,6 @@ public abstract class GameController implements Game {
             moves.add(entry.getKey(), entry.getValue());
         }
         return moves;
-    }
-
-    protected Node getNode(final Collectible c) {
-        return this.nodesByCollectible.get(c);
     }
 
     protected int getPlayerLength(final Player p) {
@@ -165,7 +158,7 @@ public abstract class GameController implements Game {
      *            Current turn number.
      * @return Which collectibles should be put where.
      */
-    protected abstract Map<Collectible, Node> performCollectibleDistribution(final GameProperties gameConfig,
+    protected abstract Collection<Collectible> performCollectibleDistribution(final GameProperties gameConfig,
             final Playground playground, final Collection<Player> players, final int currentTurnNumber);
 
     /**
@@ -311,7 +304,7 @@ public abstract class GameController implements Game {
                 }
             }
             for (final Collectible c : removeCollectibles) {
-                commands.add(new RemoveCollectibleCommand(c, this.getNode(c)));
+                commands.add(new RemoveCollectibleCommand(c));
                 this.removeCollectible(c);
             }
             // add points for collected collectibles
@@ -320,17 +313,14 @@ public abstract class GameController implements Game {
                 final Collectible c = entry.getKey();
                 final Player p = entry.getValue();
                 this.reward(p, c.getPoints());
-                commands.add(new CollectCollectibleCommand(c, p, this.getNode(c)));
+                commands.add(new CollectCollectibleCommand(c, p));
                 this.removeCollectible(c);
                 this.setPlayerLength(p, this.getPlayerLength(p) + 1);
             }
             // distribute new collectibles
-            for (final Map.Entry<Collectible, Node> entry : this.performCollectibleDistribution(this.gameConfig,
-                    playground, currentPlayers, turnNumber).entrySet()) {
-                final Collectible c = entry.getKey();
-                final Node n = entry.getValue();
-                this.addCollectible(c, n);
-                commands.add(new AddCollectibleCommand(c, n));
+            for (final Collectible c : this.performCollectibleDistribution(this.gameConfig, playground, currentPlayers, turnNumber)) {
+                this.addCollectible(c);
+                commands.add(new AddCollectibleCommand(c));
             }
             // make the move decision
             decisions = playerControl.execute(commands);
@@ -353,8 +343,7 @@ public abstract class GameController implements Game {
     }
 
     private void removeCollectible(final Collectible c) {
-        final Node n = this.nodesByCollectible.remove(c);
-        this.collectiblesByNode.remove(n);
+        this.collectiblesByNode.remove(c.getAt());
     }
 
     @Override

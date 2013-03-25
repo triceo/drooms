@@ -12,13 +12,10 @@ public class CollectibleRewardEvent implements RewardRelated, PlayerRelated,
 
     private final Player player;
     private final Collectible collectible;
-    private final Node node;
 
-    public CollectibleRewardEvent(final Player p, final Collectible c,
-            final Node n) {
+    public CollectibleRewardEvent(final Player p, final Collectible c) {
         this.player = p;
         this.collectible = c;
-        this.node = n;
     }
 
     @Override
@@ -28,7 +25,7 @@ public class CollectibleRewardEvent implements RewardRelated, PlayerRelated,
 
     @Override
     public Node getNode() {
-        return this.node;
+        return this.collectible.getAt();
     }
 
     @Override

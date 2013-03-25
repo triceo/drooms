@@ -10,31 +10,42 @@ package org.drooms.api;
 public class Collectible {
 
     private final int expiresInTurn, points;
+    private final Node at;
+
+    
+    public Node getAt() {
+        return at;
+    }
 
     /**
      * Construct an item that never expires.
      * 
+     * @param n
+     *            Where the collectible is located.
      * @param points
      *            How many points to award. Must be > 0.
      */
-    public Collectible(final int points) {
+    public Collectible(final Node n, final int points) {
         if (points <= 0) {
             throw new IllegalArgumentException(
                     "Collectible must have a positive amount of points.");
         }
         this.expiresInTurn = -1;
         this.points = points;
+        this.at = n;
     }
 
     /**
      * Construct the item.
      * 
+     * @param n
+     *            Where the collectible is located.
      * @param points
      *            How many points to award. Must be > 0.
      * @param expiresInTurn
      *            At which turn the item expires. Must be > 0.
      */
-    public Collectible(final int points, final int expiresInTurn) {
+    public Collectible(final Node n, final int points, final int expiresInTurn) {
         if (expiresInTurn <= 0) {
             throw new IllegalArgumentException(
                     "Expiration must be a positive number.");
@@ -44,6 +55,7 @@ public class Collectible {
         }
         this.expiresInTurn = expiresInTurn;
         this.points = points;
+        this.at = n;
     }
 
     /**

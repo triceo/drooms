@@ -25,27 +25,22 @@ import org.drooms.impl.util.properties.GameProperties.CollectibleType;
  * 
  * <dl>
  * <dt>Collision detection</dt>
- * <dd>When a worm reaches a node at the same time as another worm, both are
- * terminated. When a worm moves into a body of another worm or into a wall,
- * only this worm is terminated. Specific probabilities and values come from the
- * game config.</dd>
+ * <dd>When a worm reaches a node at the same time as another worm, both are terminated. When a worm moves into a body
+ * of another worm or into a wall, only this worm is terminated. Specific probabilities and values come from the game
+ * config.</dd>
  * <dt>Various types of collectibles</dt>
- * <dd>This class implements three types of collectibles with varying
- * probabilities of appearance, expirations and valuations. There are cheap ones
- * that occur all the time, good ones that occur sometimes and extremely
- * lucrative ones that occur scarcely and don't last long.</dd>
+ * <dd>This class implements three types of collectibles with varying probabilities of appearance, expirations and
+ * valuations. There are cheap ones that occur all the time, good ones that occur sometimes and extremely lucrative ones
+ * that occur scarcely and don't last long.</dd>
  * <dt>Simultaneos collections</dt>
- * <dd>When two worms collect the same item at the same time, it is considered a
- * collision. Both worms are terminated and neither is awarded points for the
- * item.</dd>
+ * <dd>When two worms collect the same item at the same time, it is considered a collision. Both worms are terminated
+ * and neither is awarded points for the item.</dd>
  * <dt>Survival bonuses</dt>
- * <dd>In the turn when at least one worm is removed from the game, either due
- * to crashing or inactivity, every surviving worm is rewarded. The amount of
- * the reward is "the number of worms gone so far" multiplied by the bonus
+ * <dd>In the turn when at least one worm is removed from the game, either due to crashing or inactivity, every
+ * surviving worm is rewarded. The amount of the reward is "the number of worms gone so far" multiplied by the bonus
  * factor.</dd>
  * <dt>Inactivity enforcement</dt>
- * <dd>This implementation will terminate worms for inactivity, as described in
- * the super class.</dd>
+ * <dd>This implementation will terminate worms for inactivity, as described in the super class.</dd>
  * </dl>
  */
 public class DefaultGame extends GameController {
@@ -64,9 +59,9 @@ public class DefaultGame extends GameController {
     }
 
     @Override
-    protected Map<Collectible, Node> performCollectibleDistribution(final GameProperties gameConfig,
+    protected Collection<Collectible> performCollectibleDistribution(final GameProperties gameConfig,
             final Playground playground, final Collection<Player> players, final int currentTurnNumber) {
-        final Map<Collectible, Node> collectibles = new HashMap<Collectible, Node>();
+        final Set<Collectible> collectibles = new HashSet<Collectible>();
         for (final CollectibleType ct : gameConfig.getCollectibleTypes()) {
             final BigDecimal probability = ct.getProbabilityOfAppearance();
             final BigDecimal chosen = BigDecimal.valueOf(GameController.RANDOM.nextDouble());
@@ -75,11 +70,12 @@ public class DefaultGame extends GameController {
                 final double turnsToLast = expirationAdjustmentRate * ct.getExpiration();
                 final int expiresIn = (int) Math.round(currentTurnNumber + turnsToLast);
                 final int points = ct.getPoints();
-                final Collectible c = new Collectible(points, expiresIn);
-                collectibles.put(c, this.pickRandomUnusedNode(playground, players));
+                final Node target = this.pickRandomUnusedNode(playground, players);
+                final Collectible c = new Collectible(target, points, expiresIn);
+                collectibles.add(c);
             }
         }
-        return Collections.unmodifiableMap(collectibles);
+        return Collections.unmodifiableSet(collectibles);
     }
 
     @Override

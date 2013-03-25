@@ -16,10 +16,11 @@ public interface CollectibleRelated {
     public Collectible getCollectible();
 
     /**
-     * The node where that collectible is placed.
+     * The node where that collectible is placed. Will go away post-1.0, use {@link Collectible#getAt()}.
      * 
      * @return Node in question.
      */
+    @Deprecated
     public Node getNode();
 
 }

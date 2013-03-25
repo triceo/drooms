@@ -15,15 +15,12 @@ public class CollectCollectibleCommand implements Command, PlayerRelated,
 
     private final Collectible toCollect;
     private final Player toReward;
-    private final Node node;
     private final CollectibleRewardEvent event;
 
-    public CollectCollectibleCommand(final Collectible c, final Player p,
-            final Node n) {
+    public CollectCollectibleCommand(final Collectible c, final Player p) {
         this.toCollect = c;
         this.toReward = p;
-        this.event = new CollectibleRewardEvent(p, c, n);
-        this.node = n;
+        this.event = new CollectibleRewardEvent(p, c);
     }
 
     @Override
@@ -33,7 +30,7 @@ public class CollectCollectibleCommand implements Command, PlayerRelated,
 
     @Override
     public Node getNode() {
-        return this.node;
+        return this.toCollect.getAt();
     }
 
     @Override

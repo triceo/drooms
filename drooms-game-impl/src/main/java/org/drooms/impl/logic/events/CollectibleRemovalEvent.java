@@ -7,11 +7,9 @@ import org.drooms.impl.logic.CollectibleRelated;
 public class CollectibleRemovalEvent implements CollectibleRelated {
 
     private final Collectible collectible;
-    private final Node node;
 
-    public CollectibleRemovalEvent(final Collectible c, final Node n) {
+    public CollectibleRemovalEvent(final Collectible c) {
         this.collectible = c;
-        this.node = n;
     }
 
     @Override
@@ -21,7 +19,7 @@ public class CollectibleRemovalEvent implements CollectibleRelated {
 
     @Override
     public Node getNode() {
-        return this.node;
+        return this.collectible.getAt();
     }
 
 }

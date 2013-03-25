@@ -11,12 +11,10 @@ public class RemoveCollectibleCommand implements Command, CollectibleRelated {
 
     private final Collectible toRemove;
     private final CollectibleRemovalEvent event;
-    private final Node node;
 
-    public RemoveCollectibleCommand(final Collectible c, final Node n) {
+    public RemoveCollectibleCommand(final Collectible c) {
         this.toRemove = c;
-        this.event = new CollectibleRemovalEvent(c, n);
-        this.node = n;
+        this.event = new CollectibleRemovalEvent(c);
     }
 
     @Override
@@ -26,7 +24,7 @@ public class RemoveCollectibleCommand implements Command, CollectibleRelated {
 
     @Override
     public Node getNode() {
-        return this.node;
+        return this.toRemove.getAt();
     }
 
     @Override
