@@ -10,6 +10,15 @@ import java.util.Map;
 public interface Game {
 
     /**
+     * Add a custom listener to the game. Will be used next time {@link #play(Playground, Collection, File)} is called.
+     * 
+     * @param listener
+     *            Listener in question.
+     * @return True if added.
+     */
+    public boolean addListener(GameProgressListener listener);
+
+    /**
      * Retrieve the main report of this game, detailing the progress of the
      * game.
      * 
@@ -19,8 +28,8 @@ public interface Game {
 
     /**
      * Initialize the game and play it through. Will throw an exception in case
-     * of a repeated call of this method on the same class instance. May throw
-     * {@link IllegalStateException} if {@link #setContext(Object)} wasn't
+     * of a repeated call of this method on the same class instance. May throw {@link IllegalStateException} if
+     * {@link #setContext(Object)} wasn't
      * called first.
      * 
      * @param playground
@@ -32,6 +41,16 @@ public interface Game {
      * @return Points gained by each player.
      */
     public Map<Player, Integer> play(Playground playground, Collection<Player> players, File reportFolder);
+
+    /**
+     * Remove a previously {@link #addListener(GameProgressListener)}ed listener. This listener will not for any
+     * subsequent calls to {@link #play(Playground, Collection, File)}.
+     * 
+     * @param listener
+     *            Listener in question.
+     * @return True if removed.
+     */
+    public boolean removeListener(GameProgressListener listener);
 
     /**
      * Sets the context for this game. The context should provide properties

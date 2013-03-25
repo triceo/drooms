@@ -9,10 +9,13 @@ import java.io.Writer;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.drooms.api.Game;
+import org.drooms.api.GameProgressListener;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
 import org.drooms.impl.util.PlayerAssembly;
@@ -64,6 +67,7 @@ public class DroomsGame {
     private final Collection<Player> players;
     private final File f;
     private final Class<? extends Game> cls;
+    private final Set<GameProgressListener> listeners = new HashSet<GameProgressListener>();
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DroomsGame.class);
 
@@ -74,6 +78,10 @@ public class DroomsGame {
         this.f = reportFolder;
         this.cls = game;
         this.players = players;
+    }
+
+    public boolean addListener(final GameProgressListener listener) {
+        return this.listeners.add(listener);
     }
 
     public Map<Player, Integer> play(final String name) {
@@ -88,6 +96,9 @@ public class DroomsGame {
             f.mkdirs();
         }
         g.setContext(this.c);
+        for (final GameProgressListener listener : this.listeners) {
+            g.addListener(listener);
+        }
         final Map<Player, Integer> result = g.play(this.p, this.players, f);
         // report
         try (Writer w = new FileWriter(new File(f, "report.xml"))) {
@@ -96,6 +107,10 @@ public class DroomsGame {
             DroomsGame.LOGGER.info("Failed writing report for game: {}.", name);
         }
         return result;
+    }
+
+    public boolean removeListener(final GameProgressListener listener) {
+        return this.listeners.remove(listener);
     }
 
 }

@@ -42,33 +42,25 @@ import org.slf4j.LoggerFactory;
  * class:
  * 
  * <ul>
- * <li>Each player gets one worm. Properties of these worms come from the game
- * config and will be explained later. List of players comes from the player
- * config.</li>
- * <li>When a worm collides with something, it is terminated. Collisions are
- * determined by classes extending this one.</li>
- * <li>When a worm's past couple decisions were all STAY (see {@link Move}), the
- * worm may be terminated. This is controlled by the classes extending this one.
- * </li>
- * <li>When a turn ends, worms may be rewarded for surviving. How and when, that
- * depends on the classes extending this one.</li>
+ * <li>Each player gets one worm. Properties of these worms come from the game config and will be explained later. List
+ * of players comes from the player config.</li>
+ * <li>When a worm collides with something, it is terminated. Collisions are determined by classes extending this one.</li>
+ * <li>When a worm's past couple decisions were all STAY (see {@link Move}), the worm may be terminated. This is
+ * controlled by the classes extending this one.</li>
+ * <li>When a turn ends, worms may be rewarded for surviving. How and when, that depends on the classes extending this
+ * one.</li>
  * <li>Terminated worms will disappear from the playground in the next turn.</li>
- * <li>In each turn, a collectible item of a certain value may appear in the
- * playground. These collectibles will disappear after a certain amount of
- * turns. Worms who collect them in the meantime will be rewarded. How often,
- * how valuable and how persistent the collectibles are, that depends on the
- * classes extending this one.</li>
+ * <li>In each turn, a collectible item of a certain value may appear in the playground. These collectibles will
+ * disappear after a certain amount of turns. Worms who collect them in the meantime will be rewarded. How often, how
+ * valuable and how persistent the collectibles are, that depends on the classes extending this one.</li>
  * <li>Upon collecting an item, the worm's length will increase by 1.</li>
- * <li>Game ends either when there are between 0 and 1 worms standing or when a
- * maximum number of turns is reached.</li>
- * <li>At the end of the game, a player whose worm has the most points is
- * declared the winner.</li>
+ * <li>Game ends either when there are between 0 and 1 worms standing or when a maximum number of turns is reached.</li>
+ * <li>At the end of the game, a player whose worm has the most points is declared the winner.</li>
  * </ul>
  * 
  * <p>
- * Some of the decisions can be made by classes extending this one. These are
- * clearly described above. This class depends on properties as defined in
- * {@link GameProperties}.
+ * Some of the decisions can be made by classes extending this one. These are clearly described above. This class
+ * depends on properties as defined in {@link GameProperties}.
  * </p>
  * 
  */
@@ -96,6 +88,8 @@ public abstract class GameController implements Game {
 
     private GameProperties gameConfig;
 
+    private final Set<GameProgressListener> listeners = new HashSet<GameProgressListener>();
+
     private void addCollectible(final Collectible c, final Node n) {
         this.collectiblesByNode.put(n, c);
         this.nodesByCollectible.put(c, n);
@@ -106,6 +100,11 @@ public abstract class GameController implements Game {
             this.decisionRecord.put(p, new TreeMap<Integer, Move>());
         }
         this.decisionRecord.get(p).put(turnNumber, m);
+    }
+
+    @Override
+    public boolean addListener(final GameProgressListener listener) {
+        return this.listeners.add(listener);
     }
 
     protected Collectible getCollectible(final Node n) {
@@ -157,8 +156,7 @@ public abstract class GameController implements Game {
      * Decide which new {@link Collectible}s should be distributed.
      * 
      * @param gameConfig
-     *            Game config with information about the {@link Collectible}
-     *            types.
+     *            Game config with information about the {@link Collectible} types.
      * @param playground
      *            Playground on which to distribute.
      * @param players
@@ -263,6 +261,9 @@ public abstract class GameController implements Game {
         this.reporter = new XmlProgressListener(playground, players, this.gameConfig);
         final CommandDistributor playerControl = new CommandDistributor(playground, players, this.reporter,
                 this.gameConfig, reportFolder, wormTimeout);
+        for (final GameProgressListener listener : this.listeners) {
+            playerControl.addListener(listener);
+        }
         final Set<Player> currentPlayers = new HashSet<Player>(players);
         Map<Player, Move> decisions = new HashMap<Player, Move>();
         for (final Player p : currentPlayers) { // initialize players
@@ -354,6 +355,11 @@ public abstract class GameController implements Game {
     private void removeCollectible(final Collectible c) {
         final Node n = this.nodesByCollectible.remove(c);
         this.collectiblesByNode.remove(n);
+    }
+
+    @Override
+    public boolean removeListener(final GameProgressListener listener) {
+        return this.listeners.remove(listener);
     }
 
     private void reward(final Player p, final int points) {
