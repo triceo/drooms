@@ -15,6 +15,8 @@ import org.drooms.impl.util.properties.GameProperties
 import com.typesafe.scalalogging.slf4j.Logging
 import org.drooms.gui.swing.event.EventBusFactory
 import org.drooms.gui.swing.event.NextTurnAvailable
+import org.drooms.gui.swing.event.GameStateChanged
+import org.drooms.gui.swing.event.GameStateChanged
 
 /**
  * Represents trait that can interact with the Drooms game.
@@ -88,11 +90,10 @@ abstract class AbstractGameController extends GameController with Logging {
   def turns: List[GameTurn]
 
   def getCurrentTurn(): GameTurn = turns(currentTurnNumber)
-  
+
   def nextTurnNumber: Int = currentTurnNumber + 1
 
   def prevTurnNumber: Int = currentTurnNumber - 1
-
 
   /**
    * Returns the current turn and sets current turn number to next turn number (meaning incrementing by 1)
@@ -127,7 +128,9 @@ class ReplayGameController(val gameReport: GameReport) extends AbstractGameContr
   logger.debug("Number of turns for current replay: " + turns.size)
   logger.debug("Number of turn states for current replay: " + turnStates.size)
 
-  def hasNextTurn(): Boolean = nextTurnNumber < totalTurns
+  def hasNextTurn(): Boolean = {
+    nextTurnNumber < totalTurns
+  }
 
   /**
    * Game is represented as {@link GameReport} so there is nothing involved in starting the game.
@@ -154,7 +157,7 @@ object RealTimeGameController extends Logging {
    */
   def createNew(gameConfig: NewGameConfig): RealTimeGameController = {
     val reportDir = new File("reports")
-    
+
     new RealTimeGameController(classOf[org.drooms.impl.DefaultGame], reportDir, gameConfig.playground, gameConfig.players, gameConfig.gameProperties)
   }
 }
@@ -166,7 +169,7 @@ object RealTimeGameController extends Logging {
  *
  * @see GameController
  */
-class RealTimeGameController (
+class RealTimeGameController(
   /** Drooms game class used to drive the game. */
   val gameClass: Class[org.drooms.impl.DefaultGame],
   /** Directory used to store game reports. */
@@ -199,16 +202,18 @@ class RealTimeGameController (
    */
   def startGame(): Unit = {
     logger.info("Starting new Drooms game.")
-    val listeners = new ArrayList[GameProgressListener]()
-    listeners.add(this)
+    val listener = this
     gameThread = new Thread() {
       override def run() {
-        new DroomsGame(gameClass, playground, players,
-          gameProperties, listeners, reportDir).play("Drooms game")
+        val game = new DroomsGame(gameClass, playground, players,
+          gameProperties, reportDir)
+        game.addListener(listener)
+        game.play("Drooms game")
       }
     }
     // TODO log info like, game props, players info, etc
     gameThread.start()
+    eventBus.publish(GameStateChanged(GameRunning))
     logger.info("Game successfully started.")
   }
 
@@ -224,6 +229,7 @@ class RealTimeGameController (
   def stopGame(): Unit = {
     logger.info("Stopping game...")
     gameThread.stop()
+    eventBus.publish(GameStateChanged(GameStopped))
   }
 
   /**
@@ -306,3 +312,15 @@ class RealTimeGameController (
     finished = true
   }
 }
+
+trait ReplayState
+case object ReplayNotStarted extends ReplayState
+case object ReplayRunning extends ReplayState
+case object ReplayPaused extends ReplayState
+case object ReplayFinished extends ReplayState
+
+trait GameState
+case object GameNotStarted extends GameState
+case object GameRunning extends GameState
+case object GamePaused extends GameState
+case object GameStopped extends GameState

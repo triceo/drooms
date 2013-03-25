@@ -1,12 +1,14 @@
 package org.drooms.gui.swing
 
 import java.awt.Dimension
-import java.io.File
 import java.util.Timer
 import java.util.TimerTask
 
 import scala.swing.BorderPanel
+import scala.swing.BorderPanel.Position.Center
+import scala.swing.BorderPanel.Position.South
 import scala.swing.BoxPanel
+import scala.swing.Component
 import scala.swing.MainFrame
 import scala.swing.Orientation
 import scala.swing.Reactor
@@ -14,29 +16,34 @@ import scala.swing.SimpleSwingApplication
 import scala.swing.SplitPane
 
 import org.drooms.gui.swing.event.EventBusFactory
-import org.drooms.gui.swing.event.GameFinished
-import org.drooms.gui.swing.event.GameRestarted
-import org.drooms.gui.swing.event.GameRestarted
 import org.drooms.gui.swing.event.GoToTurn
 import org.drooms.gui.swing.event.GoToTurnState
+import org.drooms.gui.swing.event.NewGameCreated
 import org.drooms.gui.swing.event.NewGameReportChosen
+import org.drooms.gui.swing.event.NewGameRequested
 import org.drooms.gui.swing.event.NextTurnInitiated
-import org.drooms.gui.swing.event.PreviousTurn
-import org.drooms.gui.swing.event.ReplayContinued
-import org.drooms.gui.swing.event.ReplayInitiated
-import org.drooms.gui.swing.event.ReplayPaused
+import org.drooms.gui.swing.event.NextTurnPerformed
+import org.drooms.gui.swing.event.PreviousTurnRequested
+import org.drooms.gui.swing.event.ReplayInitialized
+import org.drooms.gui.swing.event.ReplayResetRequested
+import org.drooms.gui.swing.event.ReplayStateChangeRequested
+import org.drooms.gui.swing.event.ReplayStateChanged
 import org.drooms.gui.swing.event.TurnDelayChanged
 import org.drooms.gui.swing.event.TurnStepPerformed
-import org.drooms.gui.swing.event.UpdatePlayers
+
+import com.typesafe.scalalogging.slf4j.Logging
 
 import javax.swing.SwingUtilities
 
-object DroomsSwingApp extends SimpleSwingApplication {
-  val eventBus = EventBusFactory.get()
-  val leftPane = new LeftPane
-  val rightPane = new RightPane
-  var gameController: GameController = _
-  var gameReport: (GameReport, File) = _
+/**
+ * Main class for the entire Swing application.
+ *
+ * Defines {@link MainFrame}.
+ */
+object DroomsSwingApp extends SimpleSwingApplication with Logging {
+  private val eventBus = EventBusFactory.get()
+  private var gameController: GameController = _
+  //var gameReport: (GameReport, File) = _
   var turnDelay = 100
 
   def top = new MainFrame {
@@ -45,42 +52,45 @@ object DroomsSwingApp extends SimpleSwingApplication {
     menuBar = new MainMenu()
     listenTo(eventBus)
 
-    contents = new SplitPane(Orientation.Vertical, leftPane, rightPane) {
-      resizeWeight = 1.0
-      rightComponent.minimumSize = new Dimension(200, 500)
-      leftComponent.minimumSize = new Dimension(500, 500)
+    def createContents(leftPane: Component, rightPane: Component): Unit = {
+      contents = new SplitPane(Orientation.Vertical, leftPane, rightPane) {
+        resizeWeight = 1.0
+        rightComponent.minimumSize = new Dimension(200, 500)
+        leftComponent.minimumSize = new Dimension(500, 500)
+      }
+      repaint()
     }
     var timer: Option[Timer] = None
 
     reactions += {
       case NewGameReportChosen(report, file) =>
-        gameReport = (report, file)
+        // TODO add common methods for creating both panes
+        //gameReport = (report, file)
+        logger.debug("Creating new left pane with Replay capatabilities")
         gameController = new ReplayGameController(report)
+        val playersList = PlayersListFactory.createPlayersList(report.players)
+        val playground = new Playground(playersList)
+        playground.create(report)
+        val leftPane = new LeftPane(playground, ControlPanel.newReplayControlPanel())
+        val rightPane = new RightPane(playersList)
+        createContents(leftPane, rightPane)
+        eventBus.publish(ReplayInitialized(report))
 
-      case NextTurnInitiated() =>
-        val turn = gameController.nextTurn
+      case NextTurnInitiated =>
+        val turn = gameController.getNextTurn()
+        logger.debug("Performing turn number " + turn.number)
         for (step <- turn.steps) {
-          eventBus.publish(new TurnStepPerformed(step))
+          eventBus.publish(TurnStepPerformed(step))
         }
+        eventBus.publish(NextTurnPerformed(turn.number))
         if (!gameController.hasNextTurn()) {
-          eventBus.publish(new GameFinished)
+          logger.debug("Replay finished...")
+          eventBus.publish(ReplayStateChangeRequested(ReplayFinished))
         }
 
-      case GameRestarted() =>
-        eventBus.publish(new NewGameReportChosen(gameReport._1, gameReport._2))
-
-      case ReplayInitiated() | ReplayContinued() =>
-        timer match {
-          case Some(x) =>
-            x.cancel()
-          case None =>
-        }
-        timer = Some(new Timer())
-        timer.get.schedule(new ScheduleNextTurn(), 0, turnDelay)
-
-      case ReplayPaused() =>
-        timer.get.cancel()
-        timer = None
+      case ReplayResetRequested =>
+        gameController.restartGame()
+        eventBus.publish(GoToTurn(0))
 
       case TurnDelayChanged(value) =>
         turnDelay = value
@@ -89,44 +99,73 @@ object DroomsSwingApp extends SimpleSwingApplication {
           case Some(x) =>
             x.cancel()
             timer = Some(new Timer())
-            timer.get.schedule(new ScheduleNextTurn(), turnDelay, turnDelay)
+            timer.map(_.schedule(new ScheduleNextTurn(), turnDelay, turnDelay))
           case None =>
         }
 
-      case GameFinished() =>
-        timer match {
-          case Some(x) => x.cancel()
-          case None =>
-        }
-        timer = None
+      // TODO move into game controller??
+      case ReplayStateChangeRequested(toState) => {
+        toState match {
+          case ReplayNotStarted | ReplayPaused =>
+            cancelReplayTimer()
 
-      case PreviousTurn() =>
+          case ReplayRunning =>
+            cancelReplayTimer()
+            logger.debug("Creating new replay timer with delay " + turnDelay)
+            timer = Some(new Timer())
+            timer.map(_.schedule(new ScheduleNextTurn(), 0, turnDelay))
+
+          case ReplayFinished =>
+            logger.debug("Replay finished -> cancelling the timer thread")
+            cancelReplayTimer()
+
+        }
+        eventBus.publish(ReplayStateChanged(toState))
+      }
+
+      case PreviousTurnRequested =>
+        logger.debug("Going to previous turn.")
         eventBus.publish(GoToTurn(gameController.prevTurnNumber))
 
       case GoToTurn(turnNo) =>
+        logger.debug("Going to turn number " + turnNo)
         val turnState = gameController.getTurnState(turnNo)
         eventBus.publish(GoToTurnState(turnNo, turnState))
-        
+
       case GoToTurnState(number, state) =>
-        PlayersList.get().updatePoints(state.players)
-        if (number <= 0) 
-          eventBus.publish(GameRestarted())
+        if (number <= 0)
+          eventBus.publish(ReplayStateChangeRequested(ReplayNotStarted))
         else {
-          gameController.setNextTurnNumber(number)
-          val turn = gameController.nextTurn
+          gameController.currentTurnNumber = number
+          val turn = gameController.getCurrentTurn()
           for (step <- turn.steps) {
             eventBus.publish(new TurnStepPerformed(step))
           }
-          eventBus.publish(UpdatePlayers())
         }
+
+      case NewGameRequested =>
+        new NewGameDialog().show() match {
+          case Some(config) =>
+            eventBus.publish(NewGameCreated(config))
+          case None => // do nothing
+        }
+
+      case NewGameCreated(config) =>
+        gameController = RealTimeGameController.createNew(config)
+
     }
 
+    def cancelReplayTimer(): Unit = {
+      logger.debug("Cancelling the replay timer!")
+      timer.map(_.cancel())
+      timer = None
+    }
     class ScheduleNextTurn extends TimerTask {
       def run(): Unit = {
         if (gameController.hasNextTurn()) {
           SwingUtilities.invokeAndWait(new Runnable() {
             override def run(): Unit = {
-              eventBus.publish(NextTurnInitiated())
+              eventBus.publish(NextTurnInitiated)
             }
           })
         }
@@ -136,20 +175,13 @@ object DroomsSwingApp extends SimpleSwingApplication {
   }
 }
 
-class LeftPane extends BorderPanel {
-  val playground = new Playground
-  val controlPanel = new ControlPanel
-
-  layout(playground) = BorderPanel.Position.Center
-  layout(controlPanel) = BorderPanel.Position.South
+class LeftPane(val playground: Playground, val controlPanel: ControlPanel) extends BorderPanel {
+  import BorderPanel.Position._
+  layout(playground) = Center
+  layout(controlPanel) = South
 }
 
-class RightPane extends BoxPanel(Orientation.Horizontal) with Reactor {
-  val playersListView = new PlayersListView
+class RightPane(var playersList: PlayersList) extends BoxPanel(Orientation.Horizontal) with Reactor {
+  val playersListView = new PlayersListView(playersList)
   contents += playersListView
 }
-
-trait GameStatus
-case class GameNotStarted extends GameStatus
-case class GameReplaying extends GameStatus
-case class GameReplayingPaused extends GameStatus

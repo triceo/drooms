@@ -1,6 +1,7 @@
 package org.drooms.gui.swing
 
 import java.io.File
+
 import scala.swing.Action
 import scala.swing.CheckMenuItem
 import scala.swing.FileChooser
@@ -8,20 +9,22 @@ import scala.swing.Menu
 import scala.swing.MenuBar
 import scala.swing.MenuItem
 import scala.swing.event.ButtonClicked
+
 import org.drooms.gui.swing.event.AfterNewReportChosen
 import org.drooms.gui.swing.event.BeforeNewReportChosen
 import org.drooms.gui.swing.event.CoordinantsVisibilityChanged
 import org.drooms.gui.swing.event.EventBusFactory
-import org.drooms.gui.swing.event.GameRestarted
 import org.drooms.gui.swing.event.NewGameReportChosen
+import org.drooms.gui.swing.event.NewGameRequested
 import org.drooms.gui.swing.event.NextTurnInitiated
 import org.drooms.gui.swing.event.PlaygroundGridDisabled
 import org.drooms.gui.swing.event.PlaygroundGridEnabled
-import org.drooms.gui.swing.event.ReplayContinued
-import org.drooms.gui.swing.event.ReplayInitiated
-import org.drooms.gui.swing.event.ReplayPaused
+import org.drooms.gui.swing.event.ReplayInitialized
+import org.drooms.gui.swing.event.ReplayResetRequested
+import org.drooms.gui.swing.event.ReplayStateChangeRequested
+import org.drooms.gui.swing.event.ReplayStateChanged
+
 import javax.swing.filechooser.FileFilter
-import org.drooms.gui.swing.event.NewGameRequested
 
 /**
  * Represents application's main menu as standard {@link scala.swing.MenuBar}.
@@ -44,7 +47,7 @@ class MainMenu extends MenuBar {
       System.exit(0)
     })
   }
-  // game menu
+  // replay menu
   val newGameItem = new MenuItem(Action("New Game") {
     eventBus.publish(NewGameRequested)
   }) {
@@ -55,60 +58,30 @@ class MainMenu extends MenuBar {
   }) {
     enabled = false
   }
-  val replayItem = new MenuItem(Action("Replay") {
-    eventBus.publish(ReplayInitiated)
+  val replayStartItem = new MenuItem(Action("Replay") {
+    eventBus.publish(ReplayStateChangeRequested(ReplayRunning))
   }) {
     enabled = false
   }
-  val pauseItem = new MenuItem(Action("Pause") {
-    eventBus.publish(ReplayPaused)
+  val replayPauseItem = new MenuItem(Action("Pause") {
+    eventBus.publish(ReplayStateChangeRequested(ReplayPaused))
   }) {
     enabled = false
   }
-  val restartItem = new MenuItem(Action("Reset") {
-    eventBus.publish(GameRestarted)
+  val replayRestartItem = new MenuItem(Action("Reset") {
+    eventBus.publish(ReplayResetRequested)
   }) {
     enabled = false
   }
 
-  contents += new Menu("Game") {
+  contents += new Menu("Replay") {
     contents += newGameItem
     contents += nextTurnItem
-    contents += replayItem
-    contents += pauseItem
-    contents += restartItem
+    contents += replayStartItem
+    contents += replayPauseItem
+    contents += replayRestartItem
   }
-  reactions += {
-    case ReplayInitiated =>
-      replayItem.enabled = false
-      pauseItem.enabled = true
-      restartItem.enabled = false
-      nextTurnItem.enabled = false
-    case ReplayPaused =>
-      replayItem.enabled = true
-      pauseItem.enabled = false
-      restartItem.enabled = true
-      nextTurnItem.enabled = true
-    case ReplayContinued =>
-      replayItem.enabled = false
-      pauseItem.enabled = true
-      restartItem.enabled = false
-      nextTurnItem.enabled = false
-    case GameRestarted =>
-      replayItem.enabled = true
-      pauseItem.enabled = false
-      restartItem.enabled = false
-      nextTurnItem.enabled = true
-    case NextTurnInitiated =>
-      replayItem.enabled = true
-      pauseItem.enabled = false
-      restartItem.enabled = true
-      nextTurnItem.enabled = true
-  }
-  // players menu
-  //    contents += new Menu("Players") {
-  //      contents += new MenuItem("Settings...")
-  //    }
+
   val showGridItem = new CheckMenuItem("Show grid")
   val showCoordsItem = new CheckMenuItem("Show axis numbers")
   // playground menu
@@ -117,11 +90,12 @@ class MainMenu extends MenuBar {
     contents += showCoordsItem
   }
   // help menu
-  //    contents += new Menu("Help") {
-  //      contents += new MenuItem("About Drooms")
-  //    }
+  contents += new Menu("Help") {
+    contents += new MenuItem("About Drooms")
+  }
   listenTo(showGridItem)
   listenTo(showCoordsItem)
+  
   reactions += {
     case ButtonClicked(`showGridItem`) => {
       if (showGridItem.selected)
@@ -134,12 +108,44 @@ class MainMenu extends MenuBar {
     }
 
     case NewGameReportChosen(_, _) => {
-      replayItem.enabled = true
-      pauseItem.enabled = false
-      restartItem.enabled = false
+      replayStartItem.enabled = true
+      replayPauseItem.enabled = false
+      replayRestartItem.enabled = false
       nextTurnItem.enabled = true
     }
+    case ReplayInitialized(report) =>
+      replayStartItem.enabled = false
+      replayPauseItem.enabled = true
+      replayRestartItem.enabled = false
+      nextTurnItem.enabled = false
+    case ReplayStateChanged(toState) =>
+      toState match {
+        case ReplayNotStarted =>
+          replayStartItem.enabled = true
+          replayPauseItem.enabled = false
+          replayRestartItem.enabled = false
+          nextTurnItem.enabled = true
+
+        case ReplayRunning =>
+          replayStartItem.enabled = true
+          replayPauseItem.enabled = false
+          replayRestartItem.enabled = true
+          nextTurnItem.enabled = true
+
+        case ReplayPaused =>
+          replayStartItem.enabled = false
+          replayPauseItem.enabled = false
+          replayRestartItem.enabled = true
+          nextTurnItem.enabled = true
+
+        case ReplayFinished =>
+          replayStartItem.enabled = true
+          replayPauseItem.enabled = false
+          replayRestartItem.enabled = false
+          nextTurnItem.enabled = true
+      }
   }
+
   var lastUsedDir = {
     var openIn = new File(System.getProperty("user.dir"))
     for (dirName <- REPORT_LOCATIONS) {

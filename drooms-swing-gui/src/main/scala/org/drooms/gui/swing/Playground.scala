@@ -22,10 +22,11 @@ import javax.swing.ImageIcon
 import javax.swing.UIManager
 import javax.swing.table.DefaultTableModel
 import org.drooms.gui.swing.event.NewGameCreated
+import org.drooms.gui.swing.event.ReplayInitialized
 
 /**
  * Represents the Playground in GUI as {@link ScrollPane}.
- * 
+ *
  * Playground contains the grid (table) of all nodes and also some additional GUI elements
  * like border from walls or labels for the rows/columns numbers.
  */
@@ -37,22 +38,24 @@ class Playground(var playersList: PlayersList) extends ScrollPane with Reactor {
   val worms: collection.mutable.Set[Worm] = collection.mutable.Set()
   var showCoords = false
 
+  def create(report: GameReport): Unit = {
+    createNew(report.playgroundWidth, report.playgroundHeight)
+    for (node <- report.playgroundInit)
+      cellModel.updatePosition(Empty(node))
+    initWorms(report.wormInitPositions)
+  }
+
   listenTo(eventBus)
   reactions += {
     case PlaygroundGridEnabled => showGrid
     case PlaygroundGridDisabled => hideGrid
-    case NewGameReportChosen(gameReport, file) => {
-      createNew(gameReport.playgroundWidth, gameReport.playgroundHeight)
-      for (node <- gameReport.playgroundInit)
-        cellModel.updatePosition(Empty(node))
-      initWorms(gameReport.wormInitPositions)
-    }
+
     case NewGameCreated(config) =>
       createNew(config.getPlaygroundWidth(), config.getPlaygroundHeight())
       for (node <- config.getPlaygroundInit())
         cellModel.updatePosition(Empty(node))
-      
-    case GoToTurnState(number, state) => 
+
+    case GoToTurnState(number, state) =>
       val newModel = state.playgroundModel
       newModel.eventBus = eventBus
       worms.clear()
@@ -71,11 +74,11 @@ class Playground(var playersList: PlayersList) extends ScrollPane with Reactor {
   def updateWholeTable(): Unit = {
     table.map(_.repaint())
   }
-  
+
   def createNew(width: Int, height: Int): Unit = {
     createNew(width, height, new PlaygroundModel(width, height, eventBus))
   }
-  def createNew(width: Int, height:Int, model: PlaygroundModel): Unit = {
+  def createNew(width: Int, height: Int, model: PlaygroundModel): Unit = {
     cellModel = model
     plwidth = width
     plheight = height
@@ -190,7 +193,7 @@ class Playground(var playersList: PlayersList) extends ScrollPane with Reactor {
     })
     reactions += {
       case PositionChanged(position) =>
-        // Y-axis numbering in playground model and table is reversed  
+        // Y-axis numbering in playground model and table is reversed
         // starting from 0 to actualTableHeight -1 and need to subtract the current position and -2 for number and wall down
         table.get.updateCell(actualTableHeight - 1 - position.node.y - 2, position.node.x + 2) // y == row and x == col
       case CoordinantsVisibilityChanged(value) => {
@@ -243,7 +246,7 @@ class Playground(var playersList: PlayersList) extends ScrollPane with Reactor {
       case Some(table) =>
         table.showGrid = visible
         if (visible)
-            table.peer.setIntercellSpacing(new Dimension(1, 1))
+          table.peer.setIntercellSpacing(new Dimension(1, 1))
         else
           table.peer.setIntercellSpacing(new Dimension(0, 0))
       case None =>

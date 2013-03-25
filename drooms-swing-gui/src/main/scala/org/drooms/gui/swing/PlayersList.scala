@@ -1,21 +1,19 @@
 package org.drooms.gui.swing
 
 import java.awt.Color
-import scala.collection.mutable.Buffer
+
 import scala.swing.Alignment
 import scala.swing.BorderPanel
 import scala.swing.Component
 import scala.swing.Label
 import scala.swing.ListView
 import scala.swing.ListView.Renderer
+
 import org.drooms.gui.swing.event.EventBusFactory
-import org.drooms.gui.swing.event.NewGameReportChosen
-import org.drooms.gui.swing.event.TurnStepPerformed
-import org.drooms.gui.swing.event.UpdatePlayers
-import javax.swing.BorderFactory
-import org.drooms.gui.swing.event.DroomsEventBus
-import org.drooms.gui.swing.event.PlayersListUpdated
 import org.drooms.gui.swing.event.GoToTurnState
+import org.drooms.gui.swing.event.TurnStepPerformed
+
+import javax.swing.BorderFactory
 
 /**
  * Utility class used for creating {@link PlayersList}s.
@@ -28,13 +26,27 @@ object PlayersListFactory {
 
 /**
  * List of {@link Player}s for current replay or real-time game
- * 
+ *
  * List is immutable. All operations that are altering the list are returning new instance with those
  * changes applied.
  */
 class PlayersList(val players: List[Player], val colors: PlayerColors) {
   def this() = this(List(), PlayerColors.getDefault())
   def this(colors: PlayerColors) = this(List(), colors)
+
+  /**
+   * Returns {@link Player} with the specified name.
+   *
+   * @param playerName name of the player
+   *
+   * @return {@link Player} if he exists, {@link NoSuchElementException} otherwise
+   */
+  def getPlayer(playerName: String): Player = {
+    players.find(_.name == playerName) match {
+      case Some(player) => player
+      case None => throw new NoSuchElementException("Player '" + playerName + " 'not found!")
+    }
+  }
 
   def addPlayer(player: Player): PlayersList = new PlayersList(player :: players, colors)
 
@@ -73,7 +85,7 @@ class PlayersList(val players: List[Player], val colors: PlayerColors) {
         }).toList,
       colors)
   }
-  
+
   /**
    * Add points to the specified {@link Player} and returns new {@link PlayersList} with the increased score for {@link Player}.
    *
@@ -85,21 +97,18 @@ class PlayersList(val players: List[Player], val colors: PlayerColors) {
   def addPoints(playerName: String, points: Int): PlayersList = {
     new PlayersList(getPlayer(playerName).addPoints(points) :: players.filter(_.name != playerName), colors)
   }
-  
-  /**
-   * Returns {@link Player} with the specified name.
-   *
-   * @param playerName name of the player
-   *
-   * @return {@link Player} if he exists, {@link NoSuchElementException} otherwise
-   */
-  def getPlayer(playerName: String): Player = {
-    players.find(_.name == playerName) match {
-      case Some(player) => player
-      case None => throw new NoSuchElementException("Player '" + playerName + "'not found!")
-    }
-  }
 
+  /**
+   * Sets a specified score for all {@link Player}s.
+   *
+   * @param points how many points to assign to each player
+   *
+   * @return new {@link PlayersList} where all {@link Player}s has specified number of points
+   */
+  def setScoreForAllPlayers(points: Int): PlayersList = {
+    new PlayersList(players.map(p =>
+      new Player(p.name, 0, p.color)).toList, colors)
+  }
 }
 
 class PlayersListView(var playersList: PlayersList) extends BorderPanel {
@@ -109,24 +118,28 @@ class PlayersListView(var playersList: PlayersList) extends BorderPanel {
   }
   listenTo(eventBus)
 
-  createUIContents()
-
   reactions += {
     case TurnStepPerformed(step) =>
       step match {
         case WormSurvived(ownerName, points) =>
           playersList = playersList.addPoints(ownerName, points)
           update()
+
         case CollectibleCollected(playerName, collectible) =>
           playersList = playersList.addPoints(playerName, collectible.points)
           update()
+
         case _ =>
       }
+
     case GoToTurnState(_, state) =>
       playersList = playersList.updateScores(state.playersScore)
       update()
+
   }
-  
+
+  createUIContents()
+
   def createUIContents(): Unit = {
     layout(new Label("Players")) = BorderPanel.Position.North
     layout(playersListView) = BorderPanel.Position.Center
