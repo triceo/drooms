@@ -73,10 +73,10 @@ public class DroomsTournament {
                 result.addResults(playgroundName, dg.play(playgroundName + "_" + i));
             }
         }
-        System.out.println("Tournament results:");
+        DroomsTournament.LOGGER.info("Tournament results:");
         int i = 1;
         for (final SortedMap.Entry<Long, Collection<Player>> entry : result.evaluate().entrySet()) {
-            System.out.println("#" + i + " with " + entry.getKey() + " points: " + entry.getValue());
+            DroomsTournament.LOGGER.info("#" + i + " with " + entry.getKey() + " points: " + entry.getValue());
             i++;
         }
         try (BufferedWriter w = new BufferedWriter(new FileWriter(new File(reports, "report.html")))) {
