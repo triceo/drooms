@@ -3,7 +3,6 @@ package org.drooms.gui.swing
 import java.awt.Dimension
 import java.util.Timer
 import java.util.TimerTask
-
 import scala.swing.BorderPanel
 import scala.swing.BorderPanel.Position.Center
 import scala.swing.BorderPanel.Position.South
@@ -14,7 +13,6 @@ import scala.swing.Orientation
 import scala.swing.Reactor
 import scala.swing.SimpleSwingApplication
 import scala.swing.SplitPane
-
 import org.drooms.gui.swing.event.EventBusFactory
 import org.drooms.gui.swing.event.GoToTurn
 import org.drooms.gui.swing.event.GoToTurnState
@@ -30,10 +28,10 @@ import org.drooms.gui.swing.event.ReplayStateChangeRequested
 import org.drooms.gui.swing.event.ReplayStateChanged
 import org.drooms.gui.swing.event.TurnDelayChanged
 import org.drooms.gui.swing.event.TurnStepPerformed
-
 import com.typesafe.scalalogging.slf4j.Logging
-
 import javax.swing.SwingUtilities
+import java.io.File
+import org.drooms.gui.swing.event.ReplayStateChanged
 
 /**
  * Main class for the entire Swing application.
@@ -89,8 +87,10 @@ object DroomsSwingApp extends SimpleSwingApplication with Logging {
         }
 
       case ReplayResetRequested =>
+        // todo reset replay
         gameController.restartGame()
         eventBus.publish(GoToTurn(0))
+        eventBus.publish(ReplayStateChanged(ReplayNotStarted))
 
       case TurnDelayChanged(value) =>
         turnDelay = value
@@ -99,7 +99,7 @@ object DroomsSwingApp extends SimpleSwingApplication with Logging {
           case Some(x) =>
             x.cancel()
             timer = Some(new Timer())
-            timer.map(_.schedule(new ScheduleNextTurn(), turnDelay, turnDelay))
+            timer.map(_.schedule(new ExecuteNextTurn(), turnDelay, turnDelay))
           case None =>
         }
 
@@ -113,7 +113,7 @@ object DroomsSwingApp extends SimpleSwingApplication with Logging {
             cancelReplayTimer()
             logger.debug("Creating new replay timer with delay " + turnDelay)
             timer = Some(new Timer())
-            timer.map(_.schedule(new ScheduleNextTurn(), 0, turnDelay))
+            timer.map(_.schedule(new ExecuteNextTurn(), 0, turnDelay))
 
           case ReplayFinished =>
             logger.debug("Replay finished -> cancelling the timer thread")
@@ -160,7 +160,7 @@ object DroomsSwingApp extends SimpleSwingApplication with Logging {
       timer.map(_.cancel())
       timer = None
     }
-    class ScheduleNextTurn extends TimerTask {
+    class ExecuteNextTurn extends TimerTask {
       def run(): Unit = {
         if (gameController.hasNextTurn()) {
           SwingUtilities.invokeAndWait(new Runnable() {

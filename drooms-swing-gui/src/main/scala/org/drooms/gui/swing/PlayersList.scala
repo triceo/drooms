@@ -135,7 +135,6 @@ class PlayersListView(var playersList: PlayersList) extends BorderPanel {
     case GoToTurnState(_, state) =>
       playersList = playersList.updateScores(state.playersScore)
       update()
-
   }
 
   createUIContents()

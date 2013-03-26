@@ -165,8 +165,17 @@ class ControlPanel(val eventBus: EventBus) extends BorderPanel with Reactor with
       turnSlider.max = report.turns.size - 1
 
     case NextTurnPerformed(turnNo) =>
-      restartBtn.enabled = true
-      prevTurnBtn.enabled = true
+      replayState match {
+        case ReplayRunning =>
+          restartBtn.enabled = false
+          prevTurnBtn.enabled = false
+          nextTurnBtn.enabled = false
+        
+        case _ =>
+          restartBtn.enabled = true
+          prevTurnBtn.enabled = true
+          //nextTurnBtn.enabled = false
+      }
       currentTurnNo = turnNo
       currTurnText.text = turnNo + ""
       turnSlider.value = turnNo

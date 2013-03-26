@@ -23,6 +23,7 @@ import javax.swing.UIManager
 import javax.swing.table.DefaultTableModel
 import org.drooms.gui.swing.event.NewGameCreated
 import org.drooms.gui.swing.event.ReplayInitialized
+import com.typesafe.scalalogging.slf4j.Logging
 
 /**
  * Represents the Playground in GUI as {@link ScrollPane}.
@@ -30,7 +31,7 @@ import org.drooms.gui.swing.event.ReplayInitialized
  * Playground contains the grid (table) of all nodes and also some additional GUI elements
  * like border from walls or labels for the rows/columns numbers.
  */
-class Playground(var playersList: PlayersList) extends ScrollPane with Reactor {
+class Playground(var playersList: PlayersList) extends ScrollPane with Reactor with Logging {
   val CELL_SIZE = 15
   val eventBus = EventBusFactory.get()
   var cellModel: PlaygroundModel = _ // TODO use PlaygroundController
@@ -56,10 +57,11 @@ class Playground(var playersList: PlayersList) extends ScrollPane with Reactor {
         cellModel.updatePosition(Empty(node))
 
     case GoToTurnState(number, state) =>
-      val newModel = state.playgroundModel
-      newModel.eventBus = eventBus
+      logger.debug(s"Creating new playground table for turn ${number}")
       worms.clear()
       worms ++= state.playgroundModel.worms
+      val newModel = state.playgroundModel
+      newModel.eventBus = eventBus
       createNew(plwidth, plheight, newModel)
       updateWholeTable()
 
@@ -78,6 +80,7 @@ class Playground(var playersList: PlayersList) extends ScrollPane with Reactor {
   def createNew(width: Int, height: Int): Unit = {
     createNew(width, height, new PlaygroundModel(width, height, eventBus))
   }
+  
   def createNew(width: Int, height: Int, model: PlaygroundModel): Unit = {
     cellModel = model
     plwidth = width

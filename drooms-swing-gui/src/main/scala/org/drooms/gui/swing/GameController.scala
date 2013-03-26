@@ -83,7 +83,7 @@ trait GameController {
  */
 abstract class AbstractGameController extends GameController with Logging {
   val eventBus = EventBusFactory.get()
-  var currentTurnNumber = 0
+  var currentTurnNumber = -1
 
   def turnStates: List[TurnState]
 
