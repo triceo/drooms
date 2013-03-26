@@ -31,7 +31,7 @@ import com.typesafe.scalalogging.slf4j.Logging
  * Playground contains the grid (table) of all nodes and also some additional GUI elements
  * like border from walls or labels for the rows/columns numbers.
  */
-class Playground(var playersList: PlayersList) extends ScrollPane with Reactor with Logging {
+class PlaygroundView(var playersList: PlayersList) extends ScrollPane with Reactor with Logging {
   val CELL_SIZE = 15
   val eventBus = EventBusFactory.get()
   var cellModel: PlaygroundModel = _ // TODO use PlaygroundController

@@ -67,7 +67,7 @@ object DroomsSwingApp extends SimpleSwingApplication with Logging {
         logger.debug("Creating new left pane with Replay capatabilities")
         gameController = new ReplayGameController(report)
         val playersList = PlayersListFactory.createPlayersList(report.players)
-        val playground = new Playground(playersList)
+        val playground = new PlaygroundView(playersList)
         playground.create(report)
         val leftPane = new LeftPane(playground, ControlPanel.newReplayControlPanel())
         val rightPane = new RightPane(playersList)
@@ -175,7 +175,7 @@ object DroomsSwingApp extends SimpleSwingApplication with Logging {
   }
 }
 
-class LeftPane(val playground: Playground, val controlPanel: ControlPanel) extends BorderPanel {
+class LeftPane(val playground: PlaygroundView, val controlPanel: ControlPanel) extends BorderPanel {
   import BorderPanel.Position._
   layout(playground) = Center
   layout(controlPanel) = South
