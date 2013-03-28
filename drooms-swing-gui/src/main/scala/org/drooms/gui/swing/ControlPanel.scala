@@ -2,7 +2,6 @@ package org.drooms.gui.swing
 
 import java.awt.Font
 import java.io.File
-
 import scala.swing.Action
 import scala.swing.BorderPanel
 import scala.swing.BoxPanel
@@ -16,7 +15,6 @@ import scala.swing.Slider
 import scala.swing.TextField
 import scala.swing.event.EditDone
 import scala.swing.event.ValueChanged
-
 import org.drooms.gui.swing.event.AfterNewReportChosen
 import org.drooms.gui.swing.event.BeforeNewReportChosen
 import org.drooms.gui.swing.event.EventBus
@@ -31,34 +29,15 @@ import org.drooms.gui.swing.event.ReplayResetRequested
 import org.drooms.gui.swing.event.ReplayStateChangeRequested
 import org.drooms.gui.swing.event.ReplayStateChanged
 import org.drooms.gui.swing.event.TurnDelayChanged
+import org.drooms.gui.swing.event.NewGameCreated
+import org.drooms.gui.swing.event.GameStateChanged
+import org.drooms.gui.swing.event.GameStateChangeRequested
+import org.drooms.gui.swing.event.GameStateChangeRequested
 
 /**
- * Control panel specific for game replay.
+ * Control panel with controls used for replay.
  */
 class ReplayControlPanel(eventBus: EventBus) extends ControlPanel(eventBus) {
-  var currentLog: (GameReport, File) = _
-}
-
-/**
- * Control panel specific for real-time game.
- */
-class RealTimeGameControlPanel(eventBus: EventBus) extends ControlPanel(eventBus) {
-  var gameState: GameState = GameNotStarted
-}
-
-object ControlPanel {
-  val StartReplayText = "Start replay"
-  val PauseReplayText = "Pause replay"
-
-  def newReplayControlPanel(): ControlPanel = {
-    new ReplayControlPanel(EventBusFactory.get())
-  }
-}
-
-/**
- * Control panel located at the bottom of the window
- */
-class ControlPanel(val eventBus: EventBus) extends BorderPanel with Reactor with Publisher {
   private var replayState: ReplayState = ReplayNotStarted
 
   private var gameInitialized = false
@@ -237,3 +216,73 @@ class ControlPanel(val eventBus: EventBus) extends BorderPanel with Reactor with
     contents += intervalSlider
   }) = BorderPanel.Position.West
 }
+
+/**
+ * Control panel specific for real-time game.
+ */
+class RealTimeGameControlPanel(eventBus: EventBus) extends ControlPanel(eventBus) {
+  var gameState: GameState = GameNotStarted
+  
+  val startPauseBtn = new Button(Action("Start game") {
+    val toState = gameState match {
+      case GameNotStarted | GamePaused =>
+        GameRunning
+      case GameRunning =>
+        GamePaused
+    }
+    eventBus.publish(GameStateChangeRequested(toState))
+  }) {
+    enabled = false
+  }
+  
+  val restartBtn = new Button(Action("Restart game") {
+    eventBus.publish(GameStateChangeRequested(GameNotStarted))
+  }){
+    enabled = false
+  }
+  val btnsPanel = new FlowPanel {
+    contents += startPauseBtn
+    contents += restartBtn
+  }
+  listenTo(eventBus)
+  
+  reactions += {
+    case NewGameCreated(config) =>
+      startPauseBtn.enabled = true
+      startPauseBtn.text = "Start game"
+      restartBtn.enabled = false
+      
+    case GameStateChanged(newState) =>
+      newState match {
+        case GameRunning =>
+          startPauseBtn.enabled = true
+          startPauseBtn.text = "Pause game"
+          restartBtn.enabled = true
+          
+        case GamePaused =>
+          startPauseBtn.enabled = true
+          startPauseBtn.text = "Continue game"
+          restartBtn.enabled = true
+      }
+      gameState = newState
+  }
+  layout(btnsPanel) = BorderPanel.Position.East
+}
+
+object ControlPanel {
+  val StartReplayText = "Start replay"
+  val PauseReplayText = "Pause replay"
+
+  def newReplayControlPanel(): ControlPanel = {
+    new ReplayControlPanel(EventBusFactory.get())
+  }
+  
+  def newRealTimeGameControlPanel(): ControlPanel = {
+    new RealTimeGameControlPanel(EventBusFactory.get())
+  }
+}
+
+/**
+ * Control panel located at the bottom of the window
+ */
+class ControlPanel(val eventBus: EventBus) extends BorderPanel with Reactor with Publisher

@@ -32,6 +32,8 @@ import com.typesafe.scalalogging.slf4j.Logging
 import javax.swing.SwingUtilities
 import java.io.File
 import org.drooms.gui.swing.event.ReplayStateChanged
+import org.drooms.gui.swing.event.NewGameAccepted
+import scala.swing.Separator
 
 /**
  * Main class for the entire Swing application.
@@ -63,7 +65,6 @@ object DroomsSwingApp extends SimpleSwingApplication with Logging {
     reactions += {
       case NewGameReportChosen(report, file) =>
         // TODO add common methods for creating both panes
-        //gameReport = (report, file)
         logger.debug("Creating new left pane with Replay capatabilities")
         gameController = new ReplayGameController(report)
         val playersList = PlayersListFactory.createPlayersList(report.players)
@@ -146,12 +147,23 @@ object DroomsSwingApp extends SimpleSwingApplication with Logging {
       case NewGameRequested =>
         new NewGameDialog().show() match {
           case Some(config) =>
-            eventBus.publish(NewGameCreated(config))
-          case None => // do nothing
+            eventBus.publish(NewGameAccepted(config))
+          case None =>
         }
 
-      case NewGameCreated(config) =>
+      case NewGameAccepted(config) =>
+        //eventBus.publish() clean-up event
+        logger.debug("Creating new left pane for real-time game.")
         gameController = RealTimeGameController.createNew(config)
+        val playersList = PlayersListFactory.createPlayersList(config.getPlayersNames())
+        val playground = new PlaygroundView(playersList)
+        playground.create(config)
+        val leftPane = new LeftPane(playground, ControlPanel.newReplayControlPanel(), ControlPanel.newRealTimeGameControlPanel())
+        val rightPane = new RightPane(playersList)
+        createContents(leftPane, rightPane)
+        eventBus.publish(NewGameCreated(config))
+
+      case NewGameCreated(config) =>
 
     }
 
@@ -175,10 +187,15 @@ object DroomsSwingApp extends SimpleSwingApplication with Logging {
   }
 }
 
-class LeftPane(val playground: PlaygroundView, val controlPanel: ControlPanel) extends BorderPanel {
+class LeftPane(val playground: PlaygroundView, val controlPanels: ControlPanel*) extends BorderPanel {
   import BorderPanel.Position._
   layout(playground) = Center
-  layout(controlPanel) = South
+  layout(new BoxPanel(Orientation.Vertical) {
+    for (p <- controlPanels) {
+    contents += p
+    contents += new Separator
+    }
+  }) = South
 }
 
 class RightPane(var playersList: PlayersList) extends BoxPanel(Orientation.Horizontal) with Reactor {

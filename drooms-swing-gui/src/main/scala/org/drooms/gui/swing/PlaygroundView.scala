@@ -45,6 +45,10 @@ class PlaygroundView(var playersList: PlayersList) extends ScrollPane with React
       cellModel.updatePosition(Empty(node))
     initWorms(report.wormInitPositions)
   }
+  
+  def create(config: NewGameConfig): Unit = {
+    // TODO create model with only walls and empty spaces
+  }
 
   listenTo(eventBus)
   reactions += {
@@ -74,6 +78,9 @@ class PlaygroundView(var playersList: PlayersList) extends ScrollPane with React
   var plheight: Int = _
 
   def updateWholeTable(): Unit = {
+    for (i <- 0 until cellModel.width; j <- 0 until cellModel.height) {
+      eventBus.publish(PositionChanged(cellModel.positions(i)(j)))
+    }
     table.map(_.repaint())
   }
 
@@ -94,7 +101,6 @@ class PlaygroundView(var playersList: PlayersList) extends ScrollPane with React
       preferredSize = new Dimension(widthPixels, heightPixels)
       rowHeight = CELL_SIZE
       selection.intervalMode = Table.IntervalMode.Single
-      selection.elementMode = Table.ElementMode.None
       peer.setTableHeader(null)
       model = new DefaultTableModel(actualTableHeight, actualTableWidth) { // rows == height, cols == width
         override def setValueAt(value: Any, row: Int, col: Int) {
@@ -110,11 +116,11 @@ class PlaygroundView(var playersList: PlayersList) extends ScrollPane with React
         // just empty space
       }
       trait CellType
-      object Blank extends CellType
-      object Border extends CellType
-      object AxisXNumber extends CellType
-      object AxisYNumber extends CellType
-      object PlaygroundCell extends CellType
+      case object Blank extends CellType
+      case object Border extends CellType
+      case object AxisXNumber extends CellType
+      case object AxisYNumber extends CellType
+      case object PlaygroundCell extends CellType
 
       // table has (0,0) in left upper corner, model has (0,0) in left down corner -> we need to translate the 
       // coordinates accordingly

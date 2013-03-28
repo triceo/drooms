@@ -30,6 +30,11 @@ case class NewGameConfig(
   def getPlaygroundWidth(): Int = playground.getWidth()
 
   def getPlaygroundHeight(): Int = playground.getHeight()
+  
+  def getPlayersNames(): List[String] = {
+    import scala.collection.JavaConversions._
+    (for (p <- players) yield p.getName()).toList
+  }
 }
 
 object NewGameConfig {

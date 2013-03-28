@@ -22,6 +22,7 @@ import org.drooms.gui.swing.GameState
 trait DroomsEvent extends Event
 
 case object NewGameRequested extends DroomsEvent
+case class NewGameAccepted(val config: NewGameConfig) extends DroomsEvent
 case class NewGameCreated(val config: NewGameConfig) extends DroomsEvent
 case object BeforeNewReportChosen extends DroomsEvent
 case class NewGameReportChosen(val gameReport: GameReport, val file: File) extends DroomsEvent

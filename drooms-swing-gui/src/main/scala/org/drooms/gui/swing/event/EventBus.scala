@@ -12,7 +12,7 @@ trait EventBus extends Publisher
 
 sealed class DroomsEventBus extends EventBus with Logging {
   override def publish(e: Event) = {
-    logger.trace("Publishing event '" + e.getClass().getSimpleName() + "'.")
+    logger.trace(s"Publishing event '${e}'.")
     super.publish(e)
   }
 }
