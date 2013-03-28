@@ -9,11 +9,11 @@ import java.io.File
 class ReplayGameControllerSuite extends FunSuite {
    trait SampleReplayer {
      val report = GameReportXmlParser.parseReport(new File(getClass().getClassLoader().getResource("report-for-game-replayer.xml").getPath()))
-     val gameReplayer = new ReplayGameController(report)
+     val gameReplayer = ReplayController.createNew(report)
    }
    
    test("Simplest replay controller can be instantiated") {
-       new ReplayGameController(new GameReport(Map(), List(), 10, 10, Set(), Set(), List(), List()))
+       ReplayController.createNew(new GameReport(Map(), List(), 10, 10, Set(), Set(), List(), List()))
    }
    
    test("next turns can be performed") {
