@@ -1,7 +1,6 @@
 package org.drooms.gui.swing
 
 import java.io.File
-
 import scala.swing.Action
 import scala.swing.CheckMenuItem
 import scala.swing.FileChooser
@@ -9,7 +8,6 @@ import scala.swing.Menu
 import scala.swing.MenuBar
 import scala.swing.MenuItem
 import scala.swing.event.ButtonClicked
-
 import org.drooms.gui.swing.event.AfterNewReportChosen
 import org.drooms.gui.swing.event.BeforeNewReportChosen
 import org.drooms.gui.swing.event.CoordinantsVisibilityChanged
@@ -23,8 +21,8 @@ import org.drooms.gui.swing.event.ReplayInitialized
 import org.drooms.gui.swing.event.ReplayResetRequested
 import org.drooms.gui.swing.event.ReplayStateChangeRequested
 import org.drooms.gui.swing.event.ReplayStateChanged
-
 import javax.swing.filechooser.FileFilter
+import org.drooms.gui.swing.event.GameStateChangeRequested
 
 /**
  * Represents application's main menu as standard {@link scala.swing.MenuBar}.
@@ -37,22 +35,16 @@ class MainMenu extends MenuBar {
     )
   val eventBus = EventBusFactory.get()
   listenTo(eventBus)
+
   // file menu
   contents += new Menu("File") {
-    contents += new MenuItem(Action("Open game report...") {
-      openGameReport()
-    })
     contents += new MenuItem(Action("Quit") {
       // TODO send event and let main app handle the exit
       System.exit(0)
     })
   }
+
   // replay menu
-  val newGameItem = new MenuItem(Action("New Game") {
-    eventBus.publish(NewGameRequested)
-  }) {
-    enabled = true
-  }
   val nextTurnItem = new MenuItem(Action("Next turn") {
     eventBus.publish(NextTurnInitiated)
   }) {
@@ -75,7 +67,9 @@ class MainMenu extends MenuBar {
   }
 
   contents += new Menu("Replay") {
-    contents += newGameItem
+    contents += new MenuItem(Action("Open game report...") {
+      openGameReport()
+    })
     contents += nextTurnItem
     contents += replayStartItem
     contents += replayPauseItem
@@ -84,6 +78,21 @@ class MainMenu extends MenuBar {
 
   val showGridItem = new CheckMenuItem("Show grid")
   val showCoordsItem = new CheckMenuItem("Show axis numbers")
+
+  // game menu
+  val newGameItem = new MenuItem(Action("New game...") {
+    eventBus.publish(NewGameRequested)
+  }) {
+    enabled = true
+  }
+  //  val startGame = new MenuItem(Action("Start") {
+  //    eventBus.publish(GameStateChangeRequested(GameRunning))
+  //  }) {
+  //    enabled = false
+  //  }
+  contents += new Menu("Game") {
+    contents += newGameItem
+  }
   // playground menu
   contents += new Menu("Playground") {
     contents += showGridItem
@@ -95,7 +104,7 @@ class MainMenu extends MenuBar {
   }
   listenTo(showGridItem)
   listenTo(showCoordsItem)
-  
+
   reactions += {
     case ButtonClicked(`showGridItem`) => {
       if (showGridItem.selected)

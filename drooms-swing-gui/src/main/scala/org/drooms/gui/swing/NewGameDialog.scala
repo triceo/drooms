@@ -19,14 +19,27 @@ import javax.swing.BorderFactory
 import javax.swing.Box
 import scala.swing.event.Key
 import scala.swing.event.KeyPressed
+import scala.io.Source
+import java.io.FileInputStream
 
+/**
+ * Dialog used to specify configuration needed for new Drooms game.
+ * 
+ * It allows users to specify:
+ * <ul>
+ *   <li>game configuration file (*.cfg)
+ *   <li>playground definition file (*.playground)
+ *   <li>list of players (name, strategy location and strategy class) that will be part of the game
+ */
 class NewGameDialog extends Dialog {
   modal = true
   minimumSize = new Dimension(700, 300)
-  title = "New Game"
+  preferredSize  = new Dimension(700, 600)
+  title = "New Drooms Game"
 
-  var submitted = false
-  
+  /* Indicated if the dialog was submitted or not */
+  private var submitted = false
+
   val leftColumn = new BoxPanel(Orientation.Vertical) {
     xLayoutAlignment = 0.0
     contents += new Label("Game configuration") {
@@ -43,12 +56,12 @@ class NewGameDialog extends Dialog {
   val playgrUpload = new SelectFileLine()
   val configUpload = new SelectFileLine()
   val rightColumn = new BoxPanel(Orientation.Vertical) {
-    contents += playgrUpload
     contents += configUpload
+    contents += playgrUpload
   }
 
   val configs = new FlowPanel() {
-    border = BorderFactory.createTitledBorder("Congiguration")
+    border = BorderFactory.createTitledBorder("Configuration")
     contents += leftColumn
     contents += rightColumn
   }
@@ -71,7 +84,7 @@ class NewGameDialog extends Dialog {
     layout(mainArea) = BorderPanel.Position.Center
     layout(buttons) = BorderPanel.Position.South
   }
-  
+
   listenTo(cancelBtn)
   listenTo(okBtn)
   reactions += {
@@ -88,19 +101,20 @@ class NewGameDialog extends Dialog {
       dispose()
   }
 
-  def show(): Option[NewGameConfig] = {
+  def show(): Option[GameConfig] = {
     centerOnScreen()
     visible = true
     if (submitted) {
-      Some(NewGameConfig.createNew(playgrUpload.file, configUpload.file, players.getPlayersInfo()))
+      Some(GameConfig.createNew(playgrUpload.file, configUpload.file, players.getPlayersInfo()))
     } else {
       None
     }
   }
 
+  /**
+   * Represents edit line (file path) and button that can be used to load file/dir name.
+   */
   class SelectFileLine extends BoxPanel(Orientation.Horizontal) {
-    var file: File = _
-    
     val path = new TextField() {
       columns = 30
     }
@@ -112,42 +126,86 @@ class NewGameDialog extends Dialog {
     listenTo(btn)
     reactions += {
       case ButtonClicked(`btn`) =>
-        val fileChooser = new FileChooser()
+        val fileChooser = new FileChooser(NewGameSettings.lastOpenedDir)
         //fileChooser.fileFilter = xmlFileFilter
         val res = fileChooser.showOpenDialog(this)
         if (res == FileChooser.Result.Approve) {
-          file = fileChooser.selectedFile
-          path.text = file.getAbsolutePath()
+          path.text = fileChooser.selectedFile.getAbsolutePath()
+          NewGameSettings.lastOpenedDir = fileChooser.selectedFile.getParentFile()
         }
+    }
+
+    def file: File = {
+      new File(path.text)
     }
   }
 
   class PlayersConfigView extends ScrollPane {
-    var playersList: List[NewPlayerView] = List()
+    private var playersList: List[PlayerView] = List()
     val addPlayerBtn = new Button("Add Player")
     val loadPlayersBtn = new Button("Load players")
-
     val playersView = new BoxPanel(Orientation.Vertical)
 
-    def getPlayersInfo(): List[NewPlayerInfo] = {
-      for (playerView <- playersList)
-        yield new NewPlayerInfo(playerView.getName(), playerView.getJarFile(), playerView.getStrategyClass())
-        
-    }
     listenTo(addPlayerBtn)
     listenTo(loadPlayersBtn)
     contents = new BorderPanel {
       layout(playersView) = BorderPanel.Position.Center
       border = BorderFactory.createTitledBorder("Players")
     }
-    update()
+    
     reactions += {
       case ButtonClicked(`addPlayerBtn`) =>
-        addEmptyPlayer()
+        addEmptyPlayerView()
+
+      case ButtonClicked(`loadPlayersBtn`) =>
+        addPlayersFromFile()
+    }
+    update()
+    
+    def getPlayersInfo(): List[PlayerInfo] = {
+      for (playerView <- playersList)
+        yield new PlayerInfo(playerView.getName(), playerView.getJarFile(), playerView.getStrategyClass())
     }
 
-    def addEmptyPlayer(): Unit = {
-      playersList ::= new NewPlayerView()
+    /**
+     * Shows an open dialog, lets user select a file with players configs and shows the parsed players in UI.
+     */
+    def addPlayersFromFile(): Unit = {
+      import scala.collection.JavaConversions._
+      val fileChooser = new FileChooser(NewGameSettings.lastOpenedDir)
+      val dialogRes = fileChooser.showOpenDialog(this)
+      if (dialogRes == FileChooser.Result.Approve) {
+        NewGameSettings.lastOpenedDir = fileChooser.selectedFile.getParentFile()
+        val props = new java.util.Properties()
+        props.load(new FileInputStream(fileChooser.selectedFile))
+        for (playerName <- props.keySet()) {
+          val value = props.getProperty(playerName.asInstanceOf[String])
+          val strs = value.split("@")
+          if (strs.size != 2) {
+            throw new RuntimeException("Can't parse following player definition: " + value)
+          }
+          // cut off the 'file://' prefix if present
+          val filePath = 
+            if (strs(1).startsWith("file://"))
+              strs(1).substring(7)
+            else
+              strs(1)
+          addPlayerView(playerName.asInstanceOf[String], strs(0), filePath)
+        }
+        update()
+      }
+    }
+    
+    def addPlayerView(name: String, clazz: String, path: String) = {
+      val playerView = new PlayerView(this)
+      playerView.nameField.text = name
+      playerView.strategyClassField.text = clazz
+      playerView.jarFileLine.path.text = path
+      playersList ::= playerView
+    }
+
+    def addEmptyPlayerView(): Unit = {
+      playersList ::= new PlayerView(this)
       update()
     }
 
@@ -164,19 +222,29 @@ class NewGameDialog extends Dialog {
       }
       pack()
     }
+    
+    def removePlayerView(playerView: PlayerView): Unit = {
+      playersList = playersList.filter(_ != playerView)
+      update()
+    }
   }
 
-  class NewPlayerView extends FlowPanel(FlowPanel.Alignment.Left)() {
+  /**
+   * Represents an UI component that holds  information about a player.
+   * 
+   * Player's name, strategy jar/dir location and strategy class are stored.
+   */
+  class PlayerView(val parent: PlayersConfigView) extends FlowPanel(FlowPanel.Alignment.Left)() {
     val deleteBtn = new Button("Delete")
     val nameField = new TextField("") {
-            columns = 10
-          }
+      columns = 10
+    }
     val jarFileLine = new SelectFileLine()
     val strategyClassField = new TextField("") {
-          columns = 40
-        }
-    
-    border = BorderFactory.createLineBorder(Color.black);
+      columns = 40
+    }
+
+    border = BorderFactory.createLineBorder(Color.black)
     contents += new BoxPanel(Orientation.Vertical) {
       contents += new BoxPanel(Orientation.Horizontal) {
         contents += new FlowPanel(FlowPanel.Alignment.Left)() {
@@ -188,20 +256,32 @@ class NewGameDialog extends Dialog {
       peer.add(Box.createVerticalStrut(5))
       contents += new BoxPanel(Orientation.Horizontal) {
         peer.add(Box.createHorizontalStrut(30))
-        contents += new Label("Strategy jar ")
+        contents += new Label("Strategy jar/dir ")
         contents += jarFileLine
       }
       peer.add(Box.createVerticalStrut(5))
       contents += new BoxPanel(Orientation.Horizontal) {
         peer.add(Box.createHorizontalStrut(30))
-        contents += new Label("Strategy classs ")
+        contents += new Label("Strategy class  ")
         contents += strategyClassField
       }
     }
     listenTo(deleteBtn)
     
+    reactions += {
+      case ButtonClicked(`deleteBtn`) =>
+        parent.removePlayerView(this)
+    }
+
     def getName(): String = nameField.text
     def getJarFile(): File = jarFileLine.file
     def getStrategyClass(): String = strategyClassField.text
   }
+}
+
+/**
+ * Global settings shared between various UI components in the {@link NewGameDialog}.
+ */
+object NewGameSettings {
+  var lastOpenedDir: File = new File(System.getProperty("user.dir"))
 }

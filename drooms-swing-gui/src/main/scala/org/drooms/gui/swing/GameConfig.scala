@@ -12,7 +12,7 @@ import org.drooms.impl.util.properties.GameProperties
 /**
  * Holds the configuration needed for new Drooms game.
  */
-case class NewGameConfig(
+case class GameConfig(
     val playground: org.drooms.api.Playground,
     val gameProperties: org.drooms.impl.util.properties.GameProperties,
     val players: java.util.List[org.drooms.api.Player]) {
@@ -37,8 +37,8 @@ case class NewGameConfig(
   }
 }
 
-object NewGameConfig {
-  def createNew(playgroundFile: File, gameConfigFile: File, playersInfo: List[NewPlayerInfo]): NewGameConfig = {
+object GameConfig {
+  def createNew(playgroundFile: File, gameConfigFile: File, playersInfo: List[PlayerInfo]): GameConfig = {
     val playground = DefaultPlayground.read(playgroundFile.getName(), new FileInputStream(playgroundFile))
     val playersFile = File.createTempFile("droom-swing-gui", "players")
     playersFile.deleteOnExit()
@@ -56,10 +56,10 @@ object NewGameConfig {
     createNew(playground, gameConfig, players)
   }
 
-  def createNew(playground: org.drooms.api.Playground, gameConfig: org.drooms.impl.util.properties.GameProperties,
-    players: java.util.List[org.drooms.api.Player]): NewGameConfig = {
-    new NewGameConfig(playground, gameConfig, players)
+  def createNew(playground: org.drooms.api.Playground, gameConfig: org.drooms.impl.util.properties.GameProperties, 
+    players: java.util.List[org.drooms.api.Player]): GameConfig = {
+    new GameConfig(playground, gameConfig, players)
   }
 }
 
-case class NewPlayerInfo(val name: String, val jar: File, val strategyClass: String)
+case class PlayerInfo(val name: String, val jar: File, val strategyClass: String)

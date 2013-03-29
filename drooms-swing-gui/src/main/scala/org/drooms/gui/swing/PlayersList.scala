@@ -1,19 +1,17 @@
 package org.drooms.gui.swing
 
 import java.awt.Color
-
 import scala.swing.Alignment
 import scala.swing.BorderPanel
 import scala.swing.Component
 import scala.swing.Label
 import scala.swing.ListView
 import scala.swing.ListView.Renderer
-
 import org.drooms.gui.swing.event.EventBusFactory
 import org.drooms.gui.swing.event.GoToTurnState
 import org.drooms.gui.swing.event.TurnStepPerformed
-
 import javax.swing.BorderFactory
+import org.drooms.gui.swing.event.NewUIComponentsRequested
 
 /**
  * Utility class used for creating {@link PlayersList}s.
@@ -109,6 +107,8 @@ class PlayersList(val players: List[Player], val colors: PlayerColors) {
     new PlayersList(players.map(p =>
       new Player(p.name, 0, p.color)).toList, colors)
   }
+
+  override def toString(): String = players.toString()
 }
 
 class PlayersListView(var playersList: PlayersList) extends BorderPanel {
@@ -116,6 +116,7 @@ class PlayersListView(var playersList: PlayersList) extends BorderPanel {
   val playersListView = new ListView(playersList.players) {
     renderer = new PlayersListRenderer
   }
+
   listenTo(eventBus)
 
   reactions += {
@@ -135,6 +136,10 @@ class PlayersListView(var playersList: PlayersList) extends BorderPanel {
     case GoToTurnState(_, state) =>
       playersList = playersList.updateScores(state.playersScore)
       update()
+      
+    case NewUIComponentsRequested =>
+      eventBus.deafTo(this)
+      deafTo(eventBus)
   }
 
   createUIContents()
