@@ -16,8 +16,8 @@ import org.drooms.api.Move;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
-import org.drooms.impl.util.properties.GameProperties;
-import org.drooms.impl.util.properties.GameProperties.CollectibleType;
+import org.drooms.impl.util.GameProperties;
+import org.drooms.impl.util.GameProperties.CollectibleType;
 
 /**
  * On top of the rules implemented by {@link GameController}, this game

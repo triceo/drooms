@@ -33,7 +33,7 @@ import org.drooms.impl.logic.commands.DeactivatePlayerCommand;
 import org.drooms.impl.logic.commands.MovePlayerCommand;
 import org.drooms.impl.logic.commands.RemoveCollectibleCommand;
 import org.drooms.impl.logic.commands.RewardSurvivalCommand;
-import org.drooms.impl.util.properties.GameProperties;
+import org.drooms.impl.util.GameProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

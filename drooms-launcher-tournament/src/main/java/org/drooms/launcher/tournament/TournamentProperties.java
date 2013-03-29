@@ -15,7 +15,7 @@ import org.drooms.api.Player;
 import org.drooms.api.Playground;
 import org.drooms.impl.DefaultPlayground;
 import org.drooms.impl.util.PlayerAssembly;
-import org.drooms.impl.util.properties.CommonProperties;
+import org.drooms.util.CommonProperties;
 
 /**
  * Prepares the tournament properties by reading them from a property file.

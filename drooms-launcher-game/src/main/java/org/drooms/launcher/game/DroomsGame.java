@@ -1,4 +1,4 @@
-package org.drooms.impl;
+package org.drooms.launcher.game;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,8 +18,9 @@ import org.drooms.api.Game;
 import org.drooms.api.GameProgressListener;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
+import org.drooms.impl.DefaultGame;
+import org.drooms.impl.DefaultPlayground;
 import org.drooms.impl.util.PlayerAssembly;
-import org.drooms.impl.util.cli.GameCLI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

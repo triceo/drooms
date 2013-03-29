@@ -1,4 +1,4 @@
-package org.drooms.impl.util.properties;
+package org.drooms.util;
 
 import java.io.File;
 import java.io.FileInputStream;

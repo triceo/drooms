@@ -1,4 +1,4 @@
-package org.drooms.impl.util.properties;
+package org.drooms.impl.util;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,6 +10,7 @@ import java.util.Properties;
 
 import org.drooms.api.Player;
 import org.drooms.api.Strategy;
+import org.drooms.util.CommonProperties;
 
 /**
  * Prepares the game properties by reading them from a property file.

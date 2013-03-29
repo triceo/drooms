@@ -12,12 +12,13 @@ import org.drooms.api.Move;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
+import org.drooms.impl.util.GameProperties;
 import org.drooms.impl.util.XmlUtil;
-import org.drooms.impl.util.properties.GameProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class XmlProgressListener implements GameProgressListener {
+
     private static Logger logger = LoggerFactory.getLogger(XmlProgressListener.class);
 
     private static String collectibleXml(final Collectible c) {

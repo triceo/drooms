@@ -35,7 +35,7 @@ import org.drooms.impl.logic.facts.Wall;
 import org.drooms.impl.logic.facts.Worm;
 import org.drooms.impl.util.DroomsKnowledgeSessionValidator;
 import org.drooms.impl.util.DroomsTestHelper;
-import org.drooms.impl.util.properties.GameProperties;
+import org.drooms.impl.util.GameProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,43 +44,34 @@ import org.slf4j.LoggerFactory;
  * and maintains Drools engine's state for each particular player.
  * 
  * <p>
- * When asked (see {@link #decideNextMove()}), the strategy should make a
- * decision on the next move, based on the current state of the working memory.
- * This decision should be sent over the provided 'decision' channel. If not
- * sent, it will default to STAY. See {@link Move} for the various types of
- * decisions.
+ * When asked (see {@link #decideNextMove()}), the strategy should make a decision on the next move, based on the
+ * current state of the working memory. This decision should be sent over the provided 'decision' channel. If not sent,
+ * it will default to STAY. See {@link Move} for the various types of decisions.
  * </p>
  * <p>
  * This class enforces the following requirements on the strategies:
  * </p>
  * 
  * <ul>
- * <li>'gameEvents' entry point must be declared, where the events not directly
- * related to player actions will be sent. These events are
- * {@link CollectibleAdditionEvent} and {@link CollectibleRemovalEvent}.</li>
- * <li>'playerEvents' entry point must be declared, where the player-caused
- * events will be sent. These events are {@link PlayerMoveEvent} and
- * {@link PlayerDeathEvent}.</li>
- * <li>'rewardEvents' entry point must be declared, where the reward events will
- * be sent. These events are {@link CollectibleRewardEvent} and
- * {@link SurvivalRewardEvent}.</li>
+ * <li>'gameEvents' entry point must be declared, where the events not directly related to player actions will be sent.
+ * These events are {@link CollectibleAdditionEvent} and {@link CollectibleRemovalEvent}.</li>
+ * <li>'playerEvents' entry point must be declared, where the player-caused events will be sent. These events are
+ * {@link PlayerMoveEvent} and {@link PlayerDeathEvent}.</li>
+ * <li>'rewardEvents' entry point must be declared, where the reward events will be sent. These events are
+ * {@link CollectibleRewardEvent} and {@link SurvivalRewardEvent}.</li>
  * </ul>
  * 
  * <p>
- * This class provides the following Drools globals, if declared in the
- * strategy:
+ * This class provides the following Drools globals, if declared in the strategy:
  * </p>
  * 
  * <ul>
- * <li>'logger' implementation of the {@link Logger} interface, to use for
- * logging from within the rules.</li>
- * <li>'tracker' instance of the {@link PathTracker}, to facilitate path-finding
- * in the rules.</li>
+ * <li>'logger' implementation of the {@link Logger} interface, to use for logging from within the rules.</li>
+ * <li>'tracker' instance of the {@link PathTracker}, to facilitate path-finding in the rules.</li>
  * </ul>
  * 
  * <p>
- * Your strategies can be validated for all these - just make your tests extend
- * {@link DroomsTestHelper}.
+ * Your strategies can be validated for all these - just make your tests extend {@link DroomsTestHelper}.
  * </p>
  * 
  * <p>
@@ -88,13 +79,12 @@ import org.slf4j.LoggerFactory;
  * </p>
  * 
  * <ul>
- * <li>{@link GameProperty}, many. Will never change or be removed. For the
- * various types of properties supported, see {@link GameProperty.Name}.</li>
+ * <li>{@link GameProperty}, many. Will never change or be removed. For the various types of properties supported, see
+ * {@link GameProperty.Name}.</li>
  * <li>{@link CurrentPlayer}, once. Will never change or be removed.</li>
  * <li>{@link CurrentTurn}, once. Will change with every turn.</li>
  * <li>{@link Wall}, many. Will remain constant over the whole game.</li>
- * <li>{@link Worm}, many. Will be added and removed as the worms will move, but
- * never modified.</li>
+ * <li>{@link Worm}, many. Will be added and removed as the worms will move, but never modified.</li>
  * </ul>
  * 
  */
@@ -192,11 +182,11 @@ public class DecisionMaker implements Channel {
      */
     public Move decideNextMove() {
         this.validate();
-        DecisionMaker.LOGGER.trace("Player {} advancing time. ", new Object[] { this.player.getName() });
+        DecisionMaker.LOGGER.trace("Player {} advancing time. ", new Object[]{this.player.getName()});
         final SessionPseudoClock clock = this.session.getSessionClock();
         clock.advanceTime(1, TimeUnit.MINUTES);
         // decide
-        DecisionMaker.LOGGER.trace("Player {} deciding. ", new Object[] { this.player.getName() });
+        DecisionMaker.LOGGER.trace("Player {} deciding. ", new Object[]{this.player.getName()});
         this.latestDecision = null;
         this.session.fireAllRules();
         // increase turn number
@@ -285,13 +275,13 @@ public class DecisionMaker implements Channel {
         this.validate();
         if (object instanceof Move) {
             if (this.latestDecision != null) {
-                DecisionMaker.LOGGER.debug("Player {} has changed the decision from {} to {}.", new Object[] {
-                        this.player.getName(), this.latestDecision, object });
+                DecisionMaker.LOGGER.debug("Player {} has changed the decision from {} to {}.", new Object[]{
+                        this.player.getName(), this.latestDecision, object});
             }
             this.latestDecision = (Move) object;
         } else {
-            DecisionMaker.LOGGER.warn("Player {} indicated an invalid move {}.", new Object[] { this.player.getName(),
-                    this.latestDecision });
+            DecisionMaker.LOGGER.warn("Player {} indicated an invalid move {}.", new Object[]{this.player.getName(),
+                    this.latestDecision});
         }
     }
 
@@ -304,10 +294,10 @@ public class DecisionMaker implements Channel {
      */
     public boolean terminate() {
         if (this.isDisposed) {
-            DecisionMaker.LOGGER.warn("Player {} already terminated.", new Object[] { this.player.getName() });
+            DecisionMaker.LOGGER.warn("Player {} already terminated.", new Object[]{this.player.getName()});
             return false;
         } else {
-            DecisionMaker.LOGGER.info("Terminating player {}.", new Object[] { this.player.getName() });
+            DecisionMaker.LOGGER.info("Terminating player {}.", new Object[]{this.player.getName()});
             if (this.sessionAudit != null) {
                 this.sessionAudit.close();
             }
