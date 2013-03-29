@@ -39,8 +39,10 @@ class ReplayController(
 
   def getCurrentTurnState(): TurnState = getTurnState(currentTurnNumber)
   
-  def addTurn(turn: GameTurn): Unit =
+  def addTurn(turn: GameTurn, state: TurnState): Unit = {
     turns = turns ::: List(turn)
+    turnStates = turnStates ::: List(state)
+  }
   /**
    * Returns next game turn. Each {@link GameTurn} is represented as set of {@link TurnStep}s that
    * should be performed within that turn. Current turn number is incrementing within this method.

@@ -36,33 +36,11 @@ class GameReport(
     //turnsStates ::= initState
     var prevState = initState
     for (turn <- turns) {
-      val newState = new TurnState(updatePlaygroundModel(turn, prevState.playgroundModel), updatePlayers(turn, prevState.playersScore))
+      val newState = TurnState.updateState(prevState, turn)
       turnsStates ::= newState
       prevState = newState
     }
     turnsStates.reverse
-  }
-
-  private def updatePlaygroundModel(turn: GameTurn, model: PlaygroundModel): PlaygroundModel = {
-    val newModel = model.clone()
-    for (step <- turn.steps) {
-      newModel.update(step)
-    }
-    newModel
-  }
-
-  private def updatePlayers(turn: GameTurn, players: Map[String, Int]): Map[String, Int] = {
-    var newPlayers = players
-    for (step <- turn.steps) {
-      step match {
-        case WormSurvived(playerName, points) =>
-          newPlayers = newPlayers.updated(playerName, newPlayers(playerName) + points)
-        case CollectibleCollected(playerName, collectible) =>
-          newPlayers = newPlayers.updated(playerName, newPlayers(playerName) + collectible.points)
-        case _ =>
-      }
-    }
-    newPlayers
   }
 }
 

@@ -1,7 +1,6 @@
 package org.drooms.gui.swing
 
 import java.awt.Font
-import java.io.File
 import scala.swing.Action
 import scala.swing.BorderPanel
 import scala.swing.BoxPanel
@@ -19,8 +18,12 @@ import org.drooms.gui.swing.event.AfterNewReportChosen
 import org.drooms.gui.swing.event.BeforeNewReportChosen
 import org.drooms.gui.swing.event.EventBus
 import org.drooms.gui.swing.event.EventBusFactory
+import org.drooms.gui.swing.event.GameStateChangeRequested
+import org.drooms.gui.swing.event.GameStateChangeRequested
+import org.drooms.gui.swing.event.GameStateChanged
 import org.drooms.gui.swing.event.GoToTurn
-import org.drooms.gui.swing.event.NextTurnAvailable
+import org.drooms.gui.swing.event.NewGameCreated
+import org.drooms.gui.swing.event.NewTurnAvailable
 import org.drooms.gui.swing.event.NextTurnInitiated
 import org.drooms.gui.swing.event.NextTurnPerformed
 import org.drooms.gui.swing.event.PreviousTurnRequested
@@ -29,10 +32,9 @@ import org.drooms.gui.swing.event.ReplayResetRequested
 import org.drooms.gui.swing.event.ReplayStateChangeRequested
 import org.drooms.gui.swing.event.ReplayStateChanged
 import org.drooms.gui.swing.event.TurnDelayChanged
-import org.drooms.gui.swing.event.NewGameCreated
-import org.drooms.gui.swing.event.GameStateChanged
-import org.drooms.gui.swing.event.GameStateChangeRequested
-import org.drooms.gui.swing.event.GameStateChangeRequested
+import org.drooms.gui.swing.event.NewUIComponentsRequested
+import org.drooms.gui.swing.event.GameRestartRequested
+import org.drooms.gui.swing.event.ReplayStateChanged
 
 /**
  * Control panel with controls used for replay.
@@ -40,7 +42,7 @@ import org.drooms.gui.swing.event.GameStateChangeRequested
 class ReplayControlPanel(eventBus: EventBus) extends ControlPanel(eventBus) {
   private var replayState: ReplayState = ReplayNotStarted
 
-  private var gameInitialized = false
+  private var replayInitialized = false
   /* 
    * Need to track current turn number because of turn slider. If the value is set directly via code 
    * (e.g. to sync up when next turn is performed) the ValueChanged is invoked and the change is published again
@@ -59,6 +61,8 @@ class ReplayControlPanel(eventBus: EventBus) extends ControlPanel(eventBus) {
         ReplayStateChangeRequested(ReplayPaused)
       case ReplayPaused =>
         ReplayStateChangeRequested(ReplayRunning)
+      case ReplayFinished =>
+        ReplayStateChanged(ReplayRunning)
     }
     eventBus.publish(event)
   }) {
@@ -115,24 +119,23 @@ class ReplayControlPanel(eventBus: EventBus) extends ControlPanel(eventBus) {
   }
 
   listenTo(intervalSlider)
-  listenTo(eventBus)
   listenTo(currTurnText)
   listenTo(turnSlider)
 
   reactions += {
-    case AfterNewReportChosen => gameInitialized = true
-    case BeforeNewReportChosen => gameInitialized = false
+    case AfterNewReportChosen => replayInitialized = true
+    case BeforeNewReportChosen => replayInitialized = false
 
     case ValueChanged(`intervalSlider`) =>
       eventBus.publish(TurnDelayChanged(intervalSlider.value))
 
     case ValueChanged(`turnSlider`) =>
-      if (turnSlider.value != currentTurnNo && gameInitialized)
+      if (turnSlider.value != currentTurnNo && replayInitialized)
         eventBus.publish(GoToTurn(turnSlider.value))
 
     case EditDone(`currTurnText`) =>
       eventBus.publish(GoToTurn(currTurnText.text.toInt))
-  
+
     // GUI was created and is ready to accept users actions
     case ReplayInitialized(report) =>
       nextTurnBtn.enabled = true
@@ -149,18 +152,24 @@ class ReplayControlPanel(eventBus: EventBus) extends ControlPanel(eventBus) {
           restartBtn.enabled = false
           prevTurnBtn.enabled = false
           nextTurnBtn.enabled = false
-        
+
         case _ =>
           restartBtn.enabled = true
           prevTurnBtn.enabled = true
-          //nextTurnBtn.enabled = false
+        //nextTurnBtn.enabled = false
       }
       currentTurnNo = turnNo
       currTurnText.text = turnNo + ""
       turnSlider.value = turnNo
 
-    case NextTurnAvailable =>
-      nextTurnBtn.enabled = true
+    case NewTurnAvailable(_, _) =>
+      replayInitialized = true
+      replayState match {
+        case ReplayRunning =>
+        case _ =>
+          nextTurnBtn.enabled = true
+      }
+      replayBtn.enabled = true
 
     case ReplayStateChanged(newState) => {
       newState match {
@@ -209,7 +218,7 @@ class ReplayControlPanel(eventBus: EventBus) extends ControlPanel(eventBus) {
       replayBtn.text = "Continue"
       restartBtn.enabled = true
   }
-  
+
   layout(rightBtns) = BorderPanel.Position.East
   layout(new BoxPanel(Orientation.Horizontal) {
     contents += new Label("Turn delay ")
@@ -222,7 +231,7 @@ class ReplayControlPanel(eventBus: EventBus) extends ControlPanel(eventBus) {
  */
 class RealTimeGameControlPanel(eventBus: EventBus) extends ControlPanel(eventBus) {
   var gameState: GameState = GameNotStarted
-  
+
   val startPauseBtn = new Button(Action("Start game") {
     val toState = gameState match {
       case GameNotStarted | GamePaused =>
@@ -234,35 +243,42 @@ class RealTimeGameControlPanel(eventBus: EventBus) extends ControlPanel(eventBus
   }) {
     enabled = false
   }
-  
+
   val restartBtn = new Button(Action("Restart game") {
-    eventBus.publish(GameStateChangeRequested(GameNotStarted))
-  }){
+    eventBus.publish(GameRestartRequested)
+  }) {
     enabled = false
   }
   val btnsPanel = new FlowPanel {
     contents += startPauseBtn
     contents += restartBtn
   }
-  listenTo(eventBus)
-  
+
   reactions += {
     case NewGameCreated(config) =>
       startPauseBtn.enabled = true
       startPauseBtn.text = "Start game"
       restartBtn.enabled = false
-      
+
     case GameStateChanged(newState) =>
       newState match {
-        case GameRunning =>
+        case GameNotStarted =>
           startPauseBtn.enabled = true
-          startPauseBtn.text = "Pause game"
+          startPauseBtn.text = "Start game"
+          restartBtn.enabled = false
+
+        case GameRunning =>
+          startPauseBtn.enabled = false
+          //startPauseBtn.text = "Pause game"
           restartBtn.enabled = true
-          
+
         case GamePaused =>
           startPauseBtn.enabled = true
           startPauseBtn.text = "Continue game"
           restartBtn.enabled = true
+
+        case GameFinished =>
+          startPauseBtn.enabled = false
       }
       gameState = newState
   }
@@ -276,7 +292,7 @@ object ControlPanel {
   def newReplayControlPanel(): ControlPanel = {
     new ReplayControlPanel(EventBusFactory.get())
   }
-  
+
   def newRealTimeGameControlPanel(): ControlPanel = {
     new RealTimeGameControlPanel(EventBusFactory.get())
   }
@@ -285,4 +301,11 @@ object ControlPanel {
 /**
  * Control panel located at the bottom of the window
  */
-class ControlPanel(val eventBus: EventBus) extends BorderPanel with Reactor with Publisher
+class ControlPanel(val eventBus: EventBus) extends BorderPanel with Reactor with Publisher {
+  listenTo(eventBus)
+  reactions += {
+    case NewUIComponentsRequested =>
+      eventBus.deafTo(this)
+      deafTo(eventBus)
+  }
+}

@@ -23,7 +23,7 @@ object RealTimeGameController extends Logging {
   /**
    * Creates new real-time game controller based on the specified configuration.
    */
-  def createNew(gameConfig: NewGameConfig): RealTimeGameController = {
+  def createNew(gameConfig: GameConfig): RealTimeGameController = {
     val reportDir = new File("reports")
 
     new RealTimeGameController(classOf[org.drooms.impl.DefaultGame], reportDir, gameConfig.playground, gameConfig.players, gameConfig.gameProperties)
@@ -48,7 +48,7 @@ class RealTimeGameController(
   val players: java.util.List[org.drooms.api.Player],
   /** Game configuration */
   val gameProperties: org.drooms.impl.util.properties.GameProperties)
-  
+
   extends org.drooms.api.GameProgressListener with Logging {
 
   val eventBus = EventBusFactory.get()
@@ -57,8 +57,27 @@ class RealTimeGameController(
    * Turn steps for the current not finished {@link Turn}. These step are gathered from background {@link Game} thread
    * based on the incoming events.
    */
-  @volatile
   private var currentTurnSteps = List[TurnStep]()
+  private val initialTurnState = createInitialState()
+  private var currentTurnState: TurnState = initialTurnState 
+
+  def createInitialState(): TurnState = {
+    val playgroundWidth = playground.getWidth()
+    val playgroundHeight = playground.getHeight()
+    val playgroundEmptyNodes =
+      (for (
+        x <- 0 until playgroundWidth;
+        y <- 0 until playgroundHeight;
+        if (playground.isAvailable(x, y))
+      ) yield Node(x, y)).toSet
+    val initialPlayground = new PlaygroundModel(playgroundWidth, playgroundHeight, EventBusFactory.getNoOp())
+    initialPlayground.emptyNodes(playgroundEmptyNodes)
+    //initialPlayground.initWorms(wormInitPositions)
+    import scala.collection.JavaConversions._
+    val initPlayers = players.map(_.getName() -> 0).toMap
+    new TurnState(initialPlayground, initPlayers)
+  }
+
   /** List of completed turns. */
   @volatile
   private var finished = false
@@ -87,9 +106,9 @@ class RealTimeGameController(
   }
 
   def pauseGame(): Unit = {
-    
+
   }
-  
+
   def restartGame(): Unit = {
     logger.info("Restarting game...")
     stopGame()
@@ -100,6 +119,7 @@ class RealTimeGameController(
     logger.info("Stopping game...")
     gameThread.stop()
     currentTurnNumber = 0
+    currentTurnState = initialTurnState
   }
 
   /**
@@ -111,7 +131,7 @@ class RealTimeGameController(
    *
    */
   def hasNextTurn(): Boolean = !finished
-  
+
   def isGameFinished(): Boolean = finished
   /////////////////////////////////////////////////////////////////////////////
   // GameProgressListener methods
@@ -132,7 +152,7 @@ class RealTimeGameController(
   private def createCollectible(c: org.drooms.api.Collectible, where: org.drooms.api.Node): Collectible = {
     new Collectible(Node(where.getX(), where.getY()), c.expiresInTurn(), c.getPoints())
   }
-  
+
   /**
    * Called from the background running {@link org.drooms.api.Game} before the start of the next turn.
    *
@@ -144,9 +164,11 @@ class RealTimeGameController(
     logger.debug(s"New turn number ${currentTurnNumber} available")
     currentTurnNumber += 1
     currentTurnSteps = List()
+    val newTurnState = TurnState.updateState(currentTurnState, newTurn)
+    currentTurnState = newTurnState
     SwingUtilities.invokeAndWait(new Runnable() {
       def run(): Unit = {
-        eventBus.publish(NewTurnAvailable(newTurn))
+        eventBus.publish(NewTurnAvailable(newTurn, newTurnState))
       }
     })
   }

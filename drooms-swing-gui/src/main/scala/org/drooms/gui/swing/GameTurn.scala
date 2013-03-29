@@ -45,3 +45,23 @@ case class CollectibleRemoved(val collectible: Collectible) extends TurnStep
  * Turn state for turn 0 is the playground and players state _after_ the turn 0 was performed (e.g. before turn 1 is initiated)
  */
 case class TurnState(val playgroundModel: PlaygroundModel, val playersScore: Map[String, Int])
+
+object TurnState {
+  def updateState(state: TurnState, turn: GameTurn): TurnState = {
+    new TurnState(state.playgroundModel.update(turn), updatePlayers(turn, state.playersScore))
+  }
+  
+  private def updatePlayers(turn: GameTurn, players: Map[String, Int]): Map[String, Int] = {
+    var newPlayers = players
+    for (step <- turn.steps) {
+      step match {
+        case WormSurvived(playerName, points) =>
+          newPlayers = newPlayers.updated(playerName, newPlayers(playerName) + points)
+        case CollectibleCollected(playerName, collectible) =>
+          newPlayers = newPlayers.updated(playerName, newPlayers(playerName) + collectible.points)
+        case _ =>
+      }
+    }
+    newPlayers
+  }
+}

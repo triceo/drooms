@@ -40,6 +40,14 @@ case class PlaygroundModel(val width: Int, val height: Int, var positions: Array
   def emptyNodes(nodesToEmpty: Iterable[Node]) = {
     nodesToEmpty.foreach(node => updatePosition(Empty(node)))
   }
+  
+  def update(turn: GameTurn): PlaygroundModel = {
+    val newModel = this.clone()
+    for (step <- turn.steps) {
+      newModel.update(step)
+    }
+    newModel
+  }
 
   override def clone(): PlaygroundModel = {
     val newPoss = Array.ofDim[Position](width, height)
