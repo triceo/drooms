@@ -1,6 +1,8 @@
 package org.drooms.impl;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.security.SecureRandom;
 import java.util.Collection;
 import java.util.Collections;
@@ -362,11 +364,12 @@ public abstract class GameController implements Game {
      * 
      */
     @Override
-    public void setContext(final Object context) {
-        if (!(context instanceof GameProperties)) {
-            throw new IllegalArgumentException("Context must be instanceof " + GameProperties.class);
+    public void setContext(final InputStream context) {
+        try {
+            this.gameConfig = GameProperties.read(context);
+        } catch (final IOException ex) {
+            throw new IllegalArgumentException("Failed reading game properties.");
         }
-        this.gameConfig = (GameProperties) context;
     }
 
     private void setPlayerLength(final Player p, final int length) {

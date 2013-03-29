@@ -19,7 +19,6 @@ import org.drooms.api.Playground;
 import org.drooms.impl.util.DroomsTournamentResults;
 import org.drooms.impl.util.TournamentResults;
 import org.drooms.impl.util.cli.TournamentCLI;
-import org.drooms.impl.util.properties.GameProperties;
 import org.drooms.impl.util.properties.TournamentProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +57,7 @@ public class DroomsTournament {
         // prepare a result tracker
         final TournamentResults result = new DroomsTournamentResults(id, players);
         // for each playground...
-        for (final ImmutablePair<Playground, GameProperties> gameConfig : props.getPlaygrounds()) {
+        for (final ImmutablePair<Playground, File> gameConfig : props.getPlaygrounds()) {
             final String playgroundName = gameConfig.getLeft().getName();
             // run N games on the playground
             DroomsTournament.LOGGER.info("Starting games on playground {}.", playgroundName);

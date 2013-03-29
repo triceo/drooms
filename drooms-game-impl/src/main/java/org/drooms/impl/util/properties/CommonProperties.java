@@ -13,12 +13,16 @@ abstract class CommonProperties {
 
     protected static Properties loadPropertiesFromFile(final File f) {
         try (InputStream is = new FileInputStream(f)) {
-            final Properties props = new Properties();
-            props.load(is);
-            return props;
+            return CommonProperties.loadPropertiesFromInputStream(is);
         } catch (final IOException e) {
             throw new IllegalArgumentException("Failed reading properties from file: " + f);
         }
+    }
+
+    protected static Properties loadPropertiesFromInputStream(final InputStream is) throws IOException {
+        final Properties props = new Properties();
+        props.load(is);
+        return props;
     }
 
     private final Properties properties;

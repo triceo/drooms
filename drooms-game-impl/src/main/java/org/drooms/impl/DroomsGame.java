@@ -20,7 +20,6 @@ import org.drooms.api.Player;
 import org.drooms.api.Playground;
 import org.drooms.impl.util.PlayerAssembly;
 import org.drooms.impl.util.cli.GameCLI;
-import org.drooms.impl.util.properties.GameProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,8 +53,7 @@ public class DroomsGame {
             // play and report
             // FIXME configs[0].getName() will return file name with extension
             final DroomsGame d = new DroomsGame(DefaultGame.class, DefaultPlayground.read(configs[0].getName(),
-                    playgroundFile), new PlayerAssembly(configs[2]).assemblePlayers(), GameProperties.read(configs[1]),
-                    reportFolder);
+                    playgroundFile), new PlayerAssembly(configs[2]).assemblePlayers(), configs[1], reportFolder);
             d.play(configs[0].getName());
         } catch (final IOException e) {
             throw new IllegalStateException("Failed reading config files.", e);
@@ -63,7 +61,7 @@ public class DroomsGame {
     }
 
     private final Playground p;
-    private final GameProperties c;
+    private final File c;
     private final Collection<Player> players;
     private final File f;
     private final Class<? extends Game> cls;
@@ -72,7 +70,7 @@ public class DroomsGame {
     private static final Logger LOGGER = LoggerFactory.getLogger(DroomsGame.class);
 
     public DroomsGame(final Class<? extends Game> game, final Playground p, final List<Player> players,
-            final GameProperties gameConfig, final File reportFolder) {
+            final File gameConfig, final File reportFolder) {
         this.c = gameConfig;
         this.p = p;
         this.f = reportFolder;
@@ -95,7 +93,11 @@ public class DroomsGame {
         if (!f.exists()) {
             f.mkdirs();
         }
-        g.setContext(this.c);
+        try (FileInputStream fis = new FileInputStream(this.c)) {
+            g.setContext(fis);
+        } catch (final Exception ex) {
+            throw new IllegalStateException("Cannot read game properties from " + this.c);
+        }
         for (final GameProgressListener listener : this.listeners) {
             g.addListener(listener);
         }

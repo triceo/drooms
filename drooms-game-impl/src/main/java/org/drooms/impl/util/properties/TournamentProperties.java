@@ -26,12 +26,10 @@ import org.drooms.impl.util.PlayerAssembly;
  * 
  * <dl>
  * <dt>game.class</dt>
- * <dd>Which {@link Game} implementation the {@link DroomsTournament} should
- * use. Fully qualified name.</dd>
+ * <dd>Which {@link Game} implementation the {@link DroomsTournament} should use. Fully qualified name.</dd>
  * <dt>players</dt>
- * <dd>Path to the file containing descriptions of the {@link Player}s that will
- * participate in the tournament. See {@link PlayerAssembly}. Relative to the
- * current working directory.</dd>
+ * <dd>Path to the file containing descriptions of the {@link Player}s that will participate in the tournament. See
+ * {@link PlayerAssembly}. Relative to the current working directory.</dd>
  * <dt>playgrounds</dt>
  * <dd>Comma-separated list of playground on which to play the tournament.</dd>
  * </dl>
@@ -42,16 +40,13 @@ import org.drooms.impl.util.PlayerAssembly;
  * 
  * <dl>
  * <dt>runs</dt>
- * <dd>How many times should each playground be played. Number > 0, default
- * value is 1.</dd>
+ * <dd>How many times should each playground be played. Number > 0, default value is 1.</dd>
  * <dt>folder.resources</dt>
- * <dd>Where to load all input files from, relative to the current working
- * directory. If it doesn't exist, it is created. Default value is
- * "src/main/resources".</dd>
+ * <dd>Where to load all input files from, relative to the current working directory. If it doesn't exist, it is
+ * created. Default value is "src/main/resources".</dd>
  * <dt>folder.target</dt>
- * <dd>Where to write all output data, relative to the current working
- * directory. If it doesn't exist, it is created. Default value is
- * "target/drooms".</dd>
+ * <dd>Where to write all output data, relative to the current working directory. If it doesn't exist, it is created.
+ * Default value is "target/drooms".</dd>
  * </dl>
  * 
  * FIXME document player config file format.
@@ -83,7 +78,7 @@ public class TournamentProperties extends CommonProperties {
     private final Class<? extends Game> gameClass;
     private final File resourceFolder;
     private final File targetFolder;
-    private final Collection<ImmutablePair<Playground, GameProperties>> playgrounds;
+    private final Collection<ImmutablePair<Playground, File>> playgrounds;
 
     private final int numberOfRunsPerPlayground;
 
@@ -106,11 +101,10 @@ public class TournamentProperties extends CommonProperties {
         final File playerConfigFile = new File(this.getMandatoryProperty("players"));
         this.players = Collections.unmodifiableList(new PlayerAssembly(playerConfigFile).assemblePlayers());
         // parse the playgrounds
-        final Collection<ImmutablePair<Playground, GameProperties>> playgrounds = new ArrayList<>();
+        final Collection<ImmutablePair<Playground, File>> playgrounds = new ArrayList<>();
         for (final String playgroundName : this.getMandatoryProperty("playgrounds").split("\\Q,\\E")) {
             final Playground playground = TournamentProperties.loadPlayground(this.resourceFolder, playgroundName);
-            final GameProperties props = GameProperties.read(new File(this.resourceFolder, playgroundName + ".cfg"));
-            playgrounds.add(new ImmutablePair<Playground, GameProperties>(playground, props));
+            playgrounds.add(new ImmutablePair<Playground, File>(playground, new File(this.resourceFolder, playgroundName + ".cfg")));
         }
         this.playgrounds = Collections.unmodifiableCollection(playgrounds);
     }
@@ -127,7 +121,7 @@ public class TournamentProperties extends CommonProperties {
         return this.players;
     }
 
-    public Collection<ImmutablePair<Playground, GameProperties>> getPlaygrounds() {
+    public Collection<ImmutablePair<Playground, File>> getPlaygrounds() {
         return this.playgrounds;
     }
 

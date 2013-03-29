@@ -1,6 +1,7 @@
 package org.drooms.api;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.Map;
 
@@ -57,10 +58,8 @@ public interface Game {
      * that the game should use to decide various situations.
      * 
      * @param context
-     *            This is a simple Object, since we don't want to enforce
-     *            anything on the game implementations. Neither we know what to
-     *            enforce.
+     *            Where do we load the game properties from.
      */
-    public void setContext(Object context);
+    public void setContext(InputStream context);
 
 }

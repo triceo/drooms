@@ -1,6 +1,7 @@
 package org.drooms.impl.util.properties;
 
-import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,10 +20,8 @@ import org.drooms.api.Strategy;
  * 
  * <dl>
  * <dt>collectibles</dt>
- * <dd>Which {@link CollectibleType}s exist, as a comma-separated list. Each
- * name in this list will then subsequently require properties
- * 'collectible.expiration.$NAME', 'collectible.price.$NAME' and
- * 'collectible.probability.$NAME'.</dd>
+ * <dd>Which {@link CollectibleType}s exist, as a comma-separated list. Each name in this list will then subsequently
+ * require properties 'collectible.expiration.$NAME', 'collectible.price.$NAME' and 'collectible.probability.$NAME'.</dd>
  * </dl>
  * 
  * <p>
@@ -31,24 +30,19 @@ import org.drooms.api.Strategy;
  * 
  * <dl>
  * <dt>worm.length.start (defaults to 3)</dt>
- * <dd>Length of the worm at the start of the game. Actually, initially each
- * worm will only have a length of 1. But as it first moves its head, the tail
- * of the worm will stay where the head was, until the worm reaches the
- * specified starting length. From then on, the length will be kept constant and
- * only changed upon collecting an item.</dd>
+ * <dd>Length of the worm at the start of the game. Actually, initially each worm will only have a length of 1. But as
+ * it first moves its head, the tail of the worm will stay where the head was, until the worm reaches the specified
+ * starting length. From then on, the length will be kept constant and only changed upon collecting an item.</dd>
  * <dt>worm.max.turns (defaults to 1000)</dt>
  * <dd>Maximum length of the game, in case more than 1 worm keeps on surviving.</dd>
  * <dt>worm.max.inactive.turns (defaults to 3)</dt>
- * <dd>Maximum number of turns of inactivity after which a player may be
- * terminated, if the game decides so.</dd>
+ * <dd>Maximum number of turns of inactivity after which a player may be terminated, if the game decides so.</dd>
  * <dt>worm.timeout.seconds (defaults to 1)</dt>
- * <dd>The maximum amount of time that the {@link Player}'s {@link Strategy} has
- * to make a decision on the next movement of the worm. If it doesn't make it in
- * time, STAY is enforced, potentially leading to the worm being terminated for
+ * <dd>The maximum amount of time that the {@link Player}'s {@link Strategy} has to make a decision on the next movement
+ * of the worm. If it doesn't make it in time, STAY is enforced, potentially leading to the worm being terminated for
  * inactivity.</dd>
  * <dt>worm.survival.bonus (defaults to 5)</dt>
- * <dd>The amount of points that the worm will be awarded upon surviving another
- * worm.</dd>
+ * <dd>The amount of points that the worm will be awarded upon surviving another worm.</dd>
  * </dl>
  */
 public class GameProperties extends CommonProperties {
@@ -86,8 +80,8 @@ public class GameProperties extends CommonProperties {
 
     }
 
-    public static GameProperties read(final File f) {
-        return new GameProperties(CommonProperties.loadPropertiesFromFile(f));
+    public static GameProperties read(final InputStream is) throws IOException {
+        return new GameProperties(CommonProperties.loadPropertiesFromInputStream(is));
     }
 
     private final int startingWormLength;
