@@ -1,4 +1,4 @@
-package org.drooms.impl.util.cli;
+package org.drooms.launcher.tournament;
 
 import java.io.File;
 
@@ -9,7 +9,6 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.drooms.impl.DroomsTournament;
 
 /**
  * Command-line interface for the application. It enforces following options on
@@ -25,17 +24,17 @@ import org.drooms.impl.DroomsTournament;
  * should result in a help message being printed out and the application being
  * terminated.
  */
-public class TournamentCLI implements CommonCLI<File> {
+class CLI {
 
-    private static final TournamentCLI INSTANCE = new TournamentCLI();
+    private static final CLI INSTANCE = new CLI();
 
     /**
      * Return the single instance of this class.
      * 
      * @return The instance.
      */
-    public static TournamentCLI getInstance() {
-        return TournamentCLI.INSTANCE;
+    public static CLI getInstance() {
+        return CLI.INSTANCE;
     }
 
     private final Options options = new Options();
@@ -48,7 +47,7 @@ public class TournamentCLI implements CommonCLI<File> {
     /**
      * The constructor is hidden, as should be with the singleton pattern.
      */
-    private TournamentCLI() {
+    private CLI() {
         this.game.setRequired(true);
         this.options.addOption(this.game);
     }
@@ -57,7 +56,6 @@ public class TournamentCLI implements CommonCLI<File> {
      * Prints a help message, describing the usage of the app from the
      * command-line.
      */
-    @Override
     public void printHelp() {
         if (this.isError) {
             System.out.println(this.errorMessage);
@@ -73,7 +71,6 @@ public class TournamentCLI implements CommonCLI<File> {
      *            The arguments.
      * @return The tournament config to read.
      */
-    @Override
     public File process(final String[] args) {
         this.isError = false;
         final CommandLineParser parser = new GnuParser();

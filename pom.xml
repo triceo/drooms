@@ -33,6 +33,11 @@
       </dependency>
       <dependency>
         <groupId>com.github.triceo.drooms</groupId>
+        <artifactId>drooms-launcher-tournament</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.triceo.drooms</groupId>
         <artifactId>drooms-strategy-random</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -157,6 +162,7 @@
     <module>drooms-game-impl</module>
     <module>drooms-strategy-random</module>
     <module>drooms-swing-gui</module>
+    <module>drooms-launcher-tournament</module>
   </modules>
   <developers>
     <developer>

@@ -1,4 +1,4 @@
-package org.drooms.impl;
+package org.drooms.launcher.tournament;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -16,10 +16,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.drooms.api.Game;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
-import org.drooms.impl.util.DroomsTournamentResults;
-import org.drooms.impl.util.TournamentResults;
-import org.drooms.impl.util.cli.TournamentCLI;
-import org.drooms.impl.util.properties.TournamentProperties;
+import org.drooms.impl.DroomsGame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +31,7 @@ public class DroomsTournament {
 
     public static void main(final String[] args) {
         // load the CLI
-        final TournamentCLI cli = TournamentCLI.getInstance();
+        final CLI cli = CLI.getInstance();
         final File config = cli.process(args);
         if (config == null) {
             cli.printHelp();

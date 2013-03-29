@@ -1,4 +1,4 @@
-package org.drooms.impl.util;
+package org.drooms.launcher.tournament;
 
 import java.io.IOException;
 import java.io.Writer;
