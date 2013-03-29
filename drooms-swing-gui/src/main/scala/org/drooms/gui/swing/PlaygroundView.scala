@@ -75,8 +75,8 @@ class PlaygroundView(var playersList: PlayersList) extends ScrollPane with React
     case GoToTurnState(number, state) =>
       logger.debug(s"Creating new playground table for turn ${number}")
       worms.clear()
-      worms ++= state.playgroundModel.worms
-      val newModel = state.playgroundModel
+      worms ++= state.playgroundModel.worms.clone()
+      val newModel = state.playgroundModel.clone()
       newModel.eventBus = eventBus
       createNew(plwidth, plheight, newModel)
       updateWholeTable()
