@@ -237,7 +237,7 @@ class RealTimeGameControlPanel(eventBus: EventBus) extends ControlPanel(eventBus
       case GameNotStarted | GamePaused =>
         GameRunning
       case GameRunning =>
-        GamePaused
+        GameStopped
     }
     eventBus.publish(GameStateChangeRequested(toState))
   }) {
@@ -268,13 +268,17 @@ class RealTimeGameControlPanel(eventBus: EventBus) extends ControlPanel(eventBus
           restartBtn.enabled = false
 
         case GameRunning =>
-          startPauseBtn.enabled = false
-          //startPauseBtn.text = "Pause game"
+          startPauseBtn.enabled = true
+          startPauseBtn.text = "Stop game"
           restartBtn.enabled = true
 
         case GamePaused =>
           startPauseBtn.enabled = true
           startPauseBtn.text = "Continue game"
+          restartBtn.enabled = true
+
+        case GameStopped =>
+          startPauseBtn.enabled = false
           restartBtn.enabled = true
 
         case GameFinished =>

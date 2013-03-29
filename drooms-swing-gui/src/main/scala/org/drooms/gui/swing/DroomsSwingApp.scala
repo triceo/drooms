@@ -149,6 +149,9 @@ object DroomsSwingApp extends SimpleSwingApplication with Logging {
 
           case GamePaused =>
             gc.pauseGame()
+
+          case GameStopped =>
+            gc.stopGame()
         }
         eventBus.publish(GameStateChanged(toState))
       }
