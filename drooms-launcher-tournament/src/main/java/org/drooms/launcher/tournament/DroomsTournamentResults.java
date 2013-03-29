@@ -4,15 +4,13 @@ import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import org.apache.commons.collections15.MultiMap;
-import org.apache.commons.collections15.multimap.MultiHashMap;
 import org.drooms.api.Player;
 
 public class DroomsTournamentResults extends TournamentResults {
@@ -26,19 +24,17 @@ public class DroomsTournamentResults extends TournamentResults {
     protected List<Collection<Player>> evaluateGame(
             final Collection<Player> players, final GameResults game) {
         // group players by their median results
-        final MultiMap<BigDecimal, Player> grouped = new MultiHashMap<>();
+        final SortedMap<BigDecimal, Collection<Player>> grouped = new TreeMap<>();
         for (final Player p : players) {
-            grouped.put(game.getMedian(p), p);
-        }
-        // order the grouped players
-        final SortedMap<BigDecimal, Collection<Player>> ordered = new TreeMap<>();
-        for (final Entry<BigDecimal, Collection<Player>> entry : grouped
-                .entrySet()) {
-            ordered.put(entry.getKey(), entry.getValue());
+            final BigDecimal key = game.getMedian(p);
+            if (!grouped.containsKey(key)) {
+                grouped.put(key, new HashSet<Player>());
+            }
+            grouped.get(key).add(p);
         }
         // store the results in a reverse order; median biggest to lowest
         final List<Collection<Player>> results = new LinkedList<>(
-                ordered.values());
+                grouped.values());
         Collections.reverse(results);
         return Collections.unmodifiableList(results);
     }
@@ -66,16 +62,15 @@ public class DroomsTournamentResults extends TournamentResults {
             }
         }
         // group players by their results
-        final MultiMap<Long, Player> grouped = new MultiHashMap<>();
+        final SortedMap<Long, Collection<Player>> grouped = new TreeMap<>();
         for (final Player p : players) {
-            grouped.put(points.get(p), p);
+            final long key = points.get(p);
+            if (!grouped.containsKey(key)) {
+                grouped.put(key, new HashSet<Player>());
+            }
+            grouped.get(key).add(p);
         }
-        // order the grouped players
-        final SortedMap<Long, Collection<Player>> ordered = new TreeMap<>();
-        for (final Entry<Long, Collection<Player>> entry : grouped.entrySet()) {
-            ordered.put(entry.getKey(), entry.getValue());
-        }
-        return Collections.unmodifiableSortedMap(ordered);
+        return Collections.unmodifiableSortedMap(grouped);
     }
 
 }
