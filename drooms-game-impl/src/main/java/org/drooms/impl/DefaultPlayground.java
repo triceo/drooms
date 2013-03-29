@@ -11,7 +11,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.io.IOUtils;
 import org.drooms.api.Edge;
 import org.drooms.api.Node;
 import org.drooms.api.Playground;
@@ -20,32 +19,10 @@ import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.Graphs;
 
-public class DefaultPlayground implements Playground {
+class DefaultPlayground implements Playground {
 
     private static final char WALL_SIGN = '#';
     private static final char PLAYER_SIGN = '@';
-
-    /**
-     * Build the playground from an input stream. Each line in that stream
-     * represents one row on the playground. Each '#' in that line represents a
-     * wall node, ' ' represents a node where the worm can move, '@' represents
-     * a possible starting position for a worm. (Starting positions also can be
-     * moved into.) Any other sign, other than a line break, will result in an
-     * exception.
-     * 
-     * @param name
-     *            Name for the new playground.
-     * @param s
-     *            Stream in question.
-     * @return Playground constructed from that stream.
-     * @throws IOException
-     *             In case the stream cannot be read.
-     */
-    public static DefaultPlayground read(final String name, final InputStream s) throws IOException {
-        final List<String> lines = IOUtils.readLines(s);
-        Collections.reverse(lines); // this way, 0,0 is bottom left
-        return new DefaultPlayground(name, lines);
-    }
 
     private final Set<Node> nodes = new HashSet<Node>();
 
@@ -58,7 +35,7 @@ public class DefaultPlayground implements Playground {
     private final int width;
     private final String name;
 
-    private DefaultPlayground(final String name, final List<String> lines) {
+    DefaultPlayground(final String name, final List<String> lines) {
         this.name = name;
         // assemble nodes
         int maxX = Integer.MIN_VALUE;

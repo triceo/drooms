@@ -11,6 +11,31 @@ import java.util.Map;
 public interface Game {
 
     /**
+     * Build the playground from an input stream. Specific instructions on how
+     * to structure this file will come from implementations of this class.
+     * 
+     * @param name
+     *            Name for the new playground.
+     * @param s
+     *            Stream in question.
+     * @return Playground constructed from that stream.
+     */
+    public Playground buildPlayground(final String name, final InputStream source);
+
+    /**
+     * Build the playground from a file. Specific instructions on how
+     * to structure this file will come from implementations of this class.
+     * 
+     * @param name
+     *            Name for the new playground.
+     * @param f
+     *            File in question.
+     * @return Playground constructed from that file.
+     */
+    @Deprecated
+    public Playground buildPlayground(final String name, final File source);
+
+    /**
      * Add a custom listener to the game. Will be used next time {@link #play(Playground, Collection, File)} is called.
      * 
      * @param listener

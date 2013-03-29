@@ -1,6 +1,7 @@
 package org.drooms.impl;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.SecureRandom;
@@ -17,6 +18,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.commons.io.IOUtils;
 import org.drooms.api.Collectible;
 import org.drooms.api.Game;
 import org.drooms.api.GameProgressListener;
@@ -380,4 +382,40 @@ public abstract class GameController implements Game {
         this.positions.put(p, position);
     }
 
+    /**
+     * Build the playground from an input stream. Each line in that stream
+     * represents one row on the playground. Each '#' in that line represents a
+     * wall node, ' ' represents a node where the worm can move, '@' represents
+     * a possible starting position for a worm. (Starting positions also can be
+     * moved into.) Any other sign, other than a line break, will result in an
+     * exception.
+     * 
+     * @param name
+     *            Name for the new playground.
+     * @param s
+     *            Stream in question.
+     * @return Playground constructed from that stream.
+     */
+    @Override
+    public Playground buildPlayground(final String name, final InputStream source) {
+        try {
+            final List<String> lines = IOUtils.readLines(source);
+            Collections.reverse(lines); // this way, 0,0 is bottom left
+            return new DefaultPlayground(name, lines);
+        } catch (final Exception ex) {
+            throw new IllegalStateException("Cannot read playground " + name, ex);
+        }
+    }
+
+    /**
+     * Delegates to {@link #buildPlayground(String, InputStream)}.
+     */
+    @Override
+    public Playground buildPlayground(final String name, final File source) {
+        try (InputStream is = new FileInputStream(source)) {
+            return this.buildPlayground(name, is);
+        } catch (final Exception ex) {
+            throw new IllegalStateException("Cannot read playground " + name, ex);
+        }
+    }
 }

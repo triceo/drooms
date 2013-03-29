@@ -1,9 +1,6 @@
 package org.drooms.launcher.tournament;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -12,8 +9,6 @@ import java.util.Properties;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.drooms.api.Game;
 import org.drooms.api.Player;
-import org.drooms.api.Playground;
-import org.drooms.impl.DefaultPlayground;
 import org.drooms.impl.util.PlayerAssembly;
 import org.drooms.util.CommonProperties;
 
@@ -62,15 +57,6 @@ public class TournamentProperties extends CommonProperties {
         }
     }
 
-    private static Playground loadPlayground(final File source, final String name) {
-        final File playgroundFile = new File(source, name + ".playground");
-        try (InputStream is = new FileInputStream(playgroundFile)) {
-            return DefaultPlayground.read(name, is);
-        } catch (final IOException e) {
-            throw new IllegalStateException("Cannot read playground file " + playgroundFile, e);
-        }
-    }
-
     public static TournamentProperties read(final File f) {
         return new TournamentProperties(CommonProperties.loadPropertiesFromFile(f));
     }
@@ -78,7 +64,7 @@ public class TournamentProperties extends CommonProperties {
     private final Class<? extends Game> gameClass;
     private final File resourceFolder;
     private final File targetFolder;
-    private final Collection<ImmutablePair<Playground, File>> playgrounds;
+    private final Collection<ImmutablePair<File, File>> playgrounds;
 
     private final int numberOfRunsPerPlayground;
 
@@ -101,10 +87,11 @@ public class TournamentProperties extends CommonProperties {
         final File playerConfigFile = new File(this.getMandatoryProperty("players"));
         this.players = Collections.unmodifiableList(new PlayerAssembly(playerConfigFile).assemblePlayers());
         // parse the playgrounds
-        final Collection<ImmutablePair<Playground, File>> playgrounds = new ArrayList<>();
+        final Collection<ImmutablePair<File, File>> playgrounds = new ArrayList<>();
         for (final String playgroundName : this.getMandatoryProperty("playgrounds").split("\\Q,\\E")) {
-            final Playground playground = TournamentProperties.loadPlayground(this.resourceFolder, playgroundName);
-            playgrounds.add(new ImmutablePair<Playground, File>(playground, new File(this.resourceFolder, playgroundName + ".cfg")));
+            final File playground = new File(this.resourceFolder, playgroundName + ".playground");
+            final File config = new File(this.resourceFolder, playgroundName + ".cfg");
+            playgrounds.add(new ImmutablePair<File, File>(playground, config));
         }
         this.playgrounds = Collections.unmodifiableCollection(playgrounds);
     }
@@ -121,7 +108,7 @@ public class TournamentProperties extends CommonProperties {
         return this.players;
     }
 
-    public Collection<ImmutablePair<Playground, File>> getPlaygrounds() {
+    public Collection<ImmutablePair<File, File>> getPlaygrounds() {
         return this.playgrounds;
     }
 

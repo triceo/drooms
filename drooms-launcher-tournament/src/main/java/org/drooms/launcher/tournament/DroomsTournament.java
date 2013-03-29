@@ -15,7 +15,6 @@ import java.util.SortedMap;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.drooms.api.Game;
 import org.drooms.api.Player;
-import org.drooms.api.Playground;
 import org.drooms.launcher.game.DroomsGame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +53,7 @@ public class DroomsTournament {
         // prepare a result tracker
         final TournamentResults result = new DroomsTournamentResults(id, players);
         // for each playground...
-        for (final ImmutablePair<Playground, File> gameConfig : props.getPlaygrounds()) {
+        for (final ImmutablePair<File, File> gameConfig : props.getPlaygrounds()) {
             final String playgroundName = gameConfig.getLeft().getName();
             // run N games on the playground
             DroomsTournament.LOGGER.info("Starting games on playground {}.", playgroundName);

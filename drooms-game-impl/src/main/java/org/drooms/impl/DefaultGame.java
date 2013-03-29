@@ -214,4 +214,5 @@ public class DefaultGame extends GameController {
             return nodes.get(GameController.RANDOM.nextInt(nodes.size()));
         }
     }
+
 }
