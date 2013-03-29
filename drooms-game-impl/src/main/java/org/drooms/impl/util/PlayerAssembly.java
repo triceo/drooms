@@ -178,7 +178,6 @@ public class PlayerAssembly {
      */
     private ClassLoader loadJar(final URI strategyJar) {
         if (!this.strategyClassloaders.containsKey(strategyJar)) {
-            @SuppressWarnings("resource")
             final ClassLoader loader = URLClassLoader.newInstance(new URL[] { PlayerAssembly.uriToUrl(strategyJar) },
                     this.getClass().getClassLoader());
             this.strategyClassloaders.put(strategyJar, loader);
