@@ -147,6 +147,12 @@ class MainMenu extends MenuBar {
           replayRestartItem.enabled = true
           nextTurnItem.enabled = true
 
+        case ReplayStopped =>
+          replayStartItem.enabled = true
+          replayPauseItem.enabled = false
+          replayRestartItem.enabled = true
+          nextTurnItem.enabled = true
+          
         case ReplayFinished =>
           replayStartItem.enabled = true
           replayPauseItem.enabled = false

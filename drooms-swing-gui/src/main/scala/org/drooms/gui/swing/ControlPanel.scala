@@ -1,6 +1,7 @@
 package org.drooms.gui.swing
 
 import java.awt.Font
+
 import scala.swing.Action
 import scala.swing.BorderPanel
 import scala.swing.BoxPanel
@@ -14,16 +15,18 @@ import scala.swing.Slider
 import scala.swing.TextField
 import scala.swing.event.EditDone
 import scala.swing.event.ValueChanged
+
 import org.drooms.gui.swing.event.AfterNewReportChosen
 import org.drooms.gui.swing.event.BeforeNewReportChosen
 import org.drooms.gui.swing.event.EventBus
 import org.drooms.gui.swing.event.EventBusFactory
-import org.drooms.gui.swing.event.GameStateChangeRequested
+import org.drooms.gui.swing.event.GameRestartRequested
 import org.drooms.gui.swing.event.GameStateChangeRequested
 import org.drooms.gui.swing.event.GameStateChanged
 import org.drooms.gui.swing.event.GoToTurn
 import org.drooms.gui.swing.event.NewGameCreated
 import org.drooms.gui.swing.event.NewTurnAvailable
+import org.drooms.gui.swing.event.NewUIComponentsRequested
 import org.drooms.gui.swing.event.NextTurnInitiated
 import org.drooms.gui.swing.event.NextTurnPerformed
 import org.drooms.gui.swing.event.PreviousTurnRequested
@@ -32,12 +35,9 @@ import org.drooms.gui.swing.event.ReplayResetRequested
 import org.drooms.gui.swing.event.ReplayStateChangeRequested
 import org.drooms.gui.swing.event.ReplayStateChanged
 import org.drooms.gui.swing.event.TurnDelayChanged
-import org.drooms.gui.swing.event.NewUIComponentsRequested
-import org.drooms.gui.swing.event.GameRestartRequested
-import org.drooms.gui.swing.event.ReplayStateChanged
 
 /**
- * Control panel with controls used for replay.
+ * Control panel with UI components used for controlling (start, pause, continue, restart) replay.
  */
 class ReplayControlPanel(eventBus: EventBus) extends ControlPanel(eventBus) {
   private var replayState: ReplayState = ReplayNotStarted
@@ -54,17 +54,23 @@ class ReplayControlPanel(eventBus: EventBus) extends ControlPanel(eventBus) {
   private var currentTurnNo = 0
 
   val replayBtn = new Button(Action("Replay") {
-    val event = replayState match {
+    val newState = replayState match {
       case ReplayNotStarted =>
-        ReplayStateChangeRequested(ReplayRunning)
+        ReplayRunning
+        
       case ReplayRunning =>
-        ReplayStateChangeRequested(ReplayPaused)
+        ReplayPaused
+        
       case ReplayPaused =>
-        ReplayStateChangeRequested(ReplayRunning)
+        ReplayRunning
+        
       case ReplayFinished =>
-        ReplayStateChanged(ReplayRunning)
+        ReplayRunning
+        
+      case ReplayStopped =>
+        ReplayRunning
     }
-    eventBus.publish(event)
+    eventBus.publish(ReplayStateChangeRequested(newState))
   }) {
     enabled = false
   }
@@ -165,6 +171,7 @@ class ReplayControlPanel(eventBus: EventBus) extends ControlPanel(eventBus) {
     case NewTurnAvailable(_, _) =>
       replayInitialized = true
       replayState match {
+        // when the replay is running we don't want to enable the next turn button
         case ReplayRunning =>
         case _ =>
           nextTurnBtn.enabled = true
@@ -179,6 +186,8 @@ class ReplayControlPanel(eventBus: EventBus) extends ControlPanel(eventBus) {
           restartBtn.enabled = false
           replayBtn.enabled = true
           replayBtn.text = "Start replay"
+          turnSlider.value = 0
+          currTurnText.text = "0"
 
         case ReplayRunning =>
           nextTurnBtn.enabled = false
@@ -194,12 +203,11 @@ class ReplayControlPanel(eventBus: EventBus) extends ControlPanel(eventBus) {
           replayBtn.enabled = true
           replayBtn.text = "Continue replay"
 
-        case ReplayFinished =>
+        case ReplayFinished | ReplayStopped =>
           nextTurnBtn.enabled = false
           prevTurnBtn.enabled = true
           restartBtn.enabled = true
           replayBtn.enabled = false
-          replayBtn.text = "Continue replay"
       }
       replayState = newState
     }

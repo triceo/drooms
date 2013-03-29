@@ -1,23 +1,19 @@
 package org.drooms.gui.swing
 
 import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
 import java.io.Writer
-import java.util.ArrayList
-import java.util.Properties
-import org.drooms.api.GameProgressListener
-import org.drooms.impl.DefaultGame
-import org.drooms.impl.DefaultPlayground
-import org.drooms.impl.DroomsGame
-import org.drooms.impl.util.PlayerAssembly
-import org.drooms.impl.util.properties.GameProperties
-import com.typesafe.scalalogging.slf4j.Logging
+
+import scala.collection.JavaConversions.asScalaBuffer
+
 import org.drooms.gui.swing.event.EventBusFactory
 import org.drooms.gui.swing.event.GameStateChanged
-import javax.swing.SwingUtilities
 import org.drooms.gui.swing.event.NewTurnAvailable
-import org.drooms.gui.swing.event.GameStateChanged
+import org.drooms.impl.DefaultGame
+import org.drooms.impl.DroomsGame
+
+import com.typesafe.scalalogging.slf4j.Logging
+
+import javax.swing.SwingUtilities
 
 object RealTimeGameController extends Logging {
   /**
@@ -26,7 +22,8 @@ object RealTimeGameController extends Logging {
   def createNew(gameConfig: GameConfig): RealTimeGameController = {
     val reportDir = new File("reports")
 
-    new RealTimeGameController(classOf[org.drooms.impl.DefaultGame], reportDir, gameConfig.playground, gameConfig.players, gameConfig.gameProperties)
+    new RealTimeGameController(classOf[org.drooms.impl.DefaultGame], reportDir, gameConfig.playground,
+      gameConfig.players, gameConfig.gameProperties)
   }
 }
 
@@ -59,7 +56,7 @@ class RealTimeGameController(
    */
   private var currentTurnSteps = List[TurnStep]()
   private val initialTurnState = createInitialState()
-  private var currentTurnState: TurnState = initialTurnState 
+  private var currentTurnState: TurnState = initialTurnState
 
   def createInitialState(): TurnState = {
     val playgroundWidth = playground.getWidth()
@@ -91,6 +88,7 @@ class RealTimeGameController(
   def startOrContinueGame(): Unit = {
     logger.info("Starting new Drooms game.")
     val listener = this
+    // TODO determine if want to start or continue the game
     gameThread = new Thread() {
       override def run() {
         val game = new DroomsGame(gameClass, playground, players,
@@ -101,6 +99,7 @@ class RealTimeGameController(
     }
     // TODO log info like, game props, players info, etc
     gameThread.start()
+    finished = false
     eventBus.publish(GameStateChanged(GameRunning))
     logger.info("Game successfully started.")
   }
@@ -136,23 +135,6 @@ class RealTimeGameController(
   /////////////////////////////////////////////////////////////////////////////
   // GameProgressListener methods
   /////////////////////////////////////////////////////////////////////////////
-  def collectibleAdded(c: org.drooms.api.Collectible, where: org.drooms.api.Node): Unit = {
-    currentTurnSteps ::= new CollectibleAdded(createCollectible(c, where))
-  }
-
-  def collectibleCollected(c: org.drooms.api.Collectible, p: org.drooms.api.Player, where: org.drooms.api.Node,
-    points: Int): Unit = {
-    currentTurnSteps ::= new CollectibleCollected(p.getName(), createCollectible(c, where))
-  }
-
-  def collectibleRemoved(c: org.drooms.api.Collectible, where: org.drooms.api.Node): Unit = {
-    currentTurnSteps ::= new CollectibleRemoved(createCollectible(c, where))
-  }
-
-  private def createCollectible(c: org.drooms.api.Collectible, where: org.drooms.api.Node): Collectible = {
-    new Collectible(Node(where.getX(), where.getY()), c.expiresInTurn(), c.getPoints())
-  }
-
   /**
    * Called from the background running {@link org.drooms.api.Game} before the start of the next turn.
    *
@@ -173,6 +155,23 @@ class RealTimeGameController(
     })
   }
 
+  def collectibleAdded(c: org.drooms.api.Collectible, where: org.drooms.api.Node): Unit = {
+    currentTurnSteps ::= new CollectibleAdded(createCollectible(c, where))
+  }
+
+  def collectibleCollected(c: org.drooms.api.Collectible, p: org.drooms.api.Player, where: org.drooms.api.Node,
+    points: Int): Unit = {
+    currentTurnSteps ::= new CollectibleCollected(p.getName(), createCollectible(c, where))
+  }
+
+  def collectibleRemoved(c: org.drooms.api.Collectible, where: org.drooms.api.Node): Unit = {
+    currentTurnSteps ::= new CollectibleRemoved(createCollectible(c, where))
+  }
+
+  private def createCollectible(c: org.drooms.api.Collectible, where: org.drooms.api.Node): Collectible = {
+    new Collectible(Node(where.getX(), where.getY()), c.expiresInTurn(), c.getPoints())
+  }
+
   def playerCrashed(p: org.drooms.api.Player): Unit = {
     currentTurnSteps ::= new WormCrashed(p.getName())
   }
@@ -185,12 +184,12 @@ class RealTimeGameController(
     currentTurnSteps ::= new WormMoved(p.getName(), transformNodes(nodes))
   }
 
-  private def transformNodes(nodes: Seq[org.drooms.api.Node]) = {
-    (for (node <- nodes) yield Node(node.getX(), node.getY())).toList
-  }
-
   def playerSurvived(p: org.drooms.api.Player, points: Int): Unit = {
     currentTurnSteps ::= new WormSurvived(p.getName(), points)
+  }
+
+  private def transformNodes(nodes: Seq[org.drooms.api.Node]): List[Node] = {
+    (for (node <- nodes) yield Node(node.getX(), node.getY())).toList
   }
 
   /**

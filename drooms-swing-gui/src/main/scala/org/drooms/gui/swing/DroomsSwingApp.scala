@@ -39,6 +39,8 @@ import org.drooms.gui.swing.event.GameStateChangeRequested
 import org.drooms.gui.swing.event.GameStateChanged
 import org.drooms.gui.swing.event.NewTurnAvailable
 import org.drooms.gui.swing.event.GameRestartRequested
+import org.drooms.gui.swing.event.NewGameAccepted
+import org.drooms.gui.swing.event.ReplayStateChangeRequested
 
 /**
  * Main class for the entire Swing application.
@@ -98,10 +100,9 @@ object DroomsSwingApp extends SimpleSwingApplication with Logging {
       case ReplayResetRequested =>
         val rc = replayController.getOrElse(
           throw new IllegalStateException("Can't reset replay when there is no replay controller!"))
-        println("Replay reset requested")
         rc.restartReplay()
-        eventBus.publish(GoToTurn(1))
-        eventBus.publish(ReplayStateChanged(ReplayNotStarted))
+        eventBus.publish(ReplayStateChangeRequested(ReplayStopped))
+        eventBus.publish(ReplayStateChangeRequested(ReplayNotStarted))
 
       case TurnDelayChanged(value) =>
         turnDelay = value
@@ -114,18 +115,24 @@ object DroomsSwingApp extends SimpleSwingApplication with Logging {
           case None =>
         }
 
-      // TODO move into game controller??
       case ReplayStateChangeRequested(toState) => {
         toState match {
-          case ReplayNotStarted | ReplayPaused =>
+          case ReplayNotStarted =>
             cancelReplayTimer()
+            eventBus.publish(GoToTurn(0))
 
           case ReplayRunning =>
             cancelReplayTimer()
             logger.debug("Creating new replay timer with delay " + turnDelay)
             timer = Some(new Timer())
             timer.map(_.schedule(new ExecuteNextTurn(), 0, turnDelay))
+            
+          case ReplayPaused =>
+            cancelReplayTimer()
 
+          case ReplayStopped =>
+            cancelReplayTimer()
+            
           case ReplayFinished =>
             logger.debug("Replay finished -> cancelling the timer thread")
             cancelReplayTimer()
@@ -158,7 +165,7 @@ object DroomsSwingApp extends SimpleSwingApplication with Logging {
 
       case GameRestartRequested =>
         eventBus.publish(GameStateChangeRequested(GameNotStarted))
-        replayController = Some(ReplayController.createNew()) 
+        replayController = Some(ReplayController.createNew())
         eventBus.publish(GameStateChangeRequested(GameRunning))
 
       case PreviousTurnRequested =>

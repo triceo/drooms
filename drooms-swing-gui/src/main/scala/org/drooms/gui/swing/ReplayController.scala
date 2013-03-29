@@ -1,14 +1,29 @@
 package org.drooms.gui.swing
 
-import com.typesafe.scalalogging.slf4j.Logging
-import org.drooms.gui.swing.event.EventBusFactory
 import org.drooms.gui.swing.event.EventBus
+import org.drooms.gui.swing.event.EventBusFactory
 
+import com.typesafe.scalalogging.slf4j.Logging
+
+/**
+ * Object that contains factory methods for creating new {@link ReplayController}s.
+ */
 object ReplayController {
+  /**
+   * Creates new {@link ReplayController} based on the specified {@link GameReport}.
+   * 
+   * {@link GameTurn}s and {@link TurnState}s are created from that report. 
+   */
   def createNew(gameReport: GameReport): ReplayController = {
     new ReplayController(EventBusFactory.get(), gameReport.turns, gameReport.createTurnsStates())
   }
-  
+
+  /**
+   * Creates new {@link ReplayController} with empty turns and turn states list. 
+   * 
+   * This method is useful when appending the {@link GameTurn}s and {@link TurnState}s over time like when playing 
+   * real-time game.
+   */
   def createNew(): ReplayController = {
     new ReplayController(EventBusFactory.get(), List(), List())
   }
@@ -20,7 +35,6 @@ class ReplayController(
   val eventBus: EventBus,
   var turns: List[GameTurn],
   var turnStates: List[TurnState])
-    
     extends Logging {
   logger.debug("Number of turns for current replay: " + turns.size)
   logger.debug("Number of turn states for current replay: " + turnStates.size)
@@ -38,7 +52,7 @@ class ReplayController(
   def getCurrentTurn(): GameTurn = turns(currentTurnNumber)
 
   def getCurrentTurnState(): TurnState = getTurnState(currentTurnNumber)
-  
+
   def addTurn(turn: GameTurn, state: TurnState): Unit = {
     turns = turns ::: List(turn)
     turnStates = turnStates ::: List(state)
@@ -52,12 +66,13 @@ class ReplayController(
    */
   def getNextTurn(): GameTurn = {
     if (!hasNextTurn())
-      throw new RuntimeException("Can't get next turn, becuase replay does not have more turns!!")
+      throw new RuntimeException("Can't get next turn, becuase replay does not have more turns!")
     else {
       val turn = turns(nextTurnNumber)
       currentTurnNumber = nextTurnNumber
       turn
     }
+
   }
 
   def getTurnState(turnNo: Int): TurnState = {
@@ -79,18 +94,14 @@ class ReplayController(
    */
   def restartReplay(): Unit =
     currentTurnNumber = 0
-
-  /**
-   * Game loaded from report is always finished.
-   */
-  def isGameFinished(): Boolean = true
 }
 
 /**
  * Parent trait for all replay states.
  */
-trait ReplayState
+sealed trait ReplayState
 case object ReplayNotStarted extends ReplayState
 case object ReplayRunning extends ReplayState
 case object ReplayPaused extends ReplayState
+case object ReplayStopped extends ReplayState
 case object ReplayFinished extends ReplayState
