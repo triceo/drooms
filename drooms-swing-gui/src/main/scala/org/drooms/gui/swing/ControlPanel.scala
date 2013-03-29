@@ -101,7 +101,7 @@ class ReplayControlPanel(eventBus: EventBus) extends ControlPanel(eventBus) {
 
   val turnSlider = new Slider {
     min = 0
-    max = 1000
+    max = 0
     value = 0
     paintLabels = true
     //majorTickSpacing = 250
@@ -142,7 +142,7 @@ class ReplayControlPanel(eventBus: EventBus) extends ControlPanel(eventBus) {
     case EditDone(`currTurnText`) =>
       eventBus.publish(GoToTurn(currTurnText.text.toInt))
 
-    // GUI was created and is ready to accept users actions
+    // GUI was created and is ready to accept user actions
     case ReplayInitialized(report) =>
       nextTurnBtn.enabled = true
       prevTurnBtn.enabled = false
@@ -168,8 +168,9 @@ class ReplayControlPanel(eventBus: EventBus) extends ControlPanel(eventBus) {
       currTurnText.text = turnNo + ""
       turnSlider.value = turnNo
 
-    case NewTurnAvailable(_, _) =>
+    case NewTurnAvailable(turn, _) =>
       replayInitialized = true
+      turnSlider.max = turn.number
       replayState match {
         // when the replay is running we don't want to enable the next turn button
         case ReplayRunning =>
