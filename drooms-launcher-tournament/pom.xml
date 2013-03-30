@@ -9,7 +9,7 @@
   <dependencies>
     <dependency>
       <groupId>com.github.triceo.drooms</groupId>
-      <artifactId>drooms-launcher-game</artifactId>
+      <artifactId>drooms-game-impl</artifactId>
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
