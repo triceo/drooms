@@ -1,4 +1,4 @@
-package org.drooms.launcher.game;
+package org.drooms.impl;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -16,13 +16,12 @@ import java.util.Set;
 import org.drooms.api.Game;
 import org.drooms.api.GameProgressListener;
 import org.drooms.api.Player;
-import org.drooms.impl.DefaultGame;
-import org.drooms.impl.util.PlayerAssembly;
+import org.drooms.api.Playground;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Main class of the application, used to launch a particular game.
+ * Convenient class used to create Drooms game based on the specified parameters.
  */
 public class DroomsGame {
 
@@ -30,27 +29,6 @@ public class DroomsGame {
         final Date date = new java.util.Date();
         return new Timestamp(date.getTime()).toString();
     }
-
-    /**
-     * Run the {@link DefaultGame} from the command-line. For a description of
-     * the command line interface, see {@link GameCLI}.
-     * 
-     * @param args
-     *            Command-line arguments.
-     */
-    public static void main(final String[] args) {
-        final GameCLI cli = GameCLI.getInstance();
-        final File[] configs = cli.process(args);
-        if (configs == null) {
-            cli.printHelp();
-            System.exit(-1);
-        }
-        // play the game
-        final File reportFolder = (configs.length == 4) ? configs[3] : new File("reports/");
-        final DroomsGame d = new DroomsGame(DefaultGame.class, configs[0], new PlayerAssembly(configs[2]).assemblePlayers(), configs[1], reportFolder);
-        d.play(configs[0].getName());
-    }
-
     private final File p;
     private final File c;
     private final Collection<Player> players;
@@ -73,6 +51,16 @@ public class DroomsGame {
         return this.listeners.add(listener);
     }
 
+    public Playground getPlayground() {
+        Game g;
+        try {
+            g = this.cls.newInstance();
+        } catch (InstantiationException | IllegalAccessException e1) {
+            throw new IllegalStateException("Cannot find game class.", e1);
+        }
+        return g.buildPlayground(p.getName(), this.p);
+    }
+    
     public Map<Player, Integer> play(final String name) {
         Game g;
         try {
@@ -105,5 +93,4 @@ public class DroomsGame {
     public boolean removeListener(final GameProgressListener listener) {
         return this.listeners.remove(listener);
     }
-
 }
