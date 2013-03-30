@@ -4,35 +4,18 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.Properties
-
 import scala.collection.JavaConversions.asScalaBuffer
-
-import org.drooms.impl.DefaultPlayground
 import org.drooms.impl.util.PlayerAssembly
-import org.drooms.impl.util.properties.GameProperties
+import org.drooms.impl.DefaultPlayground
 
 /**
  * Holds the configuration needed for new Drooms game.
  */
 case class GameConfig(
-    val playground: org.drooms.api.Playground,
-    val gameProperties: org.drooms.impl.util.properties.GameProperties,
+    val playgroundFile: File,
+    val gameProperties: File,
     val players: java.util.List[org.drooms.api.Player]) {
 
-  def getPlaygroundInit(): Set[Node] = {
-    // create the initial playground def
-    (for (
-      i <- 0 until playground.getWidth();
-      j <- 0 until playground.getHeight();
-      if (playground.isAvailable(i, j))
-    ) yield Node(i, j)).toSet
-
-  }
-
-  def getPlaygroundWidth(): Int = playground.getWidth()
-
-  def getPlaygroundHeight(): Int = playground.getHeight()
-  
   def getPlayersNames(): List[String] = {
     import scala.collection.JavaConversions._
     (for (p <- players) yield p.getName()).toList
@@ -53,10 +36,8 @@ object GameConfig {
    * @return new {@link GameConfing} based on the specified playground, game properties and players
    */
   def createNew(playgroundFile: File, gamePropsFile: File, playersFile: File): GameConfig = {
-    val playground = DefaultPlayground.read(playgroundFile.getName(), new FileInputStream(playgroundFile))
     val players = new PlayerAssembly(playersFile).assemblePlayers()
-    val gameProps = GameProperties.read(gamePropsFile)
-    createNew(playground, gameProps, players)
+    createNew(playgroundFile, gamePropsFile, players)
   }
   
   /**
@@ -93,9 +74,9 @@ object GameConfig {
    * 
    * @return new {@link GameConfing} based on the specified playground, game properties and players
    */
-  def createNew(playground: org.drooms.api.Playground, gameProps: org.drooms.impl.util.properties.GameProperties, 
+  def createNew(playgroundFile: File, gamePropsFile: File, 
     players: java.util.List[org.drooms.api.Player]): GameConfig = {
-    new GameConfig(playground, gameProps, players)
+    new GameConfig(playgroundFile, gamePropsFile, players)
   }
 }
 

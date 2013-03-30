@@ -26,6 +26,7 @@ import org.drooms.gui.swing.event.ReplayInitialized
 import com.typesafe.scalalogging.slf4j.Logging
 import org.drooms.gui.swing.event.NewUIComponentsRequested
 import org.drooms.gui.swing.event.GameStateChanged
+import org.drooms.gui.swing.event.PlaygroundInitRequested
 
 /**
  * Represents the Playground in GUI as {@link ScrollPane}.
@@ -47,31 +48,24 @@ class PlaygroundView(var playersList: PlayersList) extends ScrollPane with React
       cellModel.updatePosition(Empty(node))
     initWorms(report.wormInitPositions)
   }
-  
-  def create(config: GameConfig): Unit = {
-    // TODO create model with only walls and empty spaces
+
+  def initPlaygroundTable(playground: org.drooms.api.Playground): Unit = {
+    val width = playground.getWidth()
+    val height = playground.getHeight()
+    createNew(width, height)
+    for (x <- 0 until width; y <- 0 until height; if playground.isAvailable(x, y)) {
+      cellModel.updatePosition(Empty(Node(x,y)))
+    }
   }
-  
-  private var config: GameConfig = _
-  
-  def initPlayground(): Unit = {
-    createNew(config.getPlaygroundWidth(), config.getPlaygroundHeight())
-      for (node <- config.getPlaygroundInit())
-        cellModel.updatePosition(Empty(node))
-  }
-  
+
   listenTo(eventBus)
   reactions += {
     case PlaygroundGridEnabled => showGrid
     case PlaygroundGridDisabled => hideGrid
 
-    case NewGameCreated(config) =>
-      this.config = config
-      initPlayground()
+    case PlaygroundInitRequested(playground) =>
+      initPlaygroundTable(playground)
 
-    case GameStateChanged(GameNotStarted) =>
-      initPlayground()
-      
     case GoToTurnState(number, state) =>
       logger.debug(s"Creating new playground table for turn ${number}")
       worms.clear()
@@ -83,7 +77,7 @@ class PlaygroundView(var playersList: PlayersList) extends ScrollPane with React
 
     case TurnStepPerformed(step) =>
       cellModel.update(step)
-      
+
     case NewUIComponentsRequested =>
       eventBus.deafTo(this)
       deafTo(eventBus)
@@ -103,7 +97,7 @@ class PlaygroundView(var playersList: PlayersList) extends ScrollPane with React
   def createNew(width: Int, height: Int): Unit = {
     createNew(width, height, new PlaygroundModel(width, height, eventBus))
   }
-  
+
   def createNew(width: Int, height: Int, model: PlaygroundModel): Unit = {
     cellModel = model
     plwidth = width
@@ -221,7 +215,7 @@ class PlaygroundView(var playersList: PlayersList) extends ScrollPane with React
         // Y-axis numbering in playground model and table is reversed
         // starting from 0 to actualTableHeight -1 and need to subtract the current position and -2 for number and wall down
         table.get.updateCell(actualTableHeight - 1 - position.node.y - 2, position.node.x + 2) // y == row and x == col
-        
+
       case CoordinantsVisibilityChanged(value) => {
         showCoords = value
         // update the table, so the headers are painted

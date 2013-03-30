@@ -2,18 +2,14 @@ package org.drooms.gui.swing
 
 import java.io.File
 import java.io.Writer
-
 import scala.collection.JavaConversions.asScalaBuffer
-
 import org.drooms.gui.swing.event.EventBusFactory
 import org.drooms.gui.swing.event.GameStateChanged
 import org.drooms.gui.swing.event.NewTurnAvailable
 import org.drooms.impl.DefaultGame
-import org.drooms.impl.DroomsGame
-
 import com.typesafe.scalalogging.slf4j.Logging
-
 import javax.swing.SwingUtilities
+import org.drooms.impl.DroomsGame
 
 object RealTimeGameController extends Logging {
   /**
@@ -21,8 +17,7 @@ object RealTimeGameController extends Logging {
    */
   def createNew(gameConfig: GameConfig): RealTimeGameController = {
     val reportDir = new File("reports")
-
-    new RealTimeGameController(classOf[org.drooms.impl.DefaultGame], reportDir, gameConfig.playground,
+    new RealTimeGameController(classOf[org.drooms.impl.DefaultGame], reportDir, gameConfig.playgroundFile,
       gameConfig.players, gameConfig.gameProperties)
   }
 }
@@ -40,16 +35,16 @@ class RealTimeGameController(
   /** Directory used to store game reports. */
   val reportDir: File,
   /** Playground definition */
-  val playground: org.drooms.api.Playground,
+  val playgroundFile: File,
   /** List of players that will be playing the game. */
   val players: java.util.List[org.drooms.api.Player],
-  /** Game configuration */
-  val gameProperties: org.drooms.impl.util.properties.GameProperties)
+  /** Game configuration file */
+  val gamePropertiesFile: File)
 
   extends org.drooms.api.GameProgressListener with Logging {
 
   val eventBus = EventBusFactory.get()
-
+  val playground = new DroomsGame(gameClass, playgroundFile, players, gamePropertiesFile, reportDir).getPlayground()
   /**
    * Turn steps for the current not finished {@link Turn}. These step are gathered from background {@link Game} thread
    * based on the incoming events.
@@ -57,7 +52,7 @@ class RealTimeGameController(
   private var currentTurnSteps = List[TurnStep]()
   private val initialTurnState = createInitialState()
   private var currentTurnState: TurnState = initialTurnState
-
+  
   def createInitialState(): TurnState = {
     val playgroundWidth = playground.getWidth()
     val playgroundHeight = playground.getHeight()
@@ -91,8 +86,7 @@ class RealTimeGameController(
     // TODO determine if want to start or continue the game
     gameThread = new Thread() {
       override def run() {
-        val game = new DroomsGame(gameClass, playground, players,
-          gameProperties, reportDir)
+        val game = new DroomsGame(gameClass, playgroundFile, players, gamePropertiesFile, reportDir)
         game.addListener(listener)
         game.play("Drooms game")
       }

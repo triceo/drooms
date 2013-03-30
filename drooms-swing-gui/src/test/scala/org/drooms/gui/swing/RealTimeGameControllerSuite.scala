@@ -6,9 +6,8 @@ import org.scalatest.junit.JUnitRunner
 import org.drooms.impl.DefaultPlayground
 import org.scalatest.mock.MockitoSugar
 import org.mockito.Mockito._
-import org.drooms.impl.util.properties.GameProperties
+import org.drooms.impl.util.GameProperties
 import java.io.File
-import org.drooms.impl.DroomsGame
 
 @RunWith(classOf[JUnitRunner])
 class RealTimeGameControllerSuite extends FunSuite with MockitoSugar {

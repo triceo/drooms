@@ -41,6 +41,8 @@ import org.drooms.gui.swing.event.NewTurnAvailable
 import org.drooms.gui.swing.event.GameRestartRequested
 import org.drooms.gui.swing.event.NewGameAccepted
 import org.drooms.gui.swing.event.ReplayStateChangeRequested
+import org.drooms.gui.swing.event.PlaygroundInitRequested
+import org.drooms.gui.swing.event.PlaygroundInitRequested
 
 /**
  * Main class for the entire Swing application.
@@ -126,13 +128,13 @@ object DroomsSwingApp extends SimpleSwingApplication with Logging {
             logger.debug("Creating new replay timer with delay " + turnDelay)
             timer = Some(new Timer())
             timer.map(_.schedule(new ExecuteNextTurn(), 0, turnDelay))
-            
+
           case ReplayPaused =>
             cancelReplayTimer()
 
           case ReplayStopped =>
             cancelReplayTimer()
-            
+
           case ReplayFinished =>
             logger.debug("Replay finished -> cancelling the timer thread")
             cancelReplayTimer()
@@ -150,6 +152,7 @@ object DroomsSwingApp extends SimpleSwingApplication with Logging {
         toState match {
           case GameNotStarted =>
             gc.stopGame()
+            eventBus.publish(PlaygroundInitRequested(gc.playground))
 
           case GameRunning =>
             gc.startOrContinueGame()
@@ -195,20 +198,25 @@ object DroomsSwingApp extends SimpleSwingApplication with Logging {
         replayController = Some(ReplayController.createNew())
         val playersList = PlayersListFactory.createPlayersList(config.getPlayersNames())
         val playground = new PlaygroundView(playersList)
-        playground.create(config)
         val leftPane = new LeftPane(playground, ControlPanel.newReplayControlPanel(), ControlPanel.newRealTimeGameControlPanel())
         val rightPane = new RightPane(playersList)
         createContents(leftPane, rightPane)
+        eventBus.publish(PlaygroundInitRequested(gameController.get.playground))
         eventBus.publish(NewGameCreated(config))
 
       case NewGameCreated(config) =>
-
+        
     }
 
     def cancelReplayTimer(): Unit = {
-      logger.debug("Cancelling the replay timer!")
-      timer.map(_.cancel())
-      timer = None
+      timer match {
+        case Some(t) =>
+          logger.debug("Cancelling the replay timer!")
+          t.cancel()
+          timer = None
+
+        case None =>
+      }
     }
     class ExecuteNextTurn extends TimerTask {
       def run(): Unit = {

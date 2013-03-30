@@ -53,3 +53,5 @@ case object PlaygroundGridDisabled extends DroomsEvent
 case object PlaygroundGridEnabled extends DroomsEvent
 
 case object NewUIComponentsRequested extends DroomsEvent
+
+case class PlaygroundInitRequested(playground: org.drooms.api.Playground) extends DroomsEvent
