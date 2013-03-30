@@ -29,7 +29,7 @@
           <transformers>
             <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
               <manifestEntries>
-                <Main-Class>org.drooms.launcher.game.DroomsGame</Main-Class>
+                <Main-Class>org.drooms.launcher.game.DroomsGameLauncher</Main-Class>
                 <X-Compile-Source-JDK>${java.version}</X-Compile-Source-JDK>
                 <X-Compile-Target-JDK>${java.version}</X-Compile-Target-JDK>
               </manifestEntries>

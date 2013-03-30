@@ -15,7 +15,7 @@ import java.util.SortedMap;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.drooms.api.Game;
 import org.drooms.api.Player;
-import org.drooms.launcher.game.DroomsGame;
+import org.drooms.impl.DroomsGame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
