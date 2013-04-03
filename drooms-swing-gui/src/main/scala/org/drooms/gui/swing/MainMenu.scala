@@ -100,7 +100,9 @@ class MainMenu extends MenuBar {
   }
   // help menu
   contents += new Menu("Help") {
-    contents += new MenuItem("About Drooms")
+    contents += new MenuItem(Action("About Drooms") {
+      new AboutDialog().show()
+    })
   }
   listenTo(showGridItem)
   listenTo(showCoordsItem)
