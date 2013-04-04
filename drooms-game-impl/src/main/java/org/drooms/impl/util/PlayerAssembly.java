@@ -28,8 +28,7 @@ import edu.uci.ics.jung.algorithms.shortestpath.UnweightedShortestPath;
 import edu.uci.ics.jung.graph.Graph;
 
 /**
- * A helper class to load {@link Strategy} implementations for all requested
- * {@link Player}s.
+ * A helper class to load {@link Strategy} implementations for all requested {@link Player}s.
  */
 public class PlayerAssembly {
 
@@ -102,9 +101,7 @@ public class PlayerAssembly {
      * Initialize the class.
      * 
      * @param f
-     *            Game config as described in
-     *            {@link GameController#play(org.drooms.api.Playground, Properties, Collection, File)}
-     *            .
+     *            Game config as described in{@link GameController#play(org.drooms.api.Playground, Collection, File)}.
      */
     public PlayerAssembly(final File f) {
         try (FileReader fr = new FileReader(f)) {
@@ -178,7 +175,7 @@ public class PlayerAssembly {
      */
     private ClassLoader loadJar(final URI strategyJar) {
         if (!this.strategyClassloaders.containsKey(strategyJar)) {
-            final ClassLoader loader = URLClassLoader.newInstance(new URL[] { PlayerAssembly.uriToUrl(strategyJar) },
+            final ClassLoader loader = URLClassLoader.newInstance(new URL[]{PlayerAssembly.uriToUrl(strategyJar)},
                     this.getClass().getClassLoader());
             this.strategyClassloaders.put(strategyJar, loader);
         }

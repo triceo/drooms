@@ -392,7 +392,7 @@ public abstract class GameController implements Game {
      * 
      * @param name
      *            Name for the new playground.
-     * @param s
+     * @param source
      *            Stream in question.
      * @return Playground constructed from that stream.
      */

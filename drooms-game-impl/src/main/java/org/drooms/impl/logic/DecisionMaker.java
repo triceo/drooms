@@ -79,8 +79,7 @@ import org.slf4j.LoggerFactory;
  * </p>
  * 
  * <ul>
- * <li>{@link GameProperty}, many. Will never change or be removed. For the various types of properties supported, see
- * {@link GameProperty.Name}.</li>
+ * <li>{@link GameProperty}, many. Will never change or be removed.</li>
  * <li>{@link CurrentPlayer}, once. Will never change or be removed.</li>
  * <li>{@link CurrentTurn}, once. Will change with every turn.</li>
  * <li>{@link Wall}, many. Will remain constant over the whole game.</li>
