@@ -161,7 +161,7 @@ class RealTimeGameController(
    */
   def nextTurn(): Unit = {
     // publish current turn
-    val newTurn = new GameTurn(currentTurnNumber, currentTurnSteps)
+    val newTurn = new GameTurn(currentTurnNumber, currentTurnSteps.reverse)
     logger.debug(s"New turn number ${currentTurnNumber} available")
     currentTurnNumber += 1
     currentTurnSteps = List()
