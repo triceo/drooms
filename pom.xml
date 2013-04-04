@@ -206,7 +206,14 @@
       <id>triceo</id>
       <name>Lukáš Petrovický</name>
       <timezone>+1</timezone>
-      <url>https://masterbranch.com/triceo/</url>
+      <url>https://masterbranch.com/triceo</url>
+    </developer>
+    <developer>
+      <email>siroky.petr@gmail.com</email>
+      <id>deedman</id>
+      <name>Petr Široký</name>
+      <timezone>+1</timezone>
+      <url>https://masterbranch.com/psiroky</url>
     </developer>
   </developers>
   <reporting>
@@ -247,7 +254,7 @@
     </plugins>
   </reporting>
   <scm>
-    <developerConnection>scm:git:git@github.com:triceo/ras12</developerConnection>
+    <developerConnection>scm:git:git@github.com:triceo/drooms</developerConnection>
     <connection>scm:git:git://github.com/triceo/drooms.git</connection>
     <url>https://github.com/triceo/drooms</url>
   </scm>
