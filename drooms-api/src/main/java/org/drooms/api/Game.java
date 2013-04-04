@@ -16,7 +16,7 @@ public interface Game {
      * 
      * @param name
      *            Name for the new playground.
-     * @param s
+     * @param source
      *            Stream in question.
      * @return Playground constructed from that stream.
      */
@@ -28,7 +28,7 @@ public interface Game {
      * 
      * @param name
      *            Name for the new playground.
-     * @param f
+     * @param source
      *            File in question.
      * @return Playground constructed from that file.
      */
@@ -53,10 +53,9 @@ public interface Game {
     public GameProgressListener getReport();
 
     /**
-     * Initialize the game and play it through. Will throw an exception in case
-     * of a repeated call of this method on the same class instance. May throw {@link IllegalStateException} if
-     * {@link #setContext(Object)} wasn't
-     * called first.
+     * Initialize the game and play it through. Will throw an exception in case of a repeated call of this method on the
+     * same class instance. May throw {@link IllegalStateException} if {@link #setContext(InputStream)} wasn't called
+     * first.
      * 
      * @param playground
      *            The playground on which this game will be played out.
