@@ -3,7 +3,7 @@
   <parent>
     <groupId>com.github.triceo.drooms</groupId>
     <artifactId>drooms</artifactId>
-    <version>1.0.Final</version>
+    <version>1.0.1-SNAPSHOT</version>
   </parent>
   <artifactId>drooms-launcher-game</artifactId>
   <dependencies>
