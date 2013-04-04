@@ -23,19 +23,6 @@ public interface Game {
     public Playground buildPlayground(final String name, final InputStream source);
 
     /**
-     * Build the playground from a file. Specific instructions on how
-     * to structure this file will come from implementations of this class.
-     * 
-     * @param name
-     *            Name for the new playground.
-     * @param source
-     *            File in question.
-     * @return Playground constructed from that file.
-     */
-    @Deprecated
-    public Playground buildPlayground(final String name, final File source);
-
-    /**
      * Add a custom listener to the game. Will be used next time {@link #play(Playground, Collection, File)} is called.
      * 
      * @param listener

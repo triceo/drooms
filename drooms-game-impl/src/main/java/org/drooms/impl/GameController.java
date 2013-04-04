@@ -1,7 +1,6 @@
 package org.drooms.impl;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.SecureRandom;
@@ -407,15 +406,4 @@ public abstract class GameController implements Game {
         }
     }
 
-    /**
-     * Delegates to {@link #buildPlayground(String, InputStream)}.
-     */
-    @Override
-    public Playground buildPlayground(final String name, final File source) {
-        try (InputStream is = new FileInputStream(source)) {
-            return this.buildPlayground(name, is);
-        } catch (final Exception ex) {
-            throw new IllegalStateException("Cannot read playground " + name, ex);
-        }
-    }
 }

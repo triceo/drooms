@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Writer;
 import java.sql.Timestamp;
 import java.util.Collection;
@@ -29,6 +30,7 @@ public class DroomsGame {
         final Date date = new java.util.Date();
         return new Timestamp(date.getTime()).toString();
     }
+
     private final File p;
     private final File c;
     private final Collection<Player> players;
@@ -52,42 +54,38 @@ public class DroomsGame {
     }
 
     public Playground getPlayground() {
-        Game g;
-        try {
-            g = this.cls.newInstance();
-        } catch (InstantiationException | IllegalAccessException e1) {
-            throw new IllegalStateException("Cannot find game class.", e1);
+        try (InputStream is = new FileInputStream(this.p)) {
+            return this.cls.newInstance().buildPlayground(this.p.getName(), is);
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new IllegalStateException("Cannot find game class.", e);
+        } catch (final IOException e) {
+            throw new IllegalStateException("Cannot read playground.", e);
         }
-        return g.buildPlayground(p.getName(), this.p);
     }
-    
+
     public Map<Player, Integer> play(final String name) {
-        Game g;
-        try {
-            g = this.cls.newInstance();
-        } catch (InstantiationException | IllegalAccessException e1) {
-            throw new IllegalStateException("Cannot find game class.", e1);
-        }
         final File f = new File(this.f, name + "-" + DroomsGame.getTimestamp());
         if (!f.exists()) {
             f.mkdirs();
         }
-        try (FileInputStream fis = new FileInputStream(this.c)) {
-            g.setContext(fis);
+        try (InputStream contextFis = new FileInputStream(this.c);
+                InputStream playgroundFis = new FileInputStream(this.p)) {
+            final Game g = this.cls.newInstance();
+            g.setContext(contextFis);
+            for (final GameProgressListener listener : this.listeners) {
+                g.addListener(listener);
+            }
+            final Map<Player, Integer> result = g.play(g.buildPlayground(name, playgroundFis), this.players, f);
+            // report
+            try (Writer w = new FileWriter(new File(f, "report.xml"))) {
+                g.getReport().write(w);
+            } catch (final IOException e) {
+                DroomsGame.LOGGER.info("Failed writing report for game: {}.", name);
+            }
+            return result;
         } catch (final Exception ex) {
-            throw new IllegalStateException("Cannot read game properties from " + this.c);
+            throw new IllegalStateException("Cannot play the game.", ex);
         }
-        for (final GameProgressListener listener : this.listeners) {
-            g.addListener(listener);
-        }
-        final Map<Player, Integer> result = g.play(g.buildPlayground(name, this.p), this.players, f);
-        // report
-        try (Writer w = new FileWriter(new File(f, "report.xml"))) {
-            g.getReport().write(w);
-        } catch (final IOException e) {
-            DroomsGame.LOGGER.info("Failed writing report for game: {}.", name);
-        }
-        return result;
     }
 
     public boolean removeListener(final GameProgressListener listener) {
