@@ -13,13 +13,13 @@ public class DroomsGameLauncher {
 
     /**
      * Run the {@link DefaultGame} from the command-line. For a description of
-     * the command line interface, see {@link GameCLI}.
+     * the command line interface, see {@link CLI}.
      * 
      * @param args
      *            Command-line arguments.
      */
     public static void main(final String[] args) {
-        final GameCLI cli = GameCLI.getInstance();
+        final CLI cli = CLI.getInstance();
         final File[] configs = cli.process(args);
         if (configs == null) {
             cli.printHelp();

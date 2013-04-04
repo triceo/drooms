@@ -18,33 +18,30 @@ import org.drooms.impl.GameController;
  * 
  * <dl>
  * <dt>-s &lt;scenario&gt;</dt>
- * <dd>Provides a {@link Playground} description on which the game is to be
- * played out..</dd>
+ * <dd>Provides a {@link Playground} description on which the game is to be played out..</dd>
  * <dt>-p &lt;file&gt;</dt>
  * <dd>Provides a player configuration file, as described in
- * {@link GameController#play(Playground, java.util.Properties, java.util.Collection, File)}
- * .</dd>
+ * {@link GameController#play(Playground, java.util.Collection, File)}.</dd>
  * <dt>-g &lt;file&gt;</dt>
  * <dd>Provides a game configuration file, as described in
- * {@link GameController#play(Playground, java.util.Properties, java.util.Collection, File)}
- * .</dd>
+ * {@link GameController#play(Playground, java.util.Collection, File)}.</dd>
  * </dl>
  * 
  * Not providing any of those or pointing to unreadable (non-existent) files
  * should result in a help message being printed out and the application being
  * terminated.
  */
-public class GameCLI {
+public class CLI {
 
-    private static final GameCLI INSTANCE = new GameCLI();
+    private static final CLI INSTANCE = new CLI();
 
     /**
      * Return the single instance of this class.
      * 
      * @return The instance.
      */
-    public static GameCLI getInstance() {
-        return GameCLI.INSTANCE;
+    public static CLI getInstance() {
+        return CLI.INSTANCE;
     }
 
     private final Options options = new Options();
@@ -60,7 +57,7 @@ public class GameCLI {
     /**
      * The constructor is hidden, as should be with the singleton pattern.
      */
-    private GameCLI() {
+    private CLI() {
         this.options.addOption(this.reports);
         this.playground.setRequired(true);
         this.options.addOption(this.playground);
@@ -113,11 +110,11 @@ public class GameCLI {
             }
             final String reports = cli.getOptionValue(this.reports.getOpt());
             if (reports == null) {
-                return new File[] { scenario, gameConfig, playerConfig };
+                return new File[]{scenario, gameConfig, playerConfig};
             } else {
                 final File reportsDir = new File(reports + File.separator);
                 reportsDir.mkdirs();
-                return new File[] { scenario, gameConfig, playerConfig, reportsDir };
+                return new File[]{scenario, gameConfig, playerConfig, reportsDir};
             }
         } catch (final ParseException e) {
             this.setError(e.getMessage());
