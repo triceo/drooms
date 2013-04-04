@@ -10,6 +10,9 @@ import org.drooms.impl.DefaultGame
 import com.typesafe.scalalogging.slf4j.Logging
 import javax.swing.SwingUtilities
 import org.drooms.impl.DroomsGame
+import org.drooms.impl.util.PlayerAssembly
+import java.io.FileOutputStream
+import java.util.Properties
 
 object RealTimeGameController extends Logging {
   /**
@@ -17,8 +20,18 @@ object RealTimeGameController extends Logging {
    */
   def createNew(gameConfig: GameConfig): RealTimeGameController = {
     val reportDir = new File("reports")
+    val playersFile = File.createTempFile("drooms-swing-gui", "players")
+    playersFile.deleteOnExit()
+    val output = new FileOutputStream(playersFile)
+    val props = new Properties()
+    for (player <- gameConfig.players) {
+      props.setProperty(player.name, player.strategyClass + "@file://" + player.jar.get)
+    }
+    props.store(output, "")
+    output.flush()
+    output.close()
     new RealTimeGameController(classOf[org.drooms.impl.DefaultGame], reportDir, gameConfig.playgroundFile,
-      gameConfig.players, gameConfig.gameProperties)
+      playersFile, gameConfig.players, gameConfig.gameProperties)
   }
 }
 
@@ -37,22 +50,23 @@ class RealTimeGameController(
   /** Playground definition */
   val playgroundFile: File,
   /** List of players that will be playing the game. */
-  val players: java.util.List[org.drooms.api.Player],
+  val playersFile: File,
+  val players: List[PlayerInfo],
   /** Game configuration file */
   val gamePropertiesFile: File)
 
   extends org.drooms.api.GameProgressListener with Logging {
 
   val eventBus = EventBusFactory.get()
-  val playground = new DroomsGame(gameClass, playgroundFile, players, gamePropertiesFile, reportDir).getPlayground()
+  val playground = new DroomsGame(gameClass, playgroundFile, new PlayerAssembly(playersFile).assemblePlayers(),
+    gamePropertiesFile, reportDir).getPlayground()
   /**
    * Turn steps for the current not finished {@link Turn}. These step are gathered from background {@link Game} thread
    * based on the incoming events.
    */
   private var currentTurnSteps = List[TurnStep]()
-  private val initialTurnState = createInitialState()
-  private var currentTurnState: TurnState = initialTurnState
-  
+  private var currentTurnState: TurnState = _
+
   def createInitialState(): TurnState = {
     val playgroundWidth = playground.getWidth()
     val playgroundHeight = playground.getHeight()
@@ -65,8 +79,7 @@ class RealTimeGameController(
     val initialPlayground = new PlaygroundModel(playgroundWidth, playgroundHeight, EventBusFactory.getNoOp())
     initialPlayground.emptyNodes(playgroundEmptyNodes)
     //initialPlayground.initWorms(wormInitPositions)
-    import scala.collection.JavaConversions._
-    val initPlayers = players.map(_.getName() -> 0).toMap
+    val initPlayers = players.map(_.name -> 0).toMap
     new TurnState(initialPlayground, initPlayers)
   }
 
@@ -81,12 +94,16 @@ class RealTimeGameController(
    * Starts new {@link DroomsGame} in background thread
    */
   def startOrContinueGame(): Unit = {
+    currentTurnState = createInitialState()
     logger.info("Starting new Drooms game.")
     val listener = this
     // TODO determine if want to start or continue the game
+    // recreate the jars with strategies
+    println(players)
+    recreateStrategyJars(players)
     gameThread = new Thread() {
       override def run() {
-        val game = new DroomsGame(gameClass, playgroundFile, players, gamePropertiesFile, reportDir)
+        val game = new DroomsGame(gameClass, playgroundFile, new PlayerAssembly(playersFile).assemblePlayers(), gamePropertiesFile, reportDir)
         game.addListener(listener)
         game.play("Drooms game")
       }
@@ -98,9 +115,18 @@ class RealTimeGameController(
     logger.info("Game successfully started.")
   }
 
-  def pauseGame(): Unit = {
-
+  private def recreateStrategyJars(playersInfo: List[PlayerInfo]): Unit = {
+    logger.debug("Re-creating strategy jars...")
+    for(player <- playersInfo) {
+      player.strategyDir match {
+        case Some(dir) =>
+          // TODO do the actual jar recreation
+        case None =>  // nothing to do
+      }
+    }
   }
+  
+  def pauseGame(): Unit = ???
 
   def restartGame(): Unit = {
     logger.info("Restarting game...")
@@ -112,7 +138,6 @@ class RealTimeGameController(
     logger.info("Stopping game...")
     gameThread.stop()
     currentTurnNumber = 0
-    currentTurnState = initialTurnState
   }
 
   /**

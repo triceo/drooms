@@ -127,7 +127,7 @@ class NewGameDialog extends Dialog {
     reactions += {
       case ButtonClicked(`btn`) =>
         val fileChooser = new FileChooser(NewGameSettings.lastOpenedDir)
-        //fileChooser.fileFilter = xmlFileFilter
+        fileChooser.fileSelectionMode = FileChooser.SelectionMode.FilesAndDirectories
         val res = fileChooser.showOpenDialog(this)
         if (res == FileChooser.Result.Approve) {
           path.text = fileChooser.selectedFile.getAbsolutePath()
@@ -163,8 +163,13 @@ class NewGameDialog extends Dialog {
     update()
     
     def getPlayersInfo(): List[PlayerInfo] = {
-      for (playerView <- playersList)
-        yield new PlayerInfo(playerView.getName(), playerView.getJarFile(), playerView.getStrategyClass())
+      for (playerView <- playersList) 
+        yield (if (playerView.getJarOrDir().isDirectory()) {
+             new PlayerInfo(playerView.getName(), None, Some(playerView.getJarOrDir()), playerView.getStrategyClass())
+        } else {
+          new PlayerInfo(playerView.getName(), Some(playerView.getJarOrDir()), None, playerView.getStrategyClass())
+        }
+      )
     }
 
     /**
@@ -200,7 +205,7 @@ class NewGameDialog extends Dialog {
       val playerView = new PlayerView(this)
       playerView.nameField.text = name
       playerView.strategyClassField.text = clazz
-      playerView.jarFileLine.path.text = path
+      playerView.jarDirFileLine.path.text = path
       playersList ::= playerView
     }
 
@@ -239,7 +244,7 @@ class NewGameDialog extends Dialog {
     val nameField = new TextField("") {
       columns = 10
     }
-    val jarFileLine = new SelectFileLine()
+    val jarDirFileLine = new SelectFileLine()
     val strategyClassField = new TextField("") {
       columns = 40
     }
@@ -257,7 +262,7 @@ class NewGameDialog extends Dialog {
       contents += new BoxPanel(Orientation.Horizontal) {
         peer.add(Box.createHorizontalStrut(30))
         contents += new Label("Strategy jar/dir ")
-        contents += jarFileLine
+        contents += jarDirFileLine
       }
       peer.add(Box.createVerticalStrut(5))
       contents += new BoxPanel(Orientation.Horizontal) {
@@ -274,7 +279,7 @@ class NewGameDialog extends Dialog {
     }
 
     def getName(): String = nameField.text
-    def getJarFile(): File = jarFileLine.file
+    def getJarOrDir(): File = jarDirFileLine.file
     def getStrategyClass(): String = strategyClassField.text
   }
 }
