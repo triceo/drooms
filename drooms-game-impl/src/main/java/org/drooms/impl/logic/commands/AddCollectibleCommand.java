@@ -2,7 +2,6 @@ package org.drooms.impl.logic.commands;
 
 import org.drooms.api.Collectible;
 import org.drooms.api.GameProgressListener;
-import org.drooms.api.Node;
 import org.drooms.impl.logic.CollectibleRelated;
 import org.drooms.impl.logic.DecisionMaker;
 import org.drooms.impl.logic.events.CollectibleAdditionEvent;
@@ -23,25 +22,19 @@ public class AddCollectibleCommand implements Command, CollectibleRelated {
     }
 
     @Override
-    public Node getNode() {
-        return this.toAdd.getAt();
-    }
-
-    @Override
     public void perform(final DecisionMaker logic) {
         logic.notifyOfCollectibleAddition(this.event);
     }
 
     @Override
     public void report(final GameProgressListener report) {
-        report.collectibleAdded(this.toAdd, this.getNode());
+        report.collectibleAdded(this.toAdd);
     }
 
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
-        builder.append("AddCollectibleCommand [toAdd=").append(this.toAdd)
-                .append(", whereToAdd=").append(this.getNode()).append("]");
+        builder.append("AddCollectibleCommand [toAdd=").append(this.toAdd).append("]");
         return builder.toString();
     }
 

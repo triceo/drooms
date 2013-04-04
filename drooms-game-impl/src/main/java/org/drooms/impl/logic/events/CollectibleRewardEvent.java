@@ -1,7 +1,6 @@
 package org.drooms.impl.logic.events;
 
 import org.drooms.api.Collectible;
-import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.impl.logic.CollectibleRelated;
 import org.drooms.impl.logic.PlayerRelated;
@@ -21,11 +20,6 @@ public class CollectibleRewardEvent implements RewardRelated, PlayerRelated,
     @Override
     public Collectible getCollectible() {
         return this.collectible;
-    }
-
-    @Override
-    public Node getNode() {
-        return this.collectible.getAt();
     }
 
     @Override

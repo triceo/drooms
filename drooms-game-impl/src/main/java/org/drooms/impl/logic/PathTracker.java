@@ -133,7 +133,7 @@ public class PathTracker {
     protected void movePlayers(final Map<Player, Deque<Node>> newPositions) {
         final Set<Node> unavailable = new HashSet<>();
         for (final Map.Entry<Player, Deque<Node>> entry : newPositions.entrySet()) {
-            Deque<Node> playerNodes = entry.getValue(); 
+            final Deque<Node> playerNodes = entry.getValue();
             unavailable.addAll(playerNodes);
             if (entry.getKey() == this.player) {
                 /*

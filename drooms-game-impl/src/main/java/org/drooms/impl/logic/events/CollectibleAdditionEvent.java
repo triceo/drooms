@@ -1,7 +1,6 @@
 package org.drooms.impl.logic.events;
 
 import org.drooms.api.Collectible;
-import org.drooms.api.Node;
 import org.drooms.impl.logic.CollectibleRelated;
 
 public class CollectibleAdditionEvent implements CollectibleRelated {
@@ -15,11 +14,6 @@ public class CollectibleAdditionEvent implements CollectibleRelated {
     @Override
     public Collectible getCollectible() {
         return this.collectible;
-    }
-
-    @Override
-    public Node getNode() {
-        return this.collectible.getAt();
     }
 
 }

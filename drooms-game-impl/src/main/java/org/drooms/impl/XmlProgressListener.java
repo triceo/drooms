@@ -77,28 +77,28 @@ public class XmlProgressListener implements GameProgressListener {
     }
 
     @Override
-    public void collectibleAdded(final Collectible c, final Node where) {
+    public void collectibleAdded(final Collectible c) {
         this.report.append("<newCollectible>");
         this.report.append(XmlProgressListener.collectibleXml(c));
-        this.report.append(XmlProgressListener.nodeXml(where));
+        this.report.append(XmlProgressListener.nodeXml(c.getAt()));
         this.report.append("</newCollectible>");
     }
 
     @Override
-    public void collectibleCollected(final Collectible c, final Player p, final Node where, final int points) {
+    public void collectibleCollected(final Collectible c, final Player p, final int points) {
         this.addPoints(p, points);
         this.report.append("<collectedCollectible points='" + points + "'>");
         this.report.append(XmlProgressListener.collectibleXml(c));
         this.report.append(XmlProgressListener.playerXml(p));
-        this.report.append(XmlProgressListener.nodeXml(where));
+        this.report.append(XmlProgressListener.nodeXml(c.getAt()));
         this.report.append("</collectedCollectible>");
     }
 
     @Override
-    public void collectibleRemoved(final Collectible c, final Node where) {
+    public void collectibleRemoved(final Collectible c) {
         this.report.append("<removedCollectible>");
         this.report.append(XmlProgressListener.collectibleXml(c));
-        this.report.append(XmlProgressListener.nodeXml(where));
+        this.report.append(XmlProgressListener.nodeXml(c.getAt()));
         this.report.append("</removedCollectible>");
     }
 

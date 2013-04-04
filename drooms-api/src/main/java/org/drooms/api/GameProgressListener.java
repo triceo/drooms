@@ -9,12 +9,11 @@ import java.io.Writer;
  */
 public interface GameProgressListener {
 
-    public void collectibleAdded(Collectible c, Node where);
+    public void collectibleAdded(Collectible c);
 
-    public void collectibleCollected(Collectible c, Player p, Node where,
-            int points);
+    public void collectibleCollected(Collectible c, Player p, int points);
 
-    public void collectibleRemoved(Collectible c, Node where);
+    public void collectibleRemoved(Collectible c);
 
     public void nextTurn();
 

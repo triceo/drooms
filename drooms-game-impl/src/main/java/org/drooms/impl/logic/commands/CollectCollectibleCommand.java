@@ -2,7 +2,6 @@ package org.drooms.impl.logic.commands;
 
 import org.drooms.api.Collectible;
 import org.drooms.api.GameProgressListener;
-import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.impl.logic.CollectibleRelated;
 import org.drooms.impl.logic.DecisionMaker;
@@ -29,11 +28,6 @@ public class CollectCollectibleCommand implements Command, PlayerRelated,
     }
 
     @Override
-    public Node getNode() {
-        return this.toCollect.getAt();
-    }
-
-    @Override
     public Player getPlayer() {
         return this.toReward;
     }
@@ -50,8 +44,7 @@ public class CollectCollectibleCommand implements Command, PlayerRelated,
 
     @Override
     public void report(final GameProgressListener report) {
-        report.collectibleCollected(this.getCollectible(), this.getPlayer(),
-                this.getNode(), this.getPoints());
+        report.collectibleCollected(this.getCollectible(), this.getPlayer(), this.getPoints());
     }
 
     @Override

@@ -174,21 +174,20 @@ class RealTimeGameController(
     })
   }
 
-  def collectibleAdded(c: org.drooms.api.Collectible, where: org.drooms.api.Node): Unit = {
-    currentTurnSteps ::= new CollectibleAdded(createCollectible(c, where))
+  def collectibleAdded(c: org.drooms.api.Collectible): Unit = {
+    currentTurnSteps ::= new CollectibleAdded(createCollectible(c))
   }
 
-  def collectibleCollected(c: org.drooms.api.Collectible, p: org.drooms.api.Player, where: org.drooms.api.Node,
-    points: Int): Unit = {
-    currentTurnSteps ::= new CollectibleCollected(p.getName(), createCollectible(c, where))
+  def collectibleCollected(c: org.drooms.api.Collectible, p: org.drooms.api.Player, points: Int): Unit = {
+    currentTurnSteps ::= new CollectibleCollected(p.getName(), createCollectible(c))
   }
 
-  def collectibleRemoved(c: org.drooms.api.Collectible, where: org.drooms.api.Node): Unit = {
-    currentTurnSteps ::= new CollectibleRemoved(createCollectible(c, where))
+  def collectibleRemoved(c: org.drooms.api.Collectible): Unit = {
+    currentTurnSteps ::= new CollectibleRemoved(createCollectible(c))
   }
 
-  private def createCollectible(c: org.drooms.api.Collectible, where: org.drooms.api.Node): Collectible = {
-    new Collectible(Node(where.getX(), where.getY()), c.expiresInTurn(), c.getPoints())
+  private def createCollectible(c: org.drooms.api.Collectible): Collectible = {
+    new Collectible(Node(c.getAt().getX(), c.getAt().getY()), c.expiresInTurn(), c.getPoints())
   }
 
   def playerCrashed(p: org.drooms.api.Player): Unit = {
