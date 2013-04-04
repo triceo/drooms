@@ -84,7 +84,7 @@ public class TournamentProperties extends CommonProperties {
             this.targetFolder.mkdirs();
         }
         // prepare a list of players
-        final File playerConfigFile = new File(this.getMandatoryProperty("players"));
+        final File playerConfigFile = new File(this.resourceFolder, this.getMandatoryProperty("players"));
         this.players = Collections.unmodifiableList(new PlayerAssembly(playerConfigFile).assemblePlayers());
         // parse the playgrounds
         final Collection<ImmutablePair<File, File>> playgrounds = new ArrayList<>();
