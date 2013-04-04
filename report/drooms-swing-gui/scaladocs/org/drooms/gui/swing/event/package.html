@@ -1,0 +1,504 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+        <head>
+          <title>event - Drooms: Swing GUI 1.0.Final API - org.drooms.gui.swing.event</title>
+          <meta name="description" content="event - Drooms Swing GUI 1.0.Final API - org.drooms.gui.swing.event" />
+          <meta name="keywords" content="event Drooms Swing GUI 1.0.Final API org.drooms.gui.swing.event" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../../../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../../../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../../../../lib/template.js"></script>
+      <script type="text/javascript" src="../../../../../lib/tools.tooltip.js"></script>
+      
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../../../../index.html';
+            var hash = 'org.drooms.gui.swing.event.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img src="../../../../../lib/package_big.png" />
+        <p id="owner"><a href="../../../../package.html" class="extype" name="org">org</a>.<a href="../../../package.html" class="extype" name="org.drooms">drooms</a>.<a href="../../package.html" class="extype" name="org.drooms.gui">gui</a>.<a href="../package.html" class="extype" name="org.drooms.gui.swing">swing</a></p>
+        <h1>event</h1>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">event</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        
+        
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="org.drooms.gui.swing.event.CoordinantsVisibilityChanged" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="CoordinantsVisibilityChangedextendsDroomsEventwithProductwithSerializable"></a>
+      <a id="CoordinantsVisibilityChanged:CoordinantsVisibilityChanged"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="CoordinantsVisibilityChanged.html"><span class="name">CoordinantsVisibilityChanged</span></a><span class="params">(<span name="value">value: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result"> extends <a href="DroomsEvent.html" class="extype" name="org.drooms.gui.swing.event.DroomsEvent">DroomsEvent</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.drooms.gui.swing.event.DroomsEvent" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="DroomsEventextendsEvent"></a>
+      <a id="DroomsEvent:DroomsEvent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="DroomsEvent.html"><span class="name">DroomsEvent</span></a><span class="result"> extends <span class="extype" name="scala.swing.event.Event">Event</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt">Parent trait for all Drooms Swing App related events.</p>
+    </li><li name="org.drooms.gui.swing.event.DroomsEventBus" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DroomsEventBusextendsEventBuswithLogging"></a>
+      <a id="DroomsEventBus:DroomsEventBus"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="DroomsEventBus.html"><span class="name">DroomsEventBus</span></a><span class="result"> extends <a href="EventBus.html" class="extype" name="org.drooms.gui.swing.event.EventBus">EventBus</a> with <span class="extype" name="com.typesafe.scalalogging.slf4j.Logging">Logging</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.drooms.gui.swing.event.EventBus" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="EventBusextendsPublisher"></a>
+      <a id="EventBus:EventBus"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="EventBus.html"><span class="name">EventBus</span></a><span class="result"> extends <span class="extype" name="scala.swing.Publisher">Publisher</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.drooms.gui.swing.event.GameStateChangeRequested" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="GameStateChangeRequestedextendsDroomsEventwithProductwithSerializable"></a>
+      <a id="GameStateChangeRequested:GameStateChangeRequested"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="GameStateChangeRequested.html"><span class="name">GameStateChangeRequested</span></a><span class="params">(<span name="newState">newState: <a href="../GameState.html" class="extype" name="org.drooms.gui.swing.GameState">GameState</a></span>)</span><span class="result"> extends <a href="DroomsEvent.html" class="extype" name="org.drooms.gui.swing.event.DroomsEvent">DroomsEvent</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.drooms.gui.swing.event.GameStateChanged" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="GameStateChangedextendsDroomsEventwithProductwithSerializable"></a>
+      <a id="GameStateChanged:GameStateChanged"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="GameStateChanged.html"><span class="name">GameStateChanged</span></a><span class="params">(<span name="newState">newState: <a href="../GameState.html" class="extype" name="org.drooms.gui.swing.GameState">GameState</a></span>)</span><span class="result"> extends <a href="DroomsEvent.html" class="extype" name="org.drooms.gui.swing.event.DroomsEvent">DroomsEvent</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.drooms.gui.swing.event.GoToTurn" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="GoToTurnextendsDroomsEventwithProductwithSerializable"></a>
+      <a id="GoToTurn:GoToTurn"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="GoToTurn.html"><span class="name">GoToTurn</span></a><span class="params">(<span name="turnNo">turnNo: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result"> extends <a href="DroomsEvent.html" class="extype" name="org.drooms.gui.swing.event.DroomsEvent">DroomsEvent</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.drooms.gui.swing.event.GoToTurnState" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="GoToTurnStateextendsDroomsEventwithProductwithSerializable"></a>
+      <a id="GoToTurnState:GoToTurnState"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="GoToTurnState.html"><span class="name">GoToTurnState</span></a><span class="params">(<span name="turnNo">turnNo: <span class="extype" name="scala.Int">Int</span></span>, <span name="state">state: <a href="../TurnState.html" class="extype" name="org.drooms.gui.swing.TurnState">TurnState</a></span>)</span><span class="result"> extends <a href="DroomsEvent.html" class="extype" name="org.drooms.gui.swing.event.DroomsEvent">DroomsEvent</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.drooms.gui.swing.event.NewGameAccepted" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="NewGameAcceptedextendsDroomsEventwithProductwithSerializable"></a>
+      <a id="NewGameAccepted:NewGameAccepted"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="NewGameAccepted.html"><span class="name">NewGameAccepted</span></a><span class="params">(<span name="config">config: <a href="../GameConfig.html" class="extype" name="org.drooms.gui.swing.GameConfig">GameConfig</a></span>)</span><span class="result"> extends <a href="DroomsEvent.html" class="extype" name="org.drooms.gui.swing.event.DroomsEvent">DroomsEvent</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.drooms.gui.swing.event.NewGameCreated" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="NewGameCreatedextendsDroomsEventwithProductwithSerializable"></a>
+      <a id="NewGameCreated:NewGameCreated"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="NewGameCreated.html"><span class="name">NewGameCreated</span></a><span class="params">(<span name="config">config: <a href="../GameConfig.html" class="extype" name="org.drooms.gui.swing.GameConfig">GameConfig</a></span>)</span><span class="result"> extends <a href="DroomsEvent.html" class="extype" name="org.drooms.gui.swing.event.DroomsEvent">DroomsEvent</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.drooms.gui.swing.event.NewGameReportChosen" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="NewGameReportChosenextendsDroomsEventwithProductwithSerializable"></a>
+      <a id="NewGameReportChosen:NewGameReportChosen"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="NewGameReportChosen.html"><span class="name">NewGameReportChosen</span></a><span class="params">(<span name="gameReport">gameReport: <a href="../GameReport.html" class="extype" name="org.drooms.gui.swing.GameReport">GameReport</a></span>, <span name="file">file: <span class="extype" name="java.io.File">File</span></span>)</span><span class="result"> extends <a href="DroomsEvent.html" class="extype" name="org.drooms.gui.swing.event.DroomsEvent">DroomsEvent</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.drooms.gui.swing.event.NewTurnAvailable" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="NewTurnAvailableextendsDroomsEventwithProductwithSerializable"></a>
+      <a id="NewTurnAvailable:NewTurnAvailable"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="NewTurnAvailable.html"><span class="name">NewTurnAvailable</span></a><span class="params">(<span name="turn">turn: <a href="../GameTurn.html" class="extype" name="org.drooms.gui.swing.GameTurn">GameTurn</a></span>, <span name="state">state: <a href="../TurnState.html" class="extype" name="org.drooms.gui.swing.TurnState">TurnState</a></span>)</span><span class="result"> extends <a href="DroomsEvent.html" class="extype" name="org.drooms.gui.swing.event.DroomsEvent">DroomsEvent</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.drooms.gui.swing.event.NextTurnPerformed" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="NextTurnPerformedextendsDroomsEventwithProductwithSerializable"></a>
+      <a id="NextTurnPerformed:NextTurnPerformed"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="NextTurnPerformed.html"><span class="name">NextTurnPerformed</span></a><span class="params">(<span name="turnNo">turnNo: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result"> extends <a href="DroomsEvent.html" class="extype" name="org.drooms.gui.swing.event.DroomsEvent">DroomsEvent</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.drooms.gui.swing.event.PlaygroundInitRequested" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="PlaygroundInitRequestedextendsDroomsEventwithProductwithSerializable"></a>
+      <a id="PlaygroundInitRequested:PlaygroundInitRequested"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="PlaygroundInitRequested.html"><span class="name">PlaygroundInitRequested</span></a><span class="params">(<span name="playground">playground: <span class="extype" name="org.drooms.api.Playground">Playground</span></span>)</span><span class="result"> extends <a href="DroomsEvent.html" class="extype" name="org.drooms.gui.swing.event.DroomsEvent">DroomsEvent</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.drooms.gui.swing.event.ReplayInitialized" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ReplayInitializedextendsDroomsEventwithProductwithSerializable"></a>
+      <a id="ReplayInitialized:ReplayInitialized"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ReplayInitialized.html"><span class="name">ReplayInitialized</span></a><span class="params">(<span name="gameReport">gameReport: <a href="../GameReport.html" class="extype" name="org.drooms.gui.swing.GameReport">GameReport</a></span>)</span><span class="result"> extends <a href="DroomsEvent.html" class="extype" name="org.drooms.gui.swing.event.DroomsEvent">DroomsEvent</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.drooms.gui.swing.event.ReplayStateChangeRequested" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ReplayStateChangeRequestedextendsDroomsEventwithProductwithSerializable"></a>
+      <a id="ReplayStateChangeRequested:ReplayStateChangeRequested"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ReplayStateChangeRequested.html"><span class="name">ReplayStateChangeRequested</span></a><span class="params">(<span name="newState">newState: <a href="../ReplayState.html" class="extype" name="org.drooms.gui.swing.ReplayState">ReplayState</a></span>)</span><span class="result"> extends <a href="DroomsEvent.html" class="extype" name="org.drooms.gui.swing.event.DroomsEvent">DroomsEvent</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.drooms.gui.swing.event.ReplayStateChanged" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ReplayStateChangedextendsDroomsEventwithProductwithSerializable"></a>
+      <a id="ReplayStateChanged:ReplayStateChanged"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ReplayStateChanged.html"><span class="name">ReplayStateChanged</span></a><span class="params">(<span name="newState">newState: <a href="../ReplayState.html" class="extype" name="org.drooms.gui.swing.ReplayState">ReplayState</a></span>)</span><span class="result"> extends <a href="DroomsEvent.html" class="extype" name="org.drooms.gui.swing.event.DroomsEvent">DroomsEvent</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.drooms.gui.swing.event.TurnDelayChanged" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="TurnDelayChangedextendsDroomsEventwithProductwithSerializable"></a>
+      <a id="TurnDelayChanged:TurnDelayChanged"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="TurnDelayChanged.html"><span class="name">TurnDelayChanged</span></a><span class="params">(<span name="value">value: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result"> extends <a href="DroomsEvent.html" class="extype" name="org.drooms.gui.swing.event.DroomsEvent">DroomsEvent</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.drooms.gui.swing.event.TurnStepPerformed" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="TurnStepPerformedextendsDroomsEventwithProductwithSerializable"></a>
+      <a id="TurnStepPerformed:TurnStepPerformed"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="TurnStepPerformed.html"><span class="name">TurnStepPerformed</span></a><span class="params">(<span name="turnStep">turnStep: <a href="../TurnStep.html" class="extype" name="org.drooms.gui.swing.TurnStep">TurnStep</a></span>)</span><span class="result"> extends <a href="DroomsEvent.html" class="extype" name="org.drooms.gui.swing.event.DroomsEvent">DroomsEvent</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="org.drooms.gui.swing.event.AfterNewReportChosen" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="AfterNewReportChosen"></a>
+      <a id="AfterNewReportChosen:AfterNewReportChosen"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="AfterNewReportChosen$.html"><span class="name">AfterNewReportChosen</span></a><span class="result"> extends <a href="DroomsEvent.html" class="extype" name="org.drooms.gui.swing.event.DroomsEvent">DroomsEvent</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.drooms.gui.swing.event.BeforeNewReportChosen" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="BeforeNewReportChosen"></a>
+      <a id="BeforeNewReportChosen:BeforeNewReportChosen"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="BeforeNewReportChosen$.html"><span class="name">BeforeNewReportChosen</span></a><span class="result"> extends <a href="DroomsEvent.html" class="extype" name="org.drooms.gui.swing.event.DroomsEvent">DroomsEvent</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.drooms.gui.swing.event.EventBusFactory" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="EventBusFactory"></a>
+      <a id="EventBusFactory:EventBusFactory"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="EventBusFactory$.html"><span class="name">EventBusFactory</span></a>
+      </span>
+      </h4>
+      <p class="comment cmt">Factory used for creating concrete bus implementations.</p>
+    </li><li name="org.drooms.gui.swing.event.GameRestartRequested" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="GameRestartRequested"></a>
+      <a id="GameRestartRequested:GameRestartRequested"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="GameRestartRequested$.html"><span class="name">GameRestartRequested</span></a><span class="result"> extends <a href="DroomsEvent.html" class="extype" name="org.drooms.gui.swing.event.DroomsEvent">DroomsEvent</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.drooms.gui.swing.event.NewGameRequested" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="NewGameRequested"></a>
+      <a id="NewGameRequested:NewGameRequested"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="NewGameRequested$.html"><span class="name">NewGameRequested</span></a><span class="result"> extends <a href="DroomsEvent.html" class="extype" name="org.drooms.gui.swing.event.DroomsEvent">DroomsEvent</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.drooms.gui.swing.event.NewUIComponentsRequested" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="NewUIComponentsRequested"></a>
+      <a id="NewUIComponentsRequested:NewUIComponentsRequested"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="NewUIComponentsRequested$.html"><span class="name">NewUIComponentsRequested</span></a><span class="result"> extends <a href="DroomsEvent.html" class="extype" name="org.drooms.gui.swing.event.DroomsEvent">DroomsEvent</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.drooms.gui.swing.event.NextTurnInitiated" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="NextTurnInitiated"></a>
+      <a id="NextTurnInitiated:NextTurnInitiated"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="NextTurnInitiated$.html"><span class="name">NextTurnInitiated</span></a><span class="result"> extends <a href="DroomsEvent.html" class="extype" name="org.drooms.gui.swing.event.DroomsEvent">DroomsEvent</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.drooms.gui.swing.event.NoOpEventBus" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="NoOpEventBus"></a>
+      <a id="NoOpEventBus:NoOpEventBus"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="NoOpEventBus$.html"><span class="name">NoOpEventBus</span></a><span class="result"> extends <a href="EventBus.html" class="extype" name="org.drooms.gui.swing.event.EventBus">EventBus</a></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.drooms.gui.swing.event.PlaygroundGridDisabled" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="PlaygroundGridDisabled"></a>
+      <a id="PlaygroundGridDisabled:PlaygroundGridDisabled"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="PlaygroundGridDisabled$.html"><span class="name">PlaygroundGridDisabled</span></a><span class="result"> extends <a href="DroomsEvent.html" class="extype" name="org.drooms.gui.swing.event.DroomsEvent">DroomsEvent</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.drooms.gui.swing.event.PlaygroundGridEnabled" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="PlaygroundGridEnabled"></a>
+      <a id="PlaygroundGridEnabled:PlaygroundGridEnabled"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="PlaygroundGridEnabled$.html"><span class="name">PlaygroundGridEnabled</span></a><span class="result"> extends <a href="DroomsEvent.html" class="extype" name="org.drooms.gui.swing.event.DroomsEvent">DroomsEvent</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.drooms.gui.swing.event.PreviousTurnRequested" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="PreviousTurnRequested"></a>
+      <a id="PreviousTurnRequested:PreviousTurnRequested"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="PreviousTurnRequested$.html"><span class="name">PreviousTurnRequested</span></a><span class="result"> extends <a href="DroomsEvent.html" class="extype" name="org.drooms.gui.swing.event.DroomsEvent">DroomsEvent</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.drooms.gui.swing.event.ReplayResetRequested" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ReplayResetRequested"></a>
+      <a id="ReplayResetRequested:ReplayResetRequested"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ReplayResetRequested$.html"><span class="name">ReplayResetRequested</span></a><span class="result"> extends <a href="DroomsEvent.html" class="extype" name="org.drooms.gui.swing.event.DroomsEvent">DroomsEvent</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+
+
+    </body>
+      </html>

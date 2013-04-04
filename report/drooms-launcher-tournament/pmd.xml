@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pmd version="4.3" timestamp="2013-04-04T16:58:48.440">
+<file name="/home/lpetrovi/Workspaces/Stuff/drooms/drooms-launcher-tournament/src/main/java/org/drooms/launcher/tournament/DroomsTournament.java">
+<violation beginline="27" endline="27" begincolumn="31" endcolumn="44" rule="AvoidThreadGroup" ruleset="Basic Rules" package="org.drooms.launcher.tournament" class="DroomsTournament" method="getTimestamp" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#AvoidThreadGroup" priority="3">
+Avoid using java.lang.ThreadGroup; it is not thread safe
+</violation>
+<violation beginline="79" endline="81" begincolumn="11" endcolumn="9" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.drooms.launcher.tournament" class="DroomsTournament" method="main" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+Avoid empty catch blocks
+</violation>
+</file>
+</pmd>

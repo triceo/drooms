@@ -1,20 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<pmd version="4.3" timestamp="2013-02-25T13:52:16.764">
-<file name="/home/lpetrovi/Workspaces/Stuff/drooms/drooms-game-impl/src/main/java/org/drooms/impl/DroomsGame.java">
-<violation beginline="30" endline="30" begincolumn="31" endcolumn="44" rule="AvoidThreadGroup" ruleset="Basic Rules" package="org.drooms.impl" class="DroomsGame" method="getTimestamp" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#AvoidThreadGroup" priority="3">
-Avoid using java.lang.ThreadGroup; it is not thread safe
+<pmd version="4.3" timestamp="2013-04-04T16:53:52.643">
+<file name="/home/lpetrovi/Workspaces/Stuff/drooms/drooms-game-impl/src/main/java/org/drooms/impl/DefaultPlayground.java">
+<violation beginline="5" endline="5" begincolumn="1" endcolumn="27" rule="UnusedImports" ruleset="Import Statement Rules" package="org.drooms.impl" externalInfoUrl="http://pmd.sourceforge.net/rules/imports.html#UnusedImports" priority="4">
+Avoid unused imports such as 'java.io.InputStream'
 </violation>
 </file>
-<file name="/home/lpetrovi/Workspaces/Stuff/drooms/drooms-game-impl/src/main/java/org/drooms/impl/DroomsTournament.java">
-<violation beginline="32" endline="32" begincolumn="31" endcolumn="44" rule="AvoidThreadGroup" ruleset="Basic Rules" package="org.drooms.impl" class="DroomsTournament" method="getTimestamp" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#AvoidThreadGroup" priority="3">
+<file name="/home/lpetrovi/Workspaces/Stuff/drooms/drooms-game-impl/src/main/java/org/drooms/impl/DroomsGame.java">
+<violation beginline="29" endline="29" begincolumn="31" endcolumn="44" rule="AvoidThreadGroup" ruleset="Basic Rules" package="org.drooms.impl" class="DroomsGame" method="getTimestamp" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#AvoidThreadGroup" priority="3">
 Avoid using java.lang.ThreadGroup; it is not thread safe
-</violation>
-<violation beginline="84" endline="86" begincolumn="11" endcolumn="9" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.drooms.impl" class="DroomsTournament" method="main" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
-Avoid empty catch blocks
 </violation>
 </file>
 <file name="/home/lpetrovi/Workspaces/Stuff/drooms/drooms-game-impl/src/main/java/org/drooms/impl/logic/DecisionMaker.java">
-<violation beginline="114" endline="116" begincolumn="11" endcolumn="9" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.drooms.impl.logic" class="DecisionMaker" method="setGlobal" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="103" endline="105" begincolumn="11" endcolumn="9" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.drooms.impl.logic" class="DecisionMaker" method="setGlobal" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
 </file>

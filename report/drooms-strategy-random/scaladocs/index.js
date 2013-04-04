@@ -1,0 +1,1 @@
+Index.PACKAGES = {"org" : [], "org.drooms" : [], "org.drooms.strategy" : [], "org.drooms.strategy.random" : [{"class" : "org\/drooms\/strategy\/random\/RandomStrategy.html", "name" : "org.drooms.strategy.random.RandomStrategy"}]};

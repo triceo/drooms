@@ -38,7 +38,7 @@
 <a class="jxr_linenumber" name="28" href="#28">28</a>  <strong class="jxr_keyword">import</strong> org.drooms.impl.logic.commands.Command;
 <a class="jxr_linenumber" name="29" href="#29">29</a>  <strong class="jxr_keyword">import</strong> org.drooms.impl.logic.commands.DeactivatePlayerCommand;
 <a class="jxr_linenumber" name="30" href="#30">30</a>  <strong class="jxr_keyword">import</strong> org.drooms.impl.logic.commands.MovePlayerCommand;
-<a class="jxr_linenumber" name="31" href="#31">31</a>  <strong class="jxr_keyword">import</strong> org.drooms.impl.util.properties.GameProperties;
+<a class="jxr_linenumber" name="31" href="#31">31</a>  <strong class="jxr_keyword">import</strong> org.drooms.impl.util.GameProperties;
 <a class="jxr_linenumber" name="32" href="#32">32</a>  <strong class="jxr_keyword">import</strong> org.slf4j.Logger;
 <a class="jxr_linenumber" name="33" href="#33">33</a>  <strong class="jxr_keyword">import</strong> org.slf4j.LoggerFactory;
 <a class="jxr_linenumber" name="34" href="#34">34</a>  
@@ -120,7 +120,7 @@
 <a class="jxr_linenumber" name="110" href="#110">110</a> <em class="jxr_javadoccomment">     *            move decisions.</em>
 <a class="jxr_linenumber" name="111" href="#111">111</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="112" href="#112">112</a>     <strong class="jxr_keyword">public</strong> <a href="../../../../org/drooms/impl/logic/CommandDistributor.html">CommandDistributor</a>(<strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/api/Playground.html">Playground</a> playground, <strong class="jxr_keyword">final</strong> Collection&lt;Player&gt; players,
-<a class="jxr_linenumber" name="113" href="#113">113</a>             <strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/api/GameProgressListener.html">GameProgressListener</a> report, <strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/impl/util/properties/GameProperties.html">GameProperties</a> properties, <strong class="jxr_keyword">final</strong> File reportFolder,
+<a class="jxr_linenumber" name="113" href="#113">113</a>             <strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/api/GameProgressListener.html">GameProgressListener</a> report, <strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/impl/util/GameProperties.html">GameProperties</a> properties, <strong class="jxr_keyword">final</strong> File reportFolder,
 <a class="jxr_linenumber" name="114" href="#114">114</a>             <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> playerTimeoutInSeconds) {
 <a class="jxr_linenumber" name="115" href="#115">115</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">final</strong> Player player : players) {
 <a class="jxr_linenumber" name="116" href="#116">116</a>             <strong class="jxr_keyword">final</strong> <a href="../../../../org/drooms/impl/logic/PathTracker.html">PathTracker</a> tracker = <strong class="jxr_keyword">new</strong> <a href="../../../../org/drooms/impl/logic/PathTracker.html">PathTracker</a>(playground, player);
