@@ -1,18 +1,21 @@
 package org.drooms.gui.swing
 
 import java.io.File
+import java.io.FileOutputStream
 import java.io.Writer
-import scala.collection.JavaConversions.asScalaBuffer
+import java.util.Properties
+
 import org.drooms.gui.swing.event.EventBusFactory
 import org.drooms.gui.swing.event.GameStateChanged
 import org.drooms.gui.swing.event.NewTurnAvailable
+import org.drooms.gui.swing.util.IOUtils
 import org.drooms.impl.DefaultGame
-import com.typesafe.scalalogging.slf4j.Logging
-import javax.swing.SwingUtilities
 import org.drooms.impl.DroomsGame
 import org.drooms.impl.util.PlayerAssembly
-import java.io.FileOutputStream
-import java.util.Properties
+
+import com.typesafe.scalalogging.slf4j.Logging
+
+import javax.swing.SwingUtilities
 
 object RealTimeGameController extends Logging {
   /**
@@ -58,6 +61,7 @@ class RealTimeGameController(
   extends org.drooms.api.GameProgressListener with Logging {
 
   val eventBus = EventBusFactory.get()
+  recreateStrategyJars(players)
   val playground = new DroomsGame(gameClass, playgroundFile, new PlayerAssembly(playersFile).assemblePlayers(),
     gamePropertiesFile, reportDir).getPlayground()
   /**
@@ -94,12 +98,14 @@ class RealTimeGameController(
    * Starts new {@link DroomsGame} in background thread
    */
   def startOrContinueGame(): Unit = {
+    currentTurnNumber = 0
+    currentTurnSteps = List()
     currentTurnState = createInitialState()
     logger.info("Starting new Drooms game.")
     val listener = this
     // TODO determine if want to start or continue the game
     // recreate the jars with strategies
-    println(players)
+    logger.debug("Players in the game: " + players)
     recreateStrategyJars(players)
     gameThread = new Thread() {
       override def run() {
@@ -117,15 +123,17 @@ class RealTimeGameController(
 
   private def recreateStrategyJars(playersInfo: List[PlayerInfo]): Unit = {
     logger.debug("Re-creating strategy jars...")
-    for(player <- playersInfo) {
+    for (player <- playersInfo) {
       player.strategyDir match {
         case Some(dir) =>
-          // TODO do the actual jar recreation
-        case None =>  // nothing to do
+          logger.info(s"Re-creating strategy jar for player '${player.name}'")
+          // re-create the jar with fresh contents
+          IOUtils.createJarFromDir(player.jar.get, dir)
+        case None => // nothing to do
       }
     }
   }
-  
+
   def pauseGame(): Unit = ???
 
   def restartGame(): Unit = {

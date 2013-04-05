@@ -4,6 +4,8 @@ import java.awt.Color
 
 /** 
  * Represents player in the game. Each player has a unique name, current score (points) and color.
+ *
+ * @Immutable 
  */
 case class Player(val name: String, val score: Int, val color: Color) {
   def this(name: String) = this(name, 0, PlayerColors.DEFAULT_COLOR)
