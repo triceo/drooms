@@ -102,7 +102,7 @@ case class PlaygroundModel(val width: Int, val height: Int, var positions: Array
        */
       def updateWormIfLegal(node: Node, ownerName: String, wormType: String): Unit = {
         // we can only update Empty nodes and Collectibles, if the worm crashed into wall or other worm, piece must not be updated!
-        if (node.x >= width || node.y >= height) return
+        if (node.x >= width || node.x < 0 || node.y >= height || node.y < 0) return
         positions(node.x)(node.y) match {
           case Empty(node) =>
             updateWorm(ownerName, new WormPiece(node, wormType, ownerName))
