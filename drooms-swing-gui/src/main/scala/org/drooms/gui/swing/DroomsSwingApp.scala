@@ -43,6 +43,7 @@ import org.drooms.gui.swing.event.NewGameAccepted
 import org.drooms.gui.swing.event.ReplayStateChangeRequested
 import org.drooms.gui.swing.event.PlaygroundInitRequested
 import org.drooms.gui.swing.event.PlaygroundInitRequested
+import org.drooms.gui.swing.event.ReplayStateChangeRequested
 
 /**
  * Main class for the entire Swing application.
@@ -179,11 +180,14 @@ object DroomsSwingApp extends SimpleSwingApplication with Logging {
 
       case GoToTurn(turnNo) =>
         val rc = replayController.getOrElse(
-          throw new IllegalStateException("Can't got to specified turn when there is not replay controller!"))
+          throw new IllegalStateException("Can't go to specified turn when there is not replay controller!"))
         logger.debug("Going to turn number " + turnNo)
         val turnState = rc.getTurnState(turnNo)
         rc.currentTurnNumber = turnNo
         eventBus.publish(GoToTurnState(turnNo, turnState))
+        if (turnNo + 1== rc.totalTurns) { // + 1 beuuase turns are numbered 0...totalTurns-1
+          eventBus.publish(ReplayStateChangeRequested(ReplayFinished))
+        }
 
       case NewGameRequested =>
         new NewGameDialog().show() match {
