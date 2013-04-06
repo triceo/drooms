@@ -1,7 +1,6 @@
 package org.drooms.gui.swing
 
 import java.awt.Font
-
 import scala.swing.Action
 import scala.swing.BorderPanel
 import scala.swing.BoxPanel
@@ -15,7 +14,6 @@ import scala.swing.Slider
 import scala.swing.TextField
 import scala.swing.event.EditDone
 import scala.swing.event.ValueChanged
-
 import org.drooms.gui.swing.event.AfterNewReportChosen
 import org.drooms.gui.swing.event.BeforeNewReportChosen
 import org.drooms.gui.swing.event.EventBus
@@ -35,6 +33,7 @@ import org.drooms.gui.swing.event.ReplayResetRequested
 import org.drooms.gui.swing.event.ReplayStateChangeRequested
 import org.drooms.gui.swing.event.ReplayStateChanged
 import org.drooms.gui.swing.event.TurnDelayChanged
+import com.typesafe.scalalogging.slf4j.Logging
 
 /**
  * Control panel with UI components used for controlling (start, pause, continue, restart) replay.
@@ -57,16 +56,16 @@ class ReplayControlPanel(eventBus: EventBus) extends ControlPanel(eventBus) {
     val newState = replayState match {
       case ReplayNotStarted =>
         ReplayRunning
-        
+
       case ReplayRunning =>
         ReplayPaused
-        
+
       case ReplayPaused =>
         ReplayRunning
-        
+
       case ReplayFinished =>
         ReplayRunning
-        
+
       case ReplayStopped =>
         ReplayRunning
     }
@@ -140,7 +139,17 @@ class ReplayControlPanel(eventBus: EventBus) extends ControlPanel(eventBus) {
         eventBus.publish(GoToTurn(turnSlider.value))
 
     case EditDone(`currTurnText`) =>
-      eventBus.publish(GoToTurn(currTurnText.text.toInt))
+      try {
+        val turnNo = currTurnText.text.toInt
+        // publish only if the number is within the correct turn range
+        if (turnNo >= 0 && turnNo <= turnSlider.max) {
+          eventBus.publish(GoToTurn(turnNo))
+        }
+      } catch {
+        case e: NumberFormatException =>
+          // log the unsuccessful parsing and do not publish the GoToTurn event
+          logger.debug("Invalid turn number '{}'", currTurnText.text)
+      }
 
     // GUI was created and is ready to accept user actions
     case ReplayInitialized(report) =>
@@ -314,7 +323,7 @@ object ControlPanel {
 /**
  * Control panel located at the bottom of the window
  */
-class ControlPanel(val eventBus: EventBus) extends BorderPanel with Reactor with Publisher {
+class ControlPanel(val eventBus: EventBus) extends BorderPanel with Reactor with Publisher with Logging {
   listenTo(eventBus)
   reactions += {
     case NewUIComponentsRequested =>
