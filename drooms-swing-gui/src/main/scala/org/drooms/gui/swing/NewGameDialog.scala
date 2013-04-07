@@ -21,10 +21,11 @@ import scala.swing.event.Key
 import scala.swing.event.KeyPressed
 import scala.io.Source
 import java.io.FileInputStream
+import javax.swing.JOptionPane
 
 /**
  * Dialog used to specify configuration needed for new Drooms game.
- * 
+ *
  * It allows users to specify:
  * <ul>
  *   <li>game configuration file (*.cfg)
@@ -34,7 +35,7 @@ import java.io.FileInputStream
 class NewGameDialog extends Dialog {
   modal = true
   minimumSize = new Dimension(700, 300)
-  preferredSize  = new Dimension(700, 600)
+  preferredSize = new Dimension(700, 600)
   title = "New Drooms Game"
 
   /* Indicated if the dialog was submitted or not */
@@ -92,10 +93,14 @@ class NewGameDialog extends Dialog {
       visible = false
       dispose()
     case ButtonClicked(`okBtn`) =>
-      // TODO validate input
-      submitted = true
-      visible = false
-      dispose()
+      if (validateInput()) {
+        submitted = true
+        visible = false
+        dispose()
+      } else {
+          JOptionPane.showMessageDialog(this.peer, "One or more fields are empty! Every text field has to be set.", 
+              "Input validation error", JOptionPane.ERROR_MESSAGE)
+      }
     case KeyPressed(_, Key.Escape, _, _) =>
       visible = false
       dispose()
@@ -109,6 +114,10 @@ class NewGameDialog extends Dialog {
     } else {
       None
     }
+  }
+
+  def validateInput(): Boolean = {
+    !playgrUpload.path.text.isEmpty() && !configUpload.path.text.isEmpty() && players.validateInput()
   }
 
   /**
@@ -152,7 +161,7 @@ class NewGameDialog extends Dialog {
       layout(playersView) = BorderPanel.Position.Center
       border = BorderFactory.createTitledBorder("Players")
     }
-    
+
     reactions += {
       case ButtonClicked(`addPlayerBtn`) =>
         addEmptyPlayerView()
@@ -161,15 +170,14 @@ class NewGameDialog extends Dialog {
         addPlayersFromFile()
     }
     update()
-    
+
     def getPlayersInfo(): List[PlayerInfo] = {
-      for (playerView <- playersList) 
+      for (playerView <- playersList)
         yield (if (playerView.getJarOrDir().isDirectory()) {
-             new PlayerInfo(playerView.getName(), None, Some(playerView.getJarOrDir()), playerView.getStrategyClass())
-        } else {
-          new PlayerInfo(playerView.getName(), Some(playerView.getJarOrDir()), None, playerView.getStrategyClass())
-        }
-      )
+        new PlayerInfo(playerView.getName(), None, Some(playerView.getJarOrDir()), playerView.getStrategyClass())
+      } else {
+        new PlayerInfo(playerView.getName(), Some(playerView.getJarOrDir()), None, playerView.getStrategyClass())
+      })
     }
 
     /**
@@ -190,7 +198,7 @@ class NewGameDialog extends Dialog {
             throw new RuntimeException("Can't parse following player definition: " + value)
           }
           // cut off the 'file://' prefix if present
-          val filePath = 
+          val filePath =
             if (strs(1).startsWith("file://"))
               strs(1).substring(7)
             else
@@ -200,7 +208,7 @@ class NewGameDialog extends Dialog {
         update()
       }
     }
-    
+
     def addPlayerView(name: String, clazz: String, path: String) = {
       val playerView = new PlayerView(this)
       playerView.nameField.text = name
@@ -227,16 +235,20 @@ class NewGameDialog extends Dialog {
       }
       pack()
     }
-    
+
     def removePlayerView(playerView: PlayerView): Unit = {
       playersList = playersList.filter(_ != playerView)
       update()
+    }
+    
+    def validateInput(): Boolean = {
+      !playersList.exists(_.validateInput() == false)
     }
   }
 
   /**
    * Represents an UI component that holds  information about a player.
-   * 
+   *
    * Player's name, strategy jar/dir location and strategy class are stored.
    */
   class PlayerView(val parent: PlayersConfigView) extends FlowPanel(FlowPanel.Alignment.Left)() {
@@ -272,7 +284,7 @@ class NewGameDialog extends Dialog {
       }
     }
     listenTo(deleteBtn)
-    
+
     reactions += {
       case ButtonClicked(`deleteBtn`) =>
         parent.removePlayerView(this)
@@ -281,6 +293,12 @@ class NewGameDialog extends Dialog {
     def getName(): String = nameField.text
     def getJarOrDir(): File = jarDirFileLine.file
     def getStrategyClass(): String = strategyClassField.text
+    
+    def validateInput(): Boolean = {
+      val res = !nameField.text.isEmpty && !jarDirFileLine.path.text.isEmpty() && !strategyClassField.text.isEmpty()
+      println(res)
+      res
+    }
   }
 }
 
