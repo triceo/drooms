@@ -181,12 +181,14 @@ object DroomsSwingApp extends SimpleSwingApplication with Logging {
       case GoToTurn(turnNo) =>
         val rc = replayController.getOrElse(
           throw new IllegalStateException("Can't go to specified turn when there is not replay controller!"))
-        logger.debug("Going to turn number " + turnNo)
-        val turnState = rc.getTurnState(turnNo)
-        rc.currentTurnNumber = turnNo
-        eventBus.publish(GoToTurnState(turnNo, turnState))
-        if (turnNo + 1== rc.totalTurns) { // + 1 beuuase turns are numbered 0...totalTurns-1
-          eventBus.publish(ReplayStateChangeRequested(ReplayFinished))
+        if (turnNo <= rc.totalTurns) {
+          logger.debug("Going to turn number " + turnNo)
+          val turnState = rc.getTurnState(turnNo)
+          rc.currentTurnNumber = turnNo
+          eventBus.publish(GoToTurnState(turnNo, turnState))
+          if (turnNo + 1 == rc.totalTurns) { // + 1 because turns are numbered 0...totalTurns-1
+            eventBus.publish(ReplayStateChangeRequested(ReplayFinished))
+          }
         }
 
       case NewGameRequested =>
@@ -209,7 +211,7 @@ object DroomsSwingApp extends SimpleSwingApplication with Logging {
         eventBus.publish(NewGameCreated(config))
 
       case NewGameCreated(config) =>
-        
+
     }
 
     def cancelReplayTimer(): Unit = {
