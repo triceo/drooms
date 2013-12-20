@@ -11,8 +11,12 @@
   <name>Drooms: Stable Common APIs</name>
   <dependencies>
     <dependency>
-       <groupId>org.drools</groupId>
-       <artifactId>drools-decisiontables</artifactId>
+      <groupId>org.drools</groupId>
+      <artifactId>drools-decisiontables</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.drools</groupId>
+      <artifactId>knowledge-api</artifactId>
     </dependency>
     <dependency>
       <groupId>net.sf.jung</groupId>

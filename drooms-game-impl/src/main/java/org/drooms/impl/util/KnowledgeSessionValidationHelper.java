@@ -1,9 +1,5 @@
 package org.drooms.impl.util;
 
-import java.util.Map;
-
-import org.drools.impl.StatefulKnowledgeSessionImpl;
-import org.drools.reteoo.ReteooRuleBase;
 import org.drools.runtime.StatefulKnowledgeSession;
 import org.drools.runtime.rule.WorkingMemoryEntryPoint;
 
@@ -11,20 +7,6 @@ import org.drools.runtime.rule.WorkingMemoryEntryPoint;
  * A helper class to validate some of the properties of the Drools session.
  */
 class KnowledgeSessionValidationHelper {
-
-    /**
-     * Uses internal Drools API to figure out the actual global declarations.
-     * 
-     * @param session
-     *            The session for which to return the globals.
-     * @return Contains names of the globals and their types.
-     */
-    private static Map<String, Class<?>> getInternalGlobalsRepresentation(
-            final StatefulKnowledgeSession session) {
-        final StatefulKnowledgeSessionImpl impl = (StatefulKnowledgeSessionImpl) session;
-        final ReteooRuleBase rb = (ReteooRuleBase) impl.getRuleBase();
-        return rb.getGlobals();
-    }
 
     private final StatefulKnowledgeSession session;
 
@@ -59,9 +41,7 @@ class KnowledgeSessionValidationHelper {
      * @return True if it has.
      */
     public boolean hasGlobal(final String name) {
-        return (KnowledgeSessionValidationHelper
-                .getInternalGlobalsRepresentation(this.session)
-                .containsKey(name));
+        return (this.session.getGlobal(name) != null);
     }
 
     /**
@@ -75,8 +55,7 @@ class KnowledgeSessionValidationHelper {
      */
     public boolean hasGlobal(final String name, final Class<?> cls) {
         if (this.hasGlobal(name)) {
-            final Class<?> global = KnowledgeSessionValidationHelper
-                    .getInternalGlobalsRepresentation(this.session).get(name);
+            final Class<?> global = this.session.getGlobal(name).getClass();
             return (global.equals(cls));
         } else {
             return false;

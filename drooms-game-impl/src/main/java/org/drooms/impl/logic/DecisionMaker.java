@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.drools.KnowledgeBaseFactory;
+import org.drools.core.time.SessionPseudoClock;
 import org.drools.logger.KnowledgeRuntimeLogger;
 import org.drools.logger.KnowledgeRuntimeLoggerFactory;
 import org.drools.runtime.Channel;
@@ -16,7 +17,6 @@ import org.drools.runtime.StatefulKnowledgeSession;
 import org.drools.runtime.conf.ClockTypeOption;
 import org.drools.runtime.rule.FactHandle;
 import org.drools.runtime.rule.WorkingMemoryEntryPoint;
-import org.drools.time.SessionPseudoClock;
 import org.drooms.api.Move;
 import org.drooms.api.Node;
 import org.drooms.api.Player;

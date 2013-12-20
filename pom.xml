@@ -17,6 +17,7 @@
     <scala.version>2.10.0</scala.version>
     <scala.maven.plugin.version>2.15.0</scala.maven.plugin.version>
     <jung.version>2.0.1</jung.version>
+    <drools.version>6.0.0.Final</drools.version>
   </properties>
 
   <dependencyManagement>
@@ -46,12 +47,6 @@
         <groupId>com.github.triceo.drooms</groupId>
         <artifactId>drooms-strategy-random</artifactId>
         <version>${project.version}</version>
-      </dependency>
-      <!-- Drools dependencies -->
-      <dependency>
-        <groupId>org.drools</groupId>
-        <artifactId>drools-decisiontables</artifactId>
-        <version>5.5.0.Final</version>
       </dependency>
       <!-- Scala dependencies -->
       <dependency>
@@ -127,6 +122,16 @@
         <version>4.11</version>
       </dependency>
       <dependency>
+        <groupId>net.sourceforge.jexcelapi</groupId>
+        <artifactId>jxl</artifactId>
+        <version>2.6.12</version>
+      </dependency>
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-all</artifactId>
+        <version>1.9.5</version>
+      </dependency>
+      <dependency>
         <groupId>ch.qos.logback</groupId>
         <artifactId>logback-parent</artifactId>
         <version>1.0.9</version>
@@ -135,8 +140,8 @@
       </dependency>
       <dependency>
         <groupId>org.drools</groupId>
-        <artifactId>droolsjbpm-parent</artifactId>
-        <version>5.5.0.Final</version>
+        <artifactId>drools-bom</artifactId>
+        <version>${drools.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -200,11 +205,18 @@
   <modules>
     <module>drooms-api</module>
     <module>drooms-game-impl</module>
-    <module>drooms-strategy-random</module>
     <module>drooms-swing-gui</module>
     <module>drooms-launcher-tournament</module>
     <module>drooms-launcher-game</module>
   </modules>
+  <profiles>
+    <profile>
+      <id>strategies</id>
+      <modules> <!-- Blocked by https://bugzilla.redhat.com/show_bug.cgi?id=1045590 -->
+        <module>drooms-strategy-random</module>
+      </modules>
+    </profile>
+  </profiles>
   <developers>
     <developer>
       <email>lukas@petrovicky.net</email>
