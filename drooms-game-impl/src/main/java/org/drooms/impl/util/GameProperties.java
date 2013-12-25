@@ -8,8 +8,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Properties;
 
+import org.codehaus.plexus.classworlds.strategy.Strategy;
 import org.drooms.api.Player;
-import org.drooms.api.Strategy;
 import org.drooms.util.CommonProperties;
 
 /**
@@ -50,8 +50,8 @@ public class GameProperties extends CommonProperties {
 
     public static class CollectibleType {
 
-        private final String name;
         private final int expiration;
+        private final String name;
         private final int points;
         private final BigDecimal probabilityOfAppearance;
 
@@ -85,12 +85,12 @@ public class GameProperties extends CommonProperties {
         return new GameProperties(CommonProperties.loadPropertiesFromInputStream(is));
     }
 
-    private final int startingWormLength;
+    private final Collection<CollectibleType> collectibleTypes;
+    private final int deadWormBonus;
     private final int maximumInactiveTurns;
     private final int maximumTurns;
-    private final int deadWormBonus;
+    private final int startingWormLength;
     private final int strategyTimeoutInSeconds;
-    private final Collection<CollectibleType> collectibleTypes;
 
     private GameProperties(final Properties p) {
         super(p);

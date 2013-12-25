@@ -19,6 +19,7 @@ import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 public class XmlUtil {
+
     /**
      * Makes the specified XML string pretty.
      * 

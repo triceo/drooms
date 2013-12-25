@@ -209,14 +209,6 @@
     <module>drooms-launcher-tournament</module>
     <module>drooms-launcher-game</module>
   </modules>
-  <profiles>
-    <profile>
-      <id>strategies</id>
-      <modules> <!-- Blocked by https://bugzilla.redhat.com/show_bug.cgi?id=1045590 -->
-        <module>drooms-strategy-random</module>
-      </modules>
-    </profile>
-  </profiles>
   <developers>
     <developer>
       <email>lukas@petrovicky.net</email>

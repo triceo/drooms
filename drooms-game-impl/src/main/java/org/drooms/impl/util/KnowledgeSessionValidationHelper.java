@@ -1,14 +1,14 @@
 package org.drooms.impl.util;
 
-import org.drools.runtime.StatefulKnowledgeSession;
-import org.drools.runtime.rule.WorkingMemoryEntryPoint;
+import org.kie.api.runtime.KieSession;
+import org.kie.api.runtime.rule.EntryPoint;
 
 /**
  * A helper class to validate some of the properties of the Drools session.
  */
 class KnowledgeSessionValidationHelper {
 
-    private final StatefulKnowledgeSession session;
+    private final KieSession session;
 
     /**
      * Instantiate a validator for a particular session.
@@ -16,7 +16,7 @@ class KnowledgeSessionValidationHelper {
      * @param ksession
      */
     public KnowledgeSessionValidationHelper(
-            final StatefulKnowledgeSession ksession) {
+            final KieSession ksession) {
         this.session = ksession;
     }
 
@@ -28,8 +28,7 @@ class KnowledgeSessionValidationHelper {
      * @return True if it has.
      */
     public boolean hasEntryPoint(final String name) {
-        final WorkingMemoryEntryPoint wmep = this.session
-                .getWorkingMemoryEntryPoint(name);
+        final EntryPoint wmep = this.session.getEntryPoint(name);
         return (wmep != null);
     }
 

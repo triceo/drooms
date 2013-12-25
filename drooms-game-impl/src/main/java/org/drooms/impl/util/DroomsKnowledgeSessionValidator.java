@@ -4,9 +4,9 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.drools.KnowledgeBase;
-import org.drools.runtime.StatefulKnowledgeSession;
 import org.drooms.impl.logic.PathTracker;
+import org.kie.api.KieBase;
+import org.kie.api.runtime.KieSession;
 import org.slf4j.Logger;
 
 /**
@@ -14,8 +14,8 @@ import org.slf4j.Logger;
  */
 public class DroomsKnowledgeSessionValidator {
 
-    private final KnowledgeSessionValidationHelper helper;
     private final List<String> errors = new LinkedList<String>();
+    private final KnowledgeSessionValidationHelper helper;
     private final List<String> warnings = new LinkedList<String>();
 
     /**
@@ -24,8 +24,8 @@ public class DroomsKnowledgeSessionValidator {
      * 
      * @param kbase
      */
-    public DroomsKnowledgeSessionValidator(final KnowledgeBase kbase) {
-        this(kbase.newStatefulKnowledgeSession());
+    public DroomsKnowledgeSessionValidator(final KieBase kbase) {
+        this(kbase.newKieSession());
     }
 
     /**
@@ -34,7 +34,7 @@ public class DroomsKnowledgeSessionValidator {
      * @param session
      */
     public DroomsKnowledgeSessionValidator(
-            final StatefulKnowledgeSession session) {
+            final KieSession session) {
         this.helper = new KnowledgeSessionValidationHelper(session);
         this.validateGlobal("logger", Logger.class, false);
         this.validateGlobal("tracker", PathTracker.class, false);

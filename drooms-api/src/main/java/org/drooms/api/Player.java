@@ -1,17 +1,11 @@
 package org.drooms.api;
 
-import java.util.Collection;
-
-import org.drools.KnowledgeBase;
-import org.drools.KnowledgeBaseConfiguration;
-import org.drools.KnowledgeBaseFactory;
-import org.drools.builder.KnowledgeBuilder;
-import org.drools.conf.EventProcessingOption;
-import org.drools.conf.PermGenThresholdOption;
-import org.drools.definition.KnowledgePackage;
-
-import edu.uci.ics.jung.algorithms.shortestpath.ShortestPath;
-import edu.uci.ics.jung.graph.Graph;
+import org.kie.api.KieBase;
+import org.kie.api.KieBaseConfiguration;
+import org.kie.api.KieServices;
+import org.kie.api.builder.ReleaseId;
+import org.kie.api.conf.EventProcessingOption;
+import org.kie.api.runtime.KieContainer;
 
 /**
  * Represents a worm in the {@link Game} on the {@link Playground}.
@@ -19,9 +13,7 @@ import edu.uci.ics.jung.graph.Graph;
 public class Player {
 
     private final String name;
-    private final CustomPathBasedStrategy strategy;
-    private final Collection<KnowledgePackage> packages;
-    private final ClassLoader classLoader;
+    private final ReleaseId strategy;
 
     /**
      * Create a player instance.
@@ -29,26 +21,14 @@ public class Player {
      * @param name
      *            Name of the player.
      * @param strategy
-     *            Strategy of the player.
-     * @param strategyClassLoader
-     *            Class loader used to load player's strategy.
+     *            Strategy of the player, in the form of a kjar.
      */
-    public Player(final String name, final CustomPathBasedStrategy strategy, final ClassLoader strategyClassLoader) {
-        if (name == null || strategy == null || strategyClassLoader == null) {
+    public Player(final String name, final ReleaseId strategy) {
+        if (name == null || strategy == null) {
             throw new IllegalArgumentException("None of the parameters can be null.");
         }
-        final KnowledgeBuilder kb = strategy.getKnowledgeBuilder(strategyClassLoader);
-        this.packages = kb.getKnowledgePackages();
         this.strategy = strategy;
         this.name = name;
-        this.classLoader = strategyClassLoader;
-    }
-
-    /**
-     * See {@link Strategy#enableAudit()}.
-     */
-    public boolean auditSession() {
-        return this.strategy.enableAudit();
     }
 
     /**
@@ -56,15 +36,12 @@ public class Player {
      * 
      * @return The strategy.
      */
-    public KnowledgeBase constructKnowledgeBase() {
-        final KnowledgeBaseConfiguration kbconf = KnowledgeBaseFactory.newKnowledgeBaseConfiguration(null,
-                this.classLoader);
-        kbconf.setOption(PermGenThresholdOption.get(0)); // workaround for
-                                                         // https://github.com/triceo/drooms/issues/3
-        kbconf.setOption(EventProcessingOption.STREAM);
-        final KnowledgeBase kbase = KnowledgeBaseFactory.newKnowledgeBase(kbconf);
-        kbase.addKnowledgePackages(this.packages);
-        return kbase;
+    public KieBase constructKieBase() {
+        final KieServices ks = KieServices.Factory.get();
+        final KieBaseConfiguration config = ks.newKieBaseConfiguration();
+        config.setOption(EventProcessingOption.STREAM);
+        final KieContainer kc = ks.newKieContainer(this.strategy);
+        return kc.newKieBase(config);
     }
 
     @Override
@@ -96,14 +73,6 @@ public class Player {
      */
     public String getName() {
         return this.name;
-    }
-
-    /**
-     * See {@link CustomPathBasedStrategy#getShortestPathAlgorithm(Graph)}. This
-     * method just relays there.
-     */
-    public ShortestPath<Node, Edge> getShortestPathAlgorithm(final Graph<Node, Edge> graph) {
-        return this.strategy.getShortestPathAlgorithm(graph);
     }
 
     @Override

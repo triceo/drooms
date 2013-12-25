@@ -9,7 +9,6 @@ public class EdgeTest {
     private final Node largerNode = Node.getNode(11, 20);
     private final Node largestNode = Node.getNode(9, 21);
 
-    @SuppressWarnings("unused")
     @Test(expected = IllegalArgumentException.class)
     public void testEdgeSame() {
         new Edge(this.leastNode, this.leastNode);

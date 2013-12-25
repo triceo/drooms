@@ -7,21 +7,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import org.drools.KnowledgeBaseFactory;
+import org.codehaus.plexus.classworlds.strategy.Strategy;
 import org.drools.core.time.SessionPseudoClock;
-import org.drools.logger.KnowledgeRuntimeLogger;
-import org.drools.logger.KnowledgeRuntimeLoggerFactory;
-import org.drools.runtime.Channel;
-import org.drools.runtime.KnowledgeSessionConfiguration;
-import org.drools.runtime.StatefulKnowledgeSession;
-import org.drools.runtime.conf.ClockTypeOption;
-import org.drools.runtime.rule.FactHandle;
-import org.drools.runtime.rule.WorkingMemoryEntryPoint;
 import org.drooms.api.Move;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
-import org.drooms.api.Strategy;
 import org.drooms.impl.logic.events.CollectibleAdditionEvent;
 import org.drooms.impl.logic.events.CollectibleRemovalEvent;
 import org.drooms.impl.logic.events.CollectibleRewardEvent;
@@ -34,8 +25,12 @@ import org.drooms.impl.logic.facts.GameProperty;
 import org.drooms.impl.logic.facts.Wall;
 import org.drooms.impl.logic.facts.Worm;
 import org.drooms.impl.util.DroomsKnowledgeSessionValidator;
-import org.drooms.impl.util.DroomsTestHelper;
 import org.drooms.impl.util.GameProperties;
+import org.kie.api.logger.KieRuntimeLogger;
+import org.kie.api.runtime.Channel;
+import org.kie.api.runtime.KieSession;
+import org.kie.api.runtime.rule.EntryPoint;
+import org.kie.api.runtime.rule.FactHandle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,13 +86,7 @@ public class DecisionMaker implements Channel {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DecisionMaker.class);
 
-    private static KnowledgeSessionConfiguration getSessionConfiguration() {
-        final KnowledgeSessionConfiguration config = KnowledgeBaseFactory.newKnowledgeSessionConfiguration();
-        config.setOption(ClockTypeOption.get("pseudo"));
-        return config;
-    }
-
-    private static void setGlobal(final StatefulKnowledgeSession session, final String global, final Object value) {
+    private static void setGlobal(final KieSession session, final String global, final Object value) {
         try {
             session.setGlobal(global, value);
         } catch (final RuntimeException ex) {
@@ -105,31 +94,20 @@ public class DecisionMaker implements Channel {
         }
     }
 
-    private final Player player;
-    private final StatefulKnowledgeSession session;
-    private final KnowledgeRuntimeLogger sessionAudit;
-    private final boolean isDisposed = false;
-    private final WorkingMemoryEntryPoint gameEvents, playerEvents, rewardEvents;
-    private Move latestDecision = null;
     private final FactHandle currentTurn;
-
+    private final EntryPoint gameEvents, playerEvents, rewardEvents;
     private final Map<Player, Map<Node, FactHandle>> handles = new HashMap<Player, Map<Node, FactHandle>>();
+    private final boolean isDisposed = false;
+    private Move latestDecision = null;
+    private final Player player;
+    private final KieSession session;
+
+    private final KieRuntimeLogger sessionAudit;
 
     public DecisionMaker(final Player p, final PathTracker tracker, final GameProperties properties,
             final File reportFolder) {
         this.player = p;
-        this.session = p.constructKnowledgeBase().newStatefulKnowledgeSession(DecisionMaker.getSessionConfiguration(),
-                null);
-        if (p.auditSession()) {
-            DecisionMaker.LOGGER.info("Auditing the Drools session is enabled.");
-            this.sessionAudit = KnowledgeRuntimeLoggerFactory.newFileLogger(this.session,
-                    reportFolder.getAbsolutePath() + File.separator + "player-" + this.player.getName() + "-session");
-        } else {
-            DecisionMaker.LOGGER.info("Auditing the Drools session is disabled.");
-            this.sessionAudit = null;
-        }
-        // this is where we listen for decisions
-        this.session.registerChannel("decision", this);
+        this.session = p.constructKieBase().newKieSession();
         // validate session
         final DroomsKnowledgeSessionValidator validator = new DroomsKnowledgeSessionValidator(this.session);
         if (!validator.isValid()) {
@@ -141,10 +119,15 @@ public class DecisionMaker implements Channel {
                 DecisionMaker.LOGGER.info("Player {} has an incomplete strategy: {}", this.player.getName(), message);
             }
         }
+        // FIXME figure out how to audit kie session
+        DecisionMaker.LOGGER.info("Auditing the Drools session is disabled.");
+        this.sessionAudit = null;
+        // this is where we listen for decisions
+        this.session.registerChannel("decision", this);
         // this is where we will send events from the game
-        this.rewardEvents = this.session.getWorkingMemoryEntryPoint("rewardEvents");
-        this.gameEvents = this.session.getWorkingMemoryEntryPoint("gameEvents");
-        this.playerEvents = this.session.getWorkingMemoryEntryPoint("playerEvents");
+        this.rewardEvents = this.session.getEntryPoint("rewardEvents");
+        this.gameEvents = this.session.getEntryPoint("gameEvents");
+        this.playerEvents = this.session.getEntryPoint("playerEvents");
         // configure the globals for the session
         DecisionMaker.setGlobal(this.session, "tracker", tracker);
         DecisionMaker.setGlobal(this.session, "logger",
@@ -238,7 +221,7 @@ public class DecisionMaker implements Channel {
         final Player p = evt.getPlayer();
         // remove player from the WM
         for (final Map.Entry<Node, FactHandle> entry : this.handles.remove(p).entrySet()) {
-            this.session.retract(entry.getValue());
+            this.session.delete(entry.getValue());
         }
     }
 
@@ -261,7 +244,7 @@ public class DecisionMaker implements Channel {
         for (final Node n : untraversedNodes) { // worm no longer
                                                 // occupies a node
             final FactHandle fh = playerHandles.remove(n);
-            this.session.retract(fh);
+            this.session.delete(fh);
         }
     }
 

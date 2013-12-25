@@ -13,6 +13,8 @@ import org.drooms.api.Edge;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
+import org.drooms.impl.util.shortestpath.astar.UnweightedAStarShortestPath;
+import org.drooms.impl.util.shortestpath.astar.UnweightedAStarShortestPath.VertexDistanceHeuristics;
 
 import edu.uci.ics.jung.algorithms.shortestpath.ShortestPath;
 import edu.uci.ics.jung.algorithms.shortestpath.ShortestPathUtils;
@@ -42,12 +44,12 @@ public class PathTracker {
         return Graphs.unmodifiableUndirectedGraph(clone);
     }
 
-    private final Playground playground;
-    private final Player player;
     private UndirectedGraph<Node, Edge> currentGraph;
-
     private ShortestPath<Node, Edge> currentPath;
     private Node currentPosition;
+
+    private final Player player;
+    private final Playground playground;
 
     /**
      * Initialize the class.
@@ -145,7 +147,7 @@ public class PathTracker {
         }
         final Graph<Node, Edge> graphWithoutPlayers = this.playground.getGraph();
         this.currentGraph = PathTracker.cloneGraph(graphWithoutPlayers, unavailable);
-        this.currentPath = this.player.getShortestPathAlgorithm(this.currentGraph);
+        this.currentPath = new UnweightedAStarShortestPath<>(this.currentGraph, VertexDistanceHeuristics.EUCLIDEAN);
         this.currentPosition = newPositions.get(this.player).getFirst();
     }
 
