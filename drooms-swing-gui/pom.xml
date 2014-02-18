@@ -117,6 +117,14 @@
           </includes>
         </configuration>
       </plugin>
+      <!-- Don't deploy to repository. Shaded jar is too large and should not be distributed this way. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 </project>

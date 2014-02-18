@@ -199,6 +199,11 @@
           <artifactId>maven-scala-plugin</artifactId>
           <version>${scala.maven.plugin.version}</version>
         </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-deploy-plugin</artifactId>
+          <version>2.8.1</version>
+        </plugin>
       </plugins>
     </pluginManagement>
   </build>
@@ -288,4 +293,16 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
+  <distributionManagement>
+    <repository>
+      <id>drooms-releases</id>
+      <name>Drooms repository (releases)</name>
+      <url>http://nexus-drooms.rhcloud.com/nexus/content/repositories/releases</url>
+    </repository>
+    <snapshotRepository>
+      <id>drooms-snapshots</id>
+      <name>Drooms repository (snapshots)</name>
+      <url>http://nexus-drooms.rhcloud.com/nexus/content/repositories/snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
 </project>
