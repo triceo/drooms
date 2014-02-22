@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import org.codehaus.plexus.classworlds.strategy.Strategy;
 import org.drools.core.time.SessionPseudoClock;
 import org.drooms.api.Move;
 import org.drooms.api.Node;
@@ -38,7 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Represents a {@link Player}'s {@link Strategy} in action. This class holds
+ * Represents a {@link Player}'s Strategy in action. This class holds
  * and maintains Drools engine's state for each particular player.
  * 
  * <p>

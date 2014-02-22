@@ -8,7 +8,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Properties;
 
-import org.codehaus.plexus.classworlds.strategy.Strategy;
 import org.drooms.api.Player;
 import org.drooms.util.CommonProperties;
 
@@ -39,7 +38,7 @@ import org.drooms.util.CommonProperties;
  * <dt>worm.max.inactive.turns (defaults to 3)</dt>
  * <dd>Maximum number of turns of inactivity after which a player may be terminated, if the game decides so.</dd>
  * <dt>worm.timeout.seconds (defaults to 1)</dt>
- * <dd>The maximum amount of time that the {@link Player}'s {@link Strategy} has to make a decision on the next movement
+ * <dd>The maximum amount of time that the {@link Player}'s Strategy has to make a decision on the next movement
  * of the worm. If it doesn't make it in time, STAY is enforced, potentially leading to the worm being terminated for
  * inactivity.</dd>
  * <dt>worm.survival.bonus (defaults to 5)</dt>
