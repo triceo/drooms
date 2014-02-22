@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import org.codehaus.plexus.classworlds.strategy.Strategy;
 import org.drools.core.time.SessionPseudoClock;
 import org.drooms.api.Move;
 import org.drooms.api.Node;
@@ -26,16 +25,19 @@ import org.drooms.impl.logic.facts.Wall;
 import org.drooms.impl.logic.facts.Worm;
 import org.drooms.impl.util.DroomsKnowledgeSessionValidator;
 import org.drooms.impl.util.GameProperties;
+import org.kie.api.KieServices;
 import org.kie.api.logger.KieRuntimeLogger;
 import org.kie.api.runtime.Channel;
 import org.kie.api.runtime.KieSession;
+import org.kie.api.runtime.KieSessionConfiguration;
+import org.kie.api.runtime.conf.ClockTypeOption;
 import org.kie.api.runtime.rule.EntryPoint;
 import org.kie.api.runtime.rule.FactHandle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Represents a {@link Player}'s {@link Strategy} in action. This class holds
+ * Represents a {@link Player}'s Strategy in action. This class holds
  * and maintains Drools engine's state for each particular player.
  * 
  * <p>
@@ -107,7 +109,9 @@ public class DecisionMaker implements Channel {
     public DecisionMaker(final Player p, final PathTracker tracker, final GameProperties properties,
             final File reportFolder) {
         this.player = p;
-        this.session = p.constructKieBase().newKieSession();
+        KieSessionConfiguration config = KieServices.Factory.get().newKieSessionConfiguration();
+        config.setOption(ClockTypeOption.get("pseudo"));
+        this.session = p.constructKieBase().newKieSession(config, null);
         // validate session
         final DroomsKnowledgeSessionValidator validator = new DroomsKnowledgeSessionValidator(this.session);
         if (!validator.isValid()) {

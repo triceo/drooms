@@ -8,14 +8,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
-import org.codehaus.plexus.classworlds.strategy.Strategy;
 import org.drooms.api.Player;
 import org.drooms.impl.GameController;
 import org.kie.api.KieServices;
 import org.kie.api.builder.ReleaseId;
 
 /**
- * A helper class to load {@link Strategy} implementations for all requested {@link Player}s.
+ * A helper class to load Strategy implementations for all requested {@link Player}s.
  */
 public class PlayerAssembly {
 
