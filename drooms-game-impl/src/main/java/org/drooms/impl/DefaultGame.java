@@ -136,29 +136,33 @@ public class DefaultGame extends GameController {
     }
 
     @Override
-    protected Deque<Node> performPlayerMove(final Player player, final Move decision) {
+    protected Deque<Node> performPlayerMove(final Player player, final Playground playground, final Move decision) {
         // move the head of the worm
         final Deque<Node> currentPos = this.getPlayerPosition(player);
         final Node currentHeadPos = currentPos.getFirst();
         Node newHeadPos;
         switch (decision) {
             case UP:
-                newHeadPos = Node.getNode(currentHeadPos.getX(), currentHeadPos.getY() + 1);
+                newHeadPos = playground.getNodeAt(currentHeadPos.getX(), currentHeadPos.getY() + 1);
                 break;
             case DOWN:
-                newHeadPos = Node.getNode(currentHeadPos.getX(), currentHeadPos.getY() - 1);
+                newHeadPos = playground.getNodeAt(currentHeadPos.getX(), currentHeadPos.getY() - 1);
                 break;
             case LEFT:
-                newHeadPos = Node.getNode(currentHeadPos.getX() - 1, currentHeadPos.getY());
+                newHeadPos = playground.getNodeAt(currentHeadPos.getX() - 1, currentHeadPos.getY());
                 break;
             case RIGHT:
-                newHeadPos = Node.getNode(currentHeadPos.getX() + 1, currentHeadPos.getY());
+                newHeadPos = playground.getNodeAt(currentHeadPos.getX() + 1, currentHeadPos.getY());
                 break;
             case STAY:
                 newHeadPos = currentHeadPos;
                 break;
             default:
                 throw new IllegalStateException("Unknown move!");
+        }
+        // just to be sure; in theory can never happen as you first always hit a wall
+        if (newHeadPos == null) {
+            throw new IllegalStateException("Moving to a non-existent node!");
         }
         // move the head of the snake
         final Deque<Node> newPosition = new LinkedList<Node>(currentPos);
@@ -193,7 +197,7 @@ public class DefaultGame extends GameController {
         for (int x = 0; x < p.getWidth(); x++) {
             for (int y = 0; y < p.getHeight(); y++) {
                 if (p.isAvailable(x, y)) {
-                    nodes.add(Node.getNode(x, y));
+                    nodes.add(p.getNodeAt(x, y));
                 }
             }
         }

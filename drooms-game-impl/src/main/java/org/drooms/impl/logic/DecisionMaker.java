@@ -144,7 +144,7 @@ public class DecisionMaker implements Channel {
         for (int x = -1; x <= playground.getWidth(); x++) {
             for (int y = -1; y <= playground.getHeight(); y++) {
                 if (!playground.isAvailable(x, y)) {
-                    this.session.insert(new Wall(Node.getNode(x, y)));
+                    this.session.insert(new Wall(playground.getNodeAt(x, y)));
                 }
             }
         }

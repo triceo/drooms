@@ -7,7 +7,7 @@ import org.junit.Test;
 
 public class CollectibleTest {
 
-    private static final Node LOCATION = Node.getNode(0, 0);
+    private static final Node LOCATION = new Node(0, 0);
 
     @Test
     public void testCollectibleConstructorExpiring() {

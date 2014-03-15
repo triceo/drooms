@@ -196,11 +196,13 @@ public abstract class GameController implements Game {
      * 
      * @param player
      *            The worm.
+     * @param playground
+     *            Playground on which the move is happening.
      * @param decision
      *            The move to perform.
      * @return New positions for the worm, head-first.
      */
-    protected abstract Deque<Node> performPlayerMove(final Player player, final Move decision);
+    protected abstract Deque<Node> performPlayerMove(final Player player, final Playground playground, final Move decision);
 
     /**
      * Decide which players should be rewarded for survival in this round.
@@ -282,7 +284,7 @@ public abstract class GameController implements Game {
             for (final Player p : currentPlayers) {
                 final Move m = decisions.get(p);
                 this.addDecision(p, m, turnNumber);
-                final Deque<Node> newPosition = this.performPlayerMove(p, m);
+                final Deque<Node> newPosition = this.performPlayerMove(p, playground, m);
                 this.setPlayerPosition(p, newPosition);
                 commands.add(new MovePlayerCommand(p, m, newPosition));
             }

@@ -6,13 +6,18 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.drooms.api.Edge;
 import org.drooms.api.Node;
+import org.drooms.api.Node.Type;
 import org.drooms.api.Playground;
 
 import edu.uci.ics.jung.graph.Graph;
@@ -25,10 +30,9 @@ class DefaultPlayground implements Playground {
     private static final char PLAYER_SIGN = '@';
 
     private final Set<Node> nodes = new HashSet<Node>();
+    private final Map<Node, Character> portals = new HashMap<Node, Character>();
 
     private final List<Node[]> nodeLocations = new ArrayList<Node[]>();
-
-    private static final Node WALL_NODE = Node.getNode(-1, -1);
 
     private final Graph<Node, Edge> graph = new UndirectedSparseGraph<Node, Edge>();
     private final List<Node> startingNodes = new ArrayList<Node>();
@@ -37,6 +41,9 @@ class DefaultPlayground implements Playground {
 
     DefaultPlayground(final String name, final List<String> lines) {
         this.name = name;
+        // portal data
+        final Map<Character, Node> portalEntries = new TreeMap<Character, Node>();
+        final Map<Character, Node> portalExits = new TreeMap<Character, Node>();
         // assemble nodes
         int maxX = Integer.MIN_VALUE;
         for (final String line : lines) {
@@ -47,17 +54,26 @@ class DefaultPlayground implements Playground {
                 Node n;
                 switch (nodeLabel) {
                     case WALL_SIGN: // wall node
-                        n = DefaultPlayground.WALL_NODE;
+                        n = new Node(Type.WALL, x, y);
                         break;
                     case PLAYER_SIGN: // player starting position
-                        n = Node.getNode(x, y);
+                        n = new Node(Type.STARTING_POSITION, x, y);
                         this.startingNodes.add(n);
                         break;
                     case ' ': // regular node
-                        n = Node.getNode(x, y);
+                        n = new Node(x, y);
                         break;
-                    default:
-                        throw new IllegalStateException("Unrecognized character in the playground: " + nodeLabel);
+                    default: // any other character is a portal
+                        n = new Node(Type.PORTAL, x, y);
+                        if (portalEntries.containsKey(nodeLabel)) {
+                            if (portalExits.containsKey(nodeLabel)) {
+                                throw new IllegalStateException("Portal " + nodeLabel + " appears more than twice!");
+                            } else {
+                                portalExits.put(nodeLabel, n);
+                            }
+                        } else {
+                            portalEntries.put(nodeLabel, n);
+                        }
                 }
                 this.nodes.add(n);
                 locations[x] = n;
@@ -69,7 +85,7 @@ class DefaultPlayground implements Playground {
         this.width = maxX + 1;
         // link nodes
         for (final Node n : this.nodes) {
-            if (n == DefaultPlayground.WALL_NODE) {
+            if (n.getType() == Type.WALL) {
                 // don't link wall node to any other node
                 continue;
             }
@@ -92,6 +108,18 @@ class DefaultPlayground implements Playground {
             if (x < nodes.length - 1) {
                 this.link(x, y, x + 1, y);
             }
+        }
+        // link portals
+        for (final Map.Entry<Character, Node> entries : portalEntries.entrySet()) {
+            final Character key = entries.getKey();
+            if (!portalExits.containsKey(key)) {
+                throw new IllegalStateException("Portal " + key + " has no opposite end.");
+            }
+            final Node entry = entries.getValue();
+            final Node exit = portalExits.get(key);
+            this.link(entry.getX(), entry.getY(), exit.getX(), exit.getY());
+            this.portals.put(entry, key);
+            this.portals.put(exit, key);
         }
     }
 
@@ -134,7 +162,7 @@ class DefaultPlayground implements Playground {
     @Override
     public boolean isAvailable(final int x, final int y) {
         try {
-            return (this.getNode(x, y) == DefaultPlayground.WALL_NODE) ? false : true;
+            return (this.getNode(x, y).getType() == Type.WALL) ? false : true;
         } catch (final IllegalArgumentException ex) {
             return false;
         }
@@ -148,7 +176,7 @@ class DefaultPlayground implements Playground {
         final Node node2 = this.getNode(otherX, otherY);
         Edge e = this.graph.findEdge(node1, node2);
         if (e == null) {
-            e = new Edge(node1, node2);
+            e = new DefaultEdge(node1, node2);
             this.graph.addEdge(e, node1, node2);
         }
         return e;
@@ -167,17 +195,37 @@ class DefaultPlayground implements Playground {
         try (final BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(s, "UTF-8"))) {
             for (final Node[] line : this.nodeLocations) {
                 for (final Node n : line) {
-                    if (n == DefaultPlayground.WALL_NODE) {
-                        bw.append(DefaultPlayground.WALL_SIGN);
-                    } else if (this.startingNodes.contains(n)) {
-                        bw.append(DefaultPlayground.PLAYER_SIGN);
-                    } else {
-                        bw.append(' ');
+                    switch (n.getType()) {
+                        case WALL:
+                            bw.append(DefaultPlayground.WALL_SIGN);
+                            break;
+                        case STARTING_POSITION:
+                            bw.append(DefaultPlayground.PLAYER_SIGN);
+                            break;
+                        case PORTAL:
+                            bw.append(this.portals.get(n));
+                            break;
+                        default:
+                            bw.append(' ');
                     }
                 }
                 bw.newLine();
             }
         }
+    }
+
+    @Override
+    public Node getNodeAt(final int x, final int y) {
+        try {
+            return this.getNode(x, y);
+        } catch (final IllegalArgumentException ex) {
+            return null;
+        }
+    }
+
+    @Override
+    public Collection<Node> getNodes() {
+        return Collections.unmodifiableSet(this.nodes);
     }
 
 }
