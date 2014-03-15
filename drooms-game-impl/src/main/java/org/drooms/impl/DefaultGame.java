@@ -14,6 +14,7 @@ import java.util.Set;
 import org.drooms.api.Collectible;
 import org.drooms.api.Move;
 import org.drooms.api.Node;
+import org.drooms.api.Node.Type;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
 import org.drooms.impl.util.GameProperties;
@@ -154,6 +155,13 @@ public class DefaultGame extends GameController {
             case RIGHT:
                 newHeadPos = playground.getNodeAt(currentHeadPos.getX() + 1, currentHeadPos.getY());
                 break;
+            case IN:
+                if (currentHeadPos.getType() == Type.PORTAL) {
+                    // the current node is a PORTAL. move to the other end
+                    newHeadPos = playground.getOtherEndOfPortal(currentHeadPos);
+                    break;
+                }
+                // else this command makes no sense and we STAY
             case STAY:
                 newHeadPos = currentHeadPos;
                 break;

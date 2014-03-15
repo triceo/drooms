@@ -6,6 +6,10 @@ package org.drooms.api;
 public enum Move {
 
     /**
+     * Use a portal. Will turn into STAY, if not on portal at the moment.
+     */
+    IN,
+    /**
      * Increases Y, doesn't change X.
      */
     UP,

@@ -228,4 +228,25 @@ class DefaultPlayground implements Playground {
         return Collections.unmodifiableSet(this.nodes);
     }
 
+    @Override
+    public Node getOtherEndOfPortal(final Node portal) {
+        if (portal.getType() != Type.PORTAL) {
+            throw new IllegalArgumentException("Node not a portal: " + portal);
+        } else if (!this.portals.containsKey(portal)) {
+            throw new IllegalArgumentException("Unknown portal:" + portal);
+        }
+        final Character portalId = this.portals.get(portal);
+        for (final Map.Entry<Node, Character> portals : this.portals.entrySet()) {
+            if (portalId != portals.getValue()) {
+                continue;
+            }
+            final Node possiblePortal = portals.getKey();
+            if (portal == possiblePortal) {
+                continue;
+            }
+            return possiblePortal;
+        }
+        throw new IllegalStateException("Cannot find portal. This should not be possible at this point.");
+    }
+
 }

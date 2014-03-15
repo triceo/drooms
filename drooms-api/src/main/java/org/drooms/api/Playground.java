@@ -51,6 +51,17 @@ public interface Playground {
     public Collection<Node> getNodes();
 
     /**
+     * Retrieve the other end of a portal.
+     * 
+     * @param portal
+     *            The known end of a portal.
+     * @return The other end, if a known portal.
+     * @throws IllegalArgumentException
+     *             when not portal or not a known portal.
+     */
+    public Node getOtherEndOfPortal(Node portal);
+
+    /**
      * Returns {@link Node}s at which {@link Player}s are allowed to start out
      * from.
      * 
