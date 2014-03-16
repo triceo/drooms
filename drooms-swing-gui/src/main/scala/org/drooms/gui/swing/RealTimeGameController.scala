@@ -206,7 +206,7 @@ class RealTimeGameController(
     currentTurnSteps ::= new WormDeactivated(p.getName())
   }
 
-  def playerMoved(p: org.drooms.api.Player, m: org.drooms.api.Move, nodes: org.drooms.api.Node*): Unit = {
+  def playerMoved(p: org.drooms.api.Player, m: org.drooms.api.Action, nodes: org.drooms.api.Node*): Unit = {
     currentTurnSteps ::= new WormMoved(p.getName(), transformNodes(nodes))
   }
 

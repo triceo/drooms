@@ -1,6 +1,5 @@
 package org.drooms.impl.logic.facts;
 
-import org.drooms.api.Move;
 import org.drooms.impl.GameController;
 
 /**

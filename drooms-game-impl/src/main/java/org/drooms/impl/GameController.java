@@ -18,10 +18,10 @@ import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.io.IOUtils;
+import org.drooms.api.Action;
 import org.drooms.api.Collectible;
 import org.drooms.api.Game;
 import org.drooms.api.GameProgressListener;
-import org.drooms.api.Move;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
@@ -31,7 +31,7 @@ import org.drooms.impl.logic.commands.CollectCollectibleCommand;
 import org.drooms.impl.logic.commands.Command;
 import org.drooms.impl.logic.commands.CrashPlayerCommand;
 import org.drooms.impl.logic.commands.DeactivatePlayerCommand;
-import org.drooms.impl.logic.commands.MovePlayerCommand;
+import org.drooms.impl.logic.commands.PlayerActionCommand;
 import org.drooms.impl.logic.commands.RemoveCollectibleCommand;
 import org.drooms.impl.logic.commands.RewardSurvivalCommand;
 import org.drooms.impl.util.GameProperties;
@@ -48,7 +48,7 @@ import org.slf4j.LoggerFactory;
  * <li>Each player gets one worm. Properties of these worms come from the game config and will be explained later. List
  * of players comes from the player config.</li>
  * <li>When a worm collides with something, it is terminated. Collisions are determined by classes extending this one.</li>
- * <li>When a worm's past couple decisions were all STAY (see {@link Move}), the worm may be terminated. This is
+ * <li>When a worm's past couple decisions were all STAY (see {@link Action}), the worm may be terminated. This is
  * controlled by the classes extending this one.</li>
  * <li>When a turn ends, worms may be rewarded for surviving. How and when, that depends on the classes extending this
  * one.</li>
@@ -85,7 +85,7 @@ public abstract class GameController implements Game {
 
     private final Map<Node, Collectible> collectiblesByNode = new HashMap<Node, Collectible>();
 
-    private final Map<Player, SortedMap<Integer, Move>> decisionRecord = new HashMap<Player, SortedMap<Integer, Move>>();
+    private final Map<Player, SortedMap<Integer, Action>> decisionRecord = new HashMap<Player, SortedMap<Integer, Action>>();
 
     private GameProperties gameConfig;
 
@@ -95,9 +95,9 @@ public abstract class GameController implements Game {
         this.collectiblesByNode.put(c.getAt(), c);
     }
 
-    private void addDecision(final Player p, final Move m, final int turnNumber) {
+    private void addDecision(final Player p, final Action m, final int turnNumber) {
         if (!this.decisionRecord.containsKey(p)) {
-            this.decisionRecord.put(p, new TreeMap<Integer, Move>());
+            this.decisionRecord.put(p, new TreeMap<Integer, Action>());
         }
         this.decisionRecord.get(p).put(turnNumber, m);
     }
@@ -111,9 +111,9 @@ public abstract class GameController implements Game {
         return this.collectiblesByNode.get(n);
     }
 
-    protected List<Move> getDecisionRecord(final Player p) {
-        final LinkedList<Move> moves = new LinkedList<Move>();
-        for (final SortedMap.Entry<Integer, Move> entry : this.decisionRecord.get(p).entrySet()) {
+    protected List<Action> getDecisionRecord(final Player p) {
+        final LinkedList<Action> moves = new LinkedList<Action>();
+        for (final SortedMap.Entry<Integer, Action> entry : this.decisionRecord.get(p).entrySet()) {
             moves.add(entry.getKey(), entry.getValue());
         }
         return moves;
@@ -192,17 +192,17 @@ public abstract class GameController implements Game {
             final int currentTurnNumber, final int allowedInactiveTurns);
 
     /**
-     * Decide where the worm should be after it has moved.
+     * Decide where the worm should be after it has performed a particular action.
      * 
      * @param player
      *            The worm.
      * @param playground
      *            Playground on which the move is happening.
      * @param decision
-     *            The move to perform.
+     *            The action to perform.
      * @return New positions for the worm, head-first.
      */
-    protected abstract Deque<Node> performPlayerMove(final Player player, final Playground playground, final Move decision);
+    protected abstract Deque<Node> performPlayerAction(final Player player, final Playground playground, final Action decision);
 
     /**
      * Decide which players should be rewarded for survival in this round.
@@ -263,9 +263,9 @@ public abstract class GameController implements Game {
             playerControl.addListener(listener);
         }
         final Set<Player> currentPlayers = new HashSet<Player>(players);
-        Map<Player, Move> decisions = new HashMap<Player, Move>();
+        Map<Player, Action> decisions = new HashMap<Player, Action>();
         for (final Player p : currentPlayers) { // initialize players
-            decisions.put(p, Move.STAY);
+            decisions.put(p, Action.NOTHING);
         }
         // start the game
         int turnNumber = 0;
@@ -282,11 +282,11 @@ public abstract class GameController implements Game {
             }
             // move the worms
             for (final Player p : currentPlayers) {
-                final Move m = decisions.get(p);
+                final Action m = decisions.get(p);
                 this.addDecision(p, m, turnNumber);
-                final Deque<Node> newPosition = this.performPlayerMove(p, playground, m);
+                final Deque<Node> newPosition = this.performPlayerAction(p, playground, m);
                 this.setPlayerPosition(p, newPosition);
-                commands.add(new MovePlayerCommand(p, m, newPosition));
+                commands.add(new PlayerActionCommand(p, m, newPosition));
             }
             // resolve worms colliding
             for (final Player player : this.performCollisionDetection(playground, currentPlayers)) {

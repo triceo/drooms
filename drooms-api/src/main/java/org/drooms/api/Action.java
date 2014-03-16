@@ -1,33 +1,37 @@
 package org.drooms.api;
 
 /**
- * The various possibilities for the worm to move in.
+ * The various possibilities for the worm to act.
  */
-public enum Move {
+public enum Action {
 
     /**
      * Use a portal. Will turn into STAY, if not on portal at the moment.
      */
-    IN,
+    ENTER,
     /**
      * Increases Y, doesn't change X.
      */
-    UP,
+    MOVE_UP,
     /**
      * Decreases Y, doesn't change X.
      */
-    DOWN,
+    MOVE_DOWN,
     /**
      * Decreases X, doesn't change Y.
      */
-    LEFT,
+    MOVE_LEFT,
     /**
      * Increases X, doesn't change Y.
      */
-    RIGHT,
+    MOVE_RIGHT,
     /**
-     * Changes neither X nor Y.
+     * Worm will remain exactly as is.
      */
-    STAY;
+    NOTHING,
+    /**
+     * Will make worm's head its tail and vice versa.
+     */
+    REVERSE;
 
 }

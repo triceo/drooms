@@ -8,7 +8,7 @@ import java.util.Map;
 
 import org.drooms.api.Collectible;
 import org.drooms.api.GameProgressListener;
-import org.drooms.api.Move;
+import org.drooms.api.Action;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
@@ -126,7 +126,7 @@ public class XmlProgressListener implements GameProgressListener {
     }
 
     @Override
-    public void playerMoved(final Player p, final Move m, final Node... nodes) {
+    public void playerMoved(final Player p, final Action m, final Node... nodes) {
         this.report.append("<playerPosition>");
         this.report.append(XmlProgressListener.playerXml(p));
         for (final Node n : nodes) {

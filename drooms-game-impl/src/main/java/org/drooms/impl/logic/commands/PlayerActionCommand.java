@@ -2,27 +2,26 @@ package org.drooms.impl.logic.commands;
 
 import java.util.Deque;
 
+import org.drooms.api.Action;
 import org.drooms.api.GameProgressListener;
-import org.drooms.api.Move;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.impl.logic.DecisionMaker;
 import org.drooms.impl.logic.PlayerRelated;
-import org.drooms.impl.logic.events.PlayerMoveEvent;
+import org.drooms.impl.logic.events.PlayerActionEvent;
 
-public class MovePlayerCommand implements Command, PlayerRelated {
+public class PlayerActionCommand implements Command, PlayerRelated {
 
-    private final Player toMove;
-    private final Move whichMove;
+    private final Player actor;
+    private final Action action;
     private final Deque<Node> nodes;
-    private final PlayerMoveEvent event;
+    private final PlayerActionEvent event;
 
-    public MovePlayerCommand(final Player p, final Move m,
-            final Deque<Node> nodes) {
-        this.toMove = p;
-        this.whichMove = m;
+    public PlayerActionCommand(final Player p, final Action a, final Deque<Node> nodes) {
+        this.actor = p;
+        this.action = a;
         this.nodes = nodes;
-        this.event = new PlayerMoveEvent(p, m, nodes);
+        this.event = new PlayerActionEvent(p, a, nodes);
     }
 
     public Deque<Node> getNodes() {
@@ -31,7 +30,7 @@ public class MovePlayerCommand implements Command, PlayerRelated {
 
     @Override
     public Player getPlayer() {
-        return this.toMove;
+        return this.actor;
     }
 
     @Override
@@ -41,15 +40,15 @@ public class MovePlayerCommand implements Command, PlayerRelated {
 
     @Override
     public void report(final GameProgressListener report) {
-        report.playerMoved(this.toMove, this.whichMove,
-                this.nodes.toArray(new Node[] {}));
+        report.playerMoved(this.actor, this.action,
+                this.nodes.toArray(new Node[]{}));
     }
 
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
-        builder.append("MovePlayerCommand [toMove=").append(this.toMove)
-                .append(", whichMove=").append(this.whichMove)
+        builder.append("MovePlayerCommand [actor=").append(this.actor)
+                .append(", action=").append(this.action)
                 .append(", nodes=").append(this.nodes).append("]");
         return builder.toString();
     }

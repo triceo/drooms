@@ -7,16 +7,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.codehaus.plexus.classworlds.strategy.Strategy;
 import org.drools.core.time.SessionPseudoClock;
-import org.drooms.api.Move;
+import org.drooms.api.Action;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
 import org.drooms.impl.logic.events.CollectibleAdditionEvent;
 import org.drooms.impl.logic.events.CollectibleRemovalEvent;
 import org.drooms.impl.logic.events.CollectibleRewardEvent;
+import org.drooms.impl.logic.events.PlayerActionEvent;
 import org.drooms.impl.logic.events.PlayerDeathEvent;
-import org.drooms.impl.logic.events.PlayerMoveEvent;
 import org.drooms.impl.logic.events.SurvivalRewardEvent;
 import org.drooms.impl.logic.facts.CurrentPlayer;
 import org.drooms.impl.logic.facts.CurrentTurn;
@@ -43,7 +44,7 @@ import org.slf4j.LoggerFactory;
  * <p>
  * When asked (see {@link #decideNextMove()}), the strategy should make a decision on the next move, based on the
  * current state of the working memory. This decision should be sent over the provided 'decision' channel. If not sent,
- * it will default to STAY. See {@link Move} for the various types of decisions.
+ * it will default to STAY. See {@link Action} for the various types of decisions.
  * </p>
  * <p>
  * This class enforces the following requirements on the strategies:
@@ -53,7 +54,7 @@ import org.slf4j.LoggerFactory;
  * <li>'gameEvents' entry point must be declared, where the events not directly related to player actions will be sent.
  * These events are {@link CollectibleAdditionEvent} and {@link CollectibleRemovalEvent}.</li>
  * <li>'playerEvents' entry point must be declared, where the player-caused events will be sent. These events are
- * {@link PlayerMoveEvent} and {@link PlayerDeathEvent}.</li>
+ * {@link PlayerActionEvent} and {@link PlayerDeathEvent}.</li>
  * <li>'rewardEvents' entry point must be declared, where the reward events will be sent. These events are
  * {@link CollectibleRewardEvent} and {@link SurvivalRewardEvent}.</li>
  * </ul>
@@ -100,7 +101,7 @@ public class DecisionMaker implements Channel {
     private final EntryPoint gameEvents, playerEvents, rewardEvents;
     private final Map<Player, Map<Node, FactHandle>> handles = new HashMap<Player, Map<Node, FactHandle>>();
     private final boolean isDisposed = false;
-    private Move latestDecision = null;
+    private Action latestDecision = null;
     private final Player player;
     private final KieSession session;
 
@@ -109,7 +110,7 @@ public class DecisionMaker implements Channel {
     public DecisionMaker(final Player p, final PathTracker tracker, final GameProperties properties,
             final File reportFolder) {
         this.player = p;
-        KieSessionConfiguration config = KieServices.Factory.get().newKieSessionConfiguration();
+        final KieSessionConfiguration config = KieServices.Factory.get().newKieSessionConfiguration();
         config.setOption(ClockTypeOption.get("pseudo"));
         this.session = p.constructKieBase().newKieSession(config, null);
         // validate session
@@ -166,7 +167,7 @@ public class DecisionMaker implements Channel {
      * 
      * @return The move. STAY will be chosen when the strategy doesn't respond.
      */
-    public Move decideNextMove() {
+    public Action decideNextMove() {
         this.validate();
         DecisionMaker.LOGGER.trace("Player {} advancing time. ", new Object[]{this.player.getName()});
         final SessionPseudoClock clock = this.session.getSessionClock();
@@ -181,7 +182,7 @@ public class DecisionMaker implements Channel {
         // store the decision
         if (this.latestDecision == null) {
             DecisionMaker.LOGGER.info("Player {} didn't make a decision. STAY forced.", this.player.getName());
-            return Move.STAY;
+            return Action.NOTHING;
         } else {
             DecisionMaker.LOGGER.info("Player {} final decision is {}. ", this.player.getName(), this.latestDecision);
             return this.latestDecision;
@@ -229,7 +230,7 @@ public class DecisionMaker implements Channel {
         }
     }
 
-    public void notifyOfPlayerMove(final PlayerMoveEvent evt) {
+    public void notifyOfPlayerMove(final PlayerActionEvent evt) {
         final Player p = evt.getPlayer();
         this.playerEvents.insert(evt);
         // update player positions
@@ -259,12 +260,12 @@ public class DecisionMaker implements Channel {
     @Override
     public void send(final Object object) {
         this.validate();
-        if (object instanceof Move) {
+        if (object instanceof Action) {
             if (this.latestDecision != null) {
                 DecisionMaker.LOGGER.debug("Player {} has changed the decision from {} to {}.", new Object[]{
                         this.player.getName(), this.latestDecision, object});
             }
-            this.latestDecision = (Move) object;
+            this.latestDecision = (Action) object;
         } else {
             DecisionMaker.LOGGER.warn("Player {} indicated an invalid move {}.", new Object[]{this.player.getName(),
                     this.latestDecision});

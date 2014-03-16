@@ -19,15 +19,15 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.drooms.api.Action;
 import org.drooms.api.GameProgressListener;
-import org.drooms.api.Move;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
 import org.drooms.impl.GameController;
 import org.drooms.impl.logic.commands.Command;
 import org.drooms.impl.logic.commands.DeactivatePlayerCommand;
-import org.drooms.impl.logic.commands.MovePlayerCommand;
+import org.drooms.impl.logic.commands.PlayerActionCommand;
 import org.drooms.impl.util.GameProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,11 +35,11 @@ import org.slf4j.LoggerFactory;
 /**
  * Receives state changes ({@link Command}s) from the {@link GameController} and
  * distributes them to all the player strategies ({@link DecisionMaker} to
- * process them and make {@link Move} decisions on them.
+ * process them and make {@link Action} decisions on them.
  */
 public class CommandDistributor {
 
-    private static class DecisionMakerUnit implements Callable<Move> {
+    private static class DecisionMakerUnit implements Callable<Action> {
 
         private final DecisionMaker playerLogic;
         private final List<Command> commands;
@@ -50,7 +50,7 @@ public class CommandDistributor {
         }
 
         @Override
-        public Move call() throws Exception {
+        public Action call() throws Exception {
             for (final Command command : this.commands) {
                 command.perform(this.playerLogic);
             }
@@ -64,8 +64,8 @@ public class CommandDistributor {
     private static Map<Player, Deque<Node>> retrieveNewPlayerPositions(final List<Command> commands) {
         final Map<Player, Deque<Node>> positions = new HashMap<>();
         for (final Command command : commands) {
-            if (command instanceof MovePlayerCommand) {
-                final MovePlayerCommand cmd = (MovePlayerCommand) command;
+            if (command instanceof PlayerActionCommand) {
+                final PlayerActionCommand cmd = (PlayerActionCommand) command;
                 positions.put(cmd.getPlayer(), cmd.getNodes());
             }
         }
@@ -144,7 +144,7 @@ public class CommandDistributor {
      *            in this exact order.
      * @return Strategy decisions.
      */
-    public Map<Player, Move> execute(final List<Command> commands) {
+    public Map<Player, Action> execute(final List<Command> commands) {
         // hint GC to potentially not interrupt decision making later
         System.gc();
         CommandDistributor.LOGGER.info("First reporting what happens in this turn.");
@@ -160,7 +160,7 @@ public class CommandDistributor {
         CommandDistributor.LOGGER.info("Now passing these changes to players.");
         final Map<Player, Deque<Node>> positions = CommandDistributor.retrieveNewPlayerPositions(commands);
         final Set<Player> playersToRemove = CommandDistributor.retrievePlayersToRemove(commands);
-        final Map<Player, Move> moves = new HashMap<Player, Move>();
+        final Map<Player, Action> moves = new HashMap<Player, Action>();
         for (final Map.Entry<Player, DecisionMaker> entry : this.players.entrySet()) {
             final Player player = entry.getKey();
             if (playersToRemove.contains(player)) {
@@ -171,17 +171,17 @@ public class CommandDistributor {
             CommandDistributor.LOGGER.debug("Processing player {}.", player.getName());
             final DecisionMakerUnit dmu = new DecisionMakerUnit(playerLogic, commands);
             // begin the time-box for a player strategy
-            final Future<Move> move = this.e.submit(dmu);
+            final Future<Action> move = this.e.submit(dmu);
             try {
                 moves.put(player, move.get(this.playerTimeoutInSeconds, TimeUnit.SECONDS));
             } catch (InterruptedException | ExecutionException e) {
                 CommandDistributor.LOGGER.warn("Player {} error during decision-making, STAY forced.",
                         player.getName(), e);
-                moves.put(player, Move.STAY);
+                moves.put(player, Action.NOTHING);
             } catch (final TimeoutException e) {
                 CommandDistributor.LOGGER.warn("Player {}, didn't reach a decision in time, STAY forced.",
                         player.getName());
-                moves.put(player, Move.STAY);
+                moves.put(player, Action.NOTHING);
             } finally {
                 move.cancel(true);
                 playerLogic.halt(); // otherwise other players' are slowed down

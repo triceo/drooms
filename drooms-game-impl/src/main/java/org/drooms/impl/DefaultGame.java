@@ -1,6 +1,7 @@
 package org.drooms.impl;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
@@ -11,14 +12,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.drooms.api.Action;
 import org.drooms.api.Collectible;
-import org.drooms.api.Move;
 import org.drooms.api.Node;
 import org.drooms.api.Node.Type;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
 import org.drooms.impl.util.GameProperties;
 import org.drooms.impl.util.GameProperties.CollectibleType;
+
+import com.google.common.collect.Lists;
 
 /**
  * On top of the rules implemented by {@link GameController}, this game
@@ -121,13 +124,13 @@ public class DefaultGame extends GameController {
         final Set<Player> inactiveWorms = new HashSet<Player>();
         if (currentTurnNumber > allowedInactiveTurns) {
             for (final Player p : currentPlayers) {
-                final List<Move> allMoves = this.getDecisionRecord(p);
+                final List<Action> allMoves = this.getDecisionRecord(p);
                 final int size = allMoves.size();
-                final List<Move> relevantMoves = allMoves.subList(Math.max(0, size - allowedInactiveTurns - 1), size);
-                if (!relevantMoves.contains(Move.STAY)) {
+                final List<Action> relevantMoves = allMoves.subList(Math.max(0, size - allowedInactiveTurns - 1), size);
+                if (!relevantMoves.contains(Action.NOTHING)) {
                     continue;
                 }
-                final Set<Move> uniqueMoves = new HashSet<Move>(relevantMoves);
+                final Set<Action> uniqueMoves = new HashSet<Action>(relevantMoves);
                 if (uniqueMoves.size() == 1) {
                     inactiveWorms.add(p);
                 }
@@ -137,32 +140,34 @@ public class DefaultGame extends GameController {
     }
 
     @Override
-    protected Deque<Node> performPlayerMove(final Player player, final Playground playground, final Move decision) {
+    protected Deque<Node> performPlayerAction(final Player player, final Playground playground, final Action decision) {
         // move the head of the worm
         final Deque<Node> currentPos = this.getPlayerPosition(player);
         final Node currentHeadPos = currentPos.getFirst();
         Node newHeadPos;
         switch (decision) {
-            case UP:
+            case MOVE_UP:
                 newHeadPos = playground.getNodeAt(currentHeadPos.getX(), currentHeadPos.getY() + 1);
                 break;
-            case DOWN:
+            case MOVE_DOWN:
                 newHeadPos = playground.getNodeAt(currentHeadPos.getX(), currentHeadPos.getY() - 1);
                 break;
-            case LEFT:
+            case MOVE_LEFT:
                 newHeadPos = playground.getNodeAt(currentHeadPos.getX() - 1, currentHeadPos.getY());
                 break;
-            case RIGHT:
+            case MOVE_RIGHT:
                 newHeadPos = playground.getNodeAt(currentHeadPos.getX() + 1, currentHeadPos.getY());
                 break;
-            case IN:
+            case ENTER:
                 if (currentHeadPos.getType() == Type.PORTAL) {
                     // the current node is a PORTAL. move to the other end
                     newHeadPos = playground.getOtherEndOfPortal(currentHeadPos);
                     break;
                 }
                 // else this command makes no sense and we STAY
-            case STAY:
+            case NOTHING:
+            case REVERSE:
+                // reversing needs to be handled later
                 newHeadPos = currentHeadPos;
                 break;
             default:
@@ -172,14 +177,19 @@ public class DefaultGame extends GameController {
         if (newHeadPos == null) {
             throw new IllegalStateException("Moving to a non-existent node!");
         }
-        // move the head of the snake
-        final Deque<Node> newPosition = new LinkedList<Node>(currentPos);
-        if (decision != Move.STAY) {
-            newPosition.push(newHeadPos);
-        }
-        // make sure the snake is as long as it should be
-        while (newPosition.size() > this.getPlayerLength(player)) {
-            newPosition.removeLast();
+        Deque<Node> newPosition;
+        if (decision == Action.REVERSE) {
+            newPosition = new LinkedList<Node>(Lists.reverse(new ArrayList<Node>(currentPos)));
+        } else {
+            // move the head of the snake
+            newPosition = new LinkedList<Node>(currentPos);
+            if (newHeadPos != currentHeadPos) {
+                newPosition.push(newHeadPos);
+            }
+            // make sure the snake is as long as it should be
+            while (newPosition.size() > this.getPlayerLength(player)) {
+                newPosition.removeLast();
+            }
         }
         // notify
         return newPosition;
