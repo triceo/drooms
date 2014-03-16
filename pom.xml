@@ -214,14 +214,14 @@
       <email>lukas@petrovicky.net</email>
       <id>triceo</id>
       <name>Lukáš Petrovický</name>
-      <timezone>+1</timezone>
+      <timezone>America/New_York</timezone>
       <url>https://masterbranch.com/triceo</url>
     </developer>
     <developer>
       <email>siroky.petr@gmail.com</email>
       <id>deedman</id>
       <name>Petr Široký</name>
-      <timezone>+1</timezone>
+      <timezone>Europe/Prague</timezone>
       <url>https://masterbranch.com/psiroky</url>
     </developer>
   </developers>
