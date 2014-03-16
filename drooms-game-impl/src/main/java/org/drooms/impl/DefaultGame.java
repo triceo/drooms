@@ -146,6 +146,9 @@ public class DefaultGame extends GameController {
         final Node currentHeadPos = currentPos.getFirst();
         Node newHeadPos;
         switch (decision) {
+            case REVERSE:
+                // reverse the snake and do nothing else
+                return new LinkedList<Node>(Lists.reverse(new ArrayList<Node>(currentPos)));
             case MOVE_UP:
                 newHeadPos = playground.getNodeAt(currentHeadPos.getX(), currentHeadPos.getY() + 1);
                 break;
@@ -166,32 +169,24 @@ public class DefaultGame extends GameController {
                 }
                 // else this command makes no sense and we STAY
             case NOTHING:
-            case REVERSE:
-                // reversing needs to be handled later
-                newHeadPos = currentHeadPos;
-                break;
+                // do not modify the worm in any way
+                return currentPos;
             default:
-                throw new IllegalStateException("Unknown move!");
+                throw new IllegalStateException("Unknown action!");
         }
         // just to be sure; in theory can never happen as you first always hit a wall
         if (newHeadPos == null) {
             throw new IllegalStateException("Moving to a non-existent node!");
         }
-        Deque<Node> newPosition;
-        if (decision == Action.REVERSE) {
-            newPosition = new LinkedList<Node>(Lists.reverse(new ArrayList<Node>(currentPos)));
-        } else {
-            // move the head of the snake
-            newPosition = new LinkedList<Node>(currentPos);
-            if (newHeadPos != currentHeadPos) {
-                newPosition.push(newHeadPos);
-            }
-            // make sure the snake is as long as it should be
-            while (newPosition.size() > this.getPlayerLength(player)) {
-                newPosition.removeLast();
-            }
+        // move the head of the snake
+        final Deque<Node> newPosition = new LinkedList<Node>(currentPos);
+        if (newHeadPos != currentHeadPos) {
+            newPosition.push(newHeadPos);
         }
-        // notify
+        // make sure the snake is as long as it should be
+        while (newPosition.size() > this.getPlayerLength(player)) {
+            newPosition.removeLast();
+        }
         return newPosition;
     }
 
