@@ -21,7 +21,7 @@ public interface GameProgressListener {
 
     public void playerDeactivated(Player p);
 
-    public void playerMoved(Player p, Action m, Node... nodes);
+    public void playerPerformedAction(Player p, Action m, Node... nodes);
 
     public void playerSurvived(Player p, int points);
 

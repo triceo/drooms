@@ -126,7 +126,7 @@ public class XmlProgressListener implements GameProgressListener {
     }
 
     @Override
-    public void playerMoved(final Player p, final Action m, final Node... nodes) {
+    public void playerPerformedAction(final Player p, final Action m, final Node... nodes) {
         this.report.append("<playerPosition>");
         this.report.append(XmlProgressListener.playerXml(p));
         for (final Node n : nodes) {

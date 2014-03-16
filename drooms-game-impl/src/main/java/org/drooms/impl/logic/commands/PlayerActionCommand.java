@@ -40,7 +40,7 @@ public class PlayerActionCommand implements Command, PlayerRelated {
 
     @Override
     public void report(final GameProgressListener report) {
-        report.playerMoved(this.actor, this.action,
+        report.playerPerformedAction(this.actor, this.action,
                 this.nodes.toArray(new Node[]{}));
     }
 
