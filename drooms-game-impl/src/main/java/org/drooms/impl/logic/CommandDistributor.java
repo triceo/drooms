@@ -28,6 +28,7 @@ import org.drooms.impl.GameController;
 import org.drooms.impl.logic.commands.Command;
 import org.drooms.impl.logic.commands.DeactivatePlayerCommand;
 import org.drooms.impl.logic.commands.PlayerActionCommand;
+import org.drooms.impl.util.DroomsStrategyValidator;
 import org.drooms.impl.util.GameProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,9 +114,25 @@ public class CommandDistributor {
             final GameProgressListener report, final GameProperties properties, final File reportFolder,
             final int playerTimeoutInSeconds) {
         for (final Player player : players) {
-            final PathTracker tracker = new PathTracker(playground, player);
-            this.trackers.put(player, tracker);
-            this.players.put(player, new DecisionMaker(player, tracker, properties, reportFolder));
+            final DroomsStrategyValidator validator = new DroomsStrategyValidator(player.getStrategyReleaseId());
+            if (!validator.isValid()) {
+                CommandDistributor.LOGGER.error("Player {} has malformed strategy:", player.getName());
+                for (final String message : validator.getErrors()) {
+                    CommandDistributor.LOGGER.error("    {}", message);
+                }
+                CommandDistributor.LOGGER.warn("Player {} was disqualified.", player.getName());
+                continue;
+            } else {
+                if (!validator.isClean()) {
+                    for (final String message : validator.getWarnings()) {
+                        CommandDistributor.LOGGER.info("Player {} has an incomplete strategy: {}", player.getName(), message);
+                    }
+                }
+
+                final PathTracker tracker = new PathTracker(playground, player);
+                this.trackers.put(player, tracker);
+                this.players.put(player, new DecisionMaker(player, tracker, properties, reportFolder));
+            }
         }
         this.listeners.add(report);
         this.playerTimeoutInSeconds = playerTimeoutInSeconds;
