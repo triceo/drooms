@@ -1,0 +1,9 @@
+package com.github.triceo.test.strategy
+
+declare entry-point rewardEvents end
+
+rule "hello world"
+	when
+	then
+		System.out.println("Hello world!");
+end

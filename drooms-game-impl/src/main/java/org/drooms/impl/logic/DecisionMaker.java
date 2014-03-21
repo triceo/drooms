@@ -24,7 +24,6 @@ import org.drooms.impl.logic.facts.CurrentTurn;
 import org.drooms.impl.logic.facts.GameProperty;
 import org.drooms.impl.logic.facts.Wall;
 import org.drooms.impl.logic.facts.Worm;
-import org.drooms.impl.util.DroomsKnowledgeSessionValidator;
 import org.drooms.impl.util.GameProperties;
 import org.kie.api.KieServices;
 import org.kie.api.logger.KieRuntimeLogger;
@@ -113,17 +112,7 @@ public class DecisionMaker implements Channel {
         final KieSessionConfiguration config = KieServices.Factory.get().newKieSessionConfiguration();
         config.setOption(ClockTypeOption.get("pseudo"));
         this.session = p.constructKieBase().newKieSession(config, null);
-        // validate session
-        final DroomsKnowledgeSessionValidator validator = new DroomsKnowledgeSessionValidator(this.session);
-        if (!validator.isValid()) {
-            throw new IllegalStateException("Player " + this.player.getName() + " has a malformed strategy: "
-                    + validator.getErrors().get(0));
-        }
-        if (!validator.isClean()) {
-            for (final String message : validator.getWarnings()) {
-                DecisionMaker.LOGGER.info("Player {} has an incomplete strategy: {}", this.player.getName(), message);
-            }
-        }
+
         // FIXME figure out how to audit kie session
         DecisionMaker.LOGGER.info("Auditing the Drools session is disabled.");
         this.sessionAudit = null;
