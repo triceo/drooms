@@ -44,6 +44,15 @@ public class Player {
         return kc.newKieBase(config);
     }
 
+    /**
+     * Retrieves the player's in the form of a kjar.
+     * 
+     * @return Strategy of the player, in the form of a kjar.
+     */
+    public ReleaseId getStrategyReleaseId() {
+        return strategy;
+    }
+
     @Override
     public boolean equals(final Object obj) {
         if (this == obj) {
