@@ -252,6 +252,7 @@ public abstract class GameController implements Game {
             pos.push(startingPositions.get(i));
             this.setPlayerPosition(player, pos);
             this.setPlayerLength(player, wormLength);
+            playerPoints.put(player, 0);
             GameController.LOGGER.info("Player {} assigned position {}.", player.getName(), i);
             i++;
         }
@@ -357,9 +358,6 @@ public abstract class GameController implements Game {
     }
 
     private void reward(final Player p, final int points) {
-        if (!this.playerPoints.containsKey(p)) {
-            this.playerPoints.put(p, 0);
-        }
         this.playerPoints.put(p, this.playerPoints.get(p) + points);
     }
 
