@@ -1,23 +1,34 @@
 package org.drooms.impl.util;
 
-import org.kie.api.runtime.KieSession;
-import org.kie.api.runtime.rule.EntryPoint;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+import org.kie.api.KieBase;
+import org.kie.api.definition.KiePackage;
+import org.kie.api.definition.rule.Global;
 
 /**
  * A helper class to validate some of the properties of the Drools session.
  */
 class KnowledgeSessionValidationHelper {
 
-    private final KieSession session;
+    private final Map<String, String> globals;
+    private final Set<String> entryPoints;
 
     /**
      * Instantiate a validator for a particular session.
      * 
      * @param ksession
      */
-    public KnowledgeSessionValidationHelper(
-            final KieSession ksession) {
-        this.session = ksession;
+    public KnowledgeSessionValidationHelper(final KieBase kbase) {
+        entryPoints = kbase.getEntryPointIds();
+        globals = new HashMap<>();
+        for (KiePackage pkg : kbase.getKiePackages()) {
+            for (Global global : pkg.getGlobalVariables()) {
+                globals.put(global.getName(), global.getType());
+            }
+        }
     }
 
     /**
@@ -28,8 +39,7 @@ class KnowledgeSessionValidationHelper {
      * @return True if it has.
      */
     public boolean hasEntryPoint(final String name) {
-        final EntryPoint wmep = this.session.getEntryPoint(name);
-        return (wmep != null);
+        return entryPoints.contains(name);
     }
 
     /**
@@ -40,7 +50,7 @@ class KnowledgeSessionValidationHelper {
      * @return True if it has.
      */
     public boolean hasGlobal(final String name) {
-        return (this.session.getGlobal(name) != null);
+        return globals.containsKey(name);
     }
 
     /**
@@ -54,8 +64,7 @@ class KnowledgeSessionValidationHelper {
      */
     public boolean hasGlobal(final String name, final Class<?> cls) {
         if (this.hasGlobal(name)) {
-            final Class<?> global = this.session.getGlobal(name).getClass();
-            return (global.equals(cls));
+            return (globals.get(name).equals(cls.getName()));
         } else {
             return false;
         }

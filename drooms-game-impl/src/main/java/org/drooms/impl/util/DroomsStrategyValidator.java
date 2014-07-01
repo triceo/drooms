@@ -11,7 +11,6 @@ import org.kie.api.KieServices;
 import org.kie.api.builder.ReleaseId;
 import org.kie.api.conf.EventProcessingOption;
 import org.kie.api.runtime.KieContainer;
-import org.kie.api.runtime.KieSession;
 import org.slf4j.Logger;
 
 /**
@@ -76,8 +75,7 @@ public class DroomsStrategyValidator {
             config.setOption(EventProcessingOption.STREAM);
             final KieBase kbase = container.newKieBase(config);
     
-            final KieSession ksession = kbase.newKieSession();
-            final KnowledgeSessionValidationHelper helper = new KnowledgeSessionValidationHelper(ksession);
+            final KnowledgeSessionValidationHelper helper = new KnowledgeSessionValidationHelper(kbase);
     
             this.validateGlobal(helper, "logger", Logger.class, false);
             this.validateGlobal(helper, "tracker", PathTracker.class, false);
