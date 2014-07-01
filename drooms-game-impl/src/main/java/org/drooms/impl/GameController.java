@@ -28,7 +28,6 @@ import org.drooms.api.Playground;
 import org.drooms.impl.logic.CommandDistributor;
 import org.drooms.impl.logic.commands.AddCollectibleCommand;
 import org.drooms.impl.logic.commands.CollectCollectibleCommand;
-import org.drooms.impl.logic.commands.Command;
 import org.drooms.impl.logic.commands.CrashPlayerCommand;
 import org.drooms.impl.logic.commands.DeactivatePlayerCommand;
 import org.drooms.impl.logic.commands.PlayerActionCommand;
@@ -262,44 +261,41 @@ public abstract class GameController implements Game {
         for (final GameProgressListener listener : this.listeners) {
             playerControl.addListener(listener);
         }
-        final Set<Player> currentPlayers = new HashSet<Player>(players);
         Map<Player, Action> decisions = new HashMap<Player, Action>();
-        for (final Player p : currentPlayers) { // initialize players
+        for (final Player p : playerControl.getPlayers()) {
+            // initialize players
             decisions.put(p, Action.NOTHING);
         }
         // start the game
         int turnNumber = 0;
         do {
             GameController.LOGGER.info("--- Starting turn no. {}.", turnNumber);
-            final int preRemoval = currentPlayers.size();
-            final List<Command> commands = new LinkedList<>();
+            final int preRemoval = playerControl.getPlayers().size();
             // remove inactive worms
-            for (final Player player : this
-                    .performInactivityDetection(currentPlayers, turnNumber, allowedInactiveTurns)) {
-                currentPlayers.remove(player);
-                commands.add(new DeactivatePlayerCommand(player));
+            for (final Player player : this.performInactivityDetection(playerControl.getPlayers(), turnNumber,
+                    allowedInactiveTurns)) {
                 GameController.LOGGER.info("Player {} will be removed for inactivity.", player.getName());
+                playerControl.distributeCommand(new DeactivatePlayerCommand(player));
             }
             // move the worms
-            for (final Player p : currentPlayers) {
+            for (final Player p : playerControl.getPlayers()) {
                 final Action m = decisions.get(p);
                 this.addDecision(p, m, turnNumber);
                 final Deque<Node> newPosition = this.performPlayerAction(p, playground, m);
                 this.setPlayerPosition(p, newPosition);
-                commands.add(new PlayerActionCommand(p, m, newPosition));
+                playerControl.distributeCommand(new PlayerActionCommand(p, m, newPosition));
             }
             // resolve worms colliding
-            for (final Player player : this.performCollisionDetection(playground, currentPlayers)) {
-                currentPlayers.remove(player);
-                commands.add(new CrashPlayerCommand(player));
+            for (final Player player : this.performCollisionDetection(playground, playerControl.getPlayers())) {
+                playerControl.distributeCommand(new CrashPlayerCommand(player));
             }
-            final int postRemoval = currentPlayers.size();
-            for (final Map.Entry<Player, Integer> entry : this.performSurvivalRewarding(players, currentPlayers,
-                    preRemoval - postRemoval, wormSurvivalBonus).entrySet()) {
+            final int postRemoval = playerControl.getPlayers().size();
+            for (final Map.Entry<Player, Integer> entry : this.performSurvivalRewarding(players,
+                    playerControl.getPlayers(), preRemoval - postRemoval, wormSurvivalBonus).entrySet()) {
                 final Player p = entry.getKey();
                 final int amount = entry.getValue();
                 this.reward(p, amount);
-                commands.add(new RewardSurvivalCommand(p, amount));
+                playerControl.distributeCommand(new RewardSurvivalCommand(p, amount));
             }
             // expire uncollected collectibles
             final Set<Collectible> removeCollectibles = new HashSet<Collectible>();
@@ -309,31 +305,32 @@ public abstract class GameController implements Game {
                 }
             }
             for (final Collectible c : removeCollectibles) {
-                commands.add(new RemoveCollectibleCommand(c));
+                playerControl.distributeCommand(new RemoveCollectibleCommand(c));
                 this.removeCollectible(c);
             }
             // add points for collected collectibles
-            for (final Map.Entry<Collectible, Player> entry : this.performCollectibleCollection(currentPlayers)
-                    .entrySet()) {
+            for (final Map.Entry<Collectible, Player> entry : this.performCollectibleCollection(
+                    playerControl.getPlayers()).entrySet()) {
                 final Collectible c = entry.getKey();
                 final Player p = entry.getValue();
                 this.reward(p, c.getPoints());
-                commands.add(new CollectCollectibleCommand(c, p));
+                playerControl.distributeCommand(new CollectCollectibleCommand(c, p));
                 this.removeCollectible(c);
                 this.setPlayerLength(p, this.getPlayerLength(p) + 1);
             }
             // distribute new collectibles
-            for (final Collectible c : this.performCollectibleDistribution(this.gameConfig, playground, currentPlayers, turnNumber)) {
+            for (final Collectible c : this.performCollectibleDistribution(this.gameConfig, playground,
+                    playerControl.getPlayers(), turnNumber)) {
                 this.addCollectible(c);
-                commands.add(new AddCollectibleCommand(c));
+                playerControl.distributeCommand(new AddCollectibleCommand(c));
             }
             // make the move decision
-            decisions = playerControl.execute(commands);
+            decisions = playerControl.execute();
             turnNumber++;
             if (turnNumber == allowedTurns) {
                 GameController.LOGGER.info("Reached a pre-defined limit of {} turns. Terminating game.", allowedTurns);
                 break;
-            } else if (currentPlayers.size() < 2) {
+            } else if (playerControl.getPlayers().size() < 2) {
                 GameController.LOGGER.info("There are no more players. Terminating game.");
                 break;
             }
