@@ -3,10 +3,10 @@ package org.drooms.strategy.random;
 import org.slf4j.Logger;
 import org.drooms.impl.logic.facts.Positioned;
 import org.drooms.impl.logic.facts.CurrentPlayer;
-import org.drooms.impl.logic.events.PlayerMoveEvent;
+import org.drooms.impl.logic.events.PlayerActionEvent;
 import java.util.Random;
 import java.util.ArrayList;
-import org.drooms.api.Move;
+import org.drooms.api.Action;
 import org.drooms.api.Node;
 
 global Logger logger;
@@ -27,7 +27,7 @@ declare CurrentPosition
     node: Node
 end
 
-declare PlayerMoveEvent
+declare PlayerActionEvent
     @role (event)
 end
 
@@ -35,8 +35,8 @@ rule "Determine current position of a player"
 salience 50
 when
     CurrentPlayer($p: player)
-    $added: PlayerMoveEvent(player == $p) from entry-point "playerEvents"
-    not PlayerMoveEvent(player == $p, this after $added) from entry-point "playerEvents"
+    $added: PlayerActionEvent(player == $p) from entry-point "playerEvents"
+    not PlayerActionEvent(player == $p, this after $added) from entry-point "playerEvents"
 then
     insertLogical (
         new CurrentPosition($added.getNodes().getFirst())
@@ -50,7 +50,7 @@ when
 then
     logger.debug("LEFT move is available.");
     insertLogical (
-        Move.LEFT
+        Action.MOVE_LEFT
     );
 end
 
@@ -61,7 +61,7 @@ when
 then
     logger.debug("RIGHT move is available.");
     insertLogical (
-        Move.RIGHT
+        Action.MOVE_RIGHT
     );
 end
 
@@ -72,7 +72,7 @@ when
 then
     logger.debug("UP move is available.");
     insertLogical (
-        Move.UP
+        Action.MOVE_UP
     );
 end
 
@@ -83,14 +83,14 @@ when
 then
     logger.debug("DOWN move is available.");
     insertLogical (
-        Move.DOWN
+        Action.MOVE_DOWN
     );
 end
 
 rule "Pick one of the available moves at random"
 salience -10
 when
-    $moves : ArrayList( size > 0 ) from collect( Move() )
+    $moves : ArrayList( size > 0 ) from collect( Action() )
 then
     int size = $moves.size();
     Random random = new Random(System.nanoTime());
