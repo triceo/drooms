@@ -13,6 +13,7 @@ import org.drooms.api.Action;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
+import org.drooms.api.Node.Type;
 import org.drooms.impl.logic.events.CollectibleAdditionEvent;
 import org.drooms.impl.logic.events.CollectibleRemovalEvent;
 import org.drooms.impl.logic.events.CollectibleRewardEvent;
@@ -133,8 +134,12 @@ public class DecisionMaker implements Channel {
         final Playground playground = tracker.getPlayground();
         for (int x = -1; x <= playground.getWidth(); x++) {
             for (int y = -1; y <= playground.getHeight(); y++) {
-                if (!playground.isAvailable(x, y)) {
-                    this.session.insert(new Wall(playground.getNodeAt(x, y)));
+                Node n = playground.getNodeAt(x, y);
+                if (n == null) {
+                    n = new Node(Type.WALL, x, y);
+                }
+                if (n.getType() == Type.WALL) {
+                    this.session.insert(new Wall(n));
                 }
             }
         }
