@@ -5,12 +5,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -26,6 +24,7 @@ import org.drooms.api.Player;
 import org.drooms.api.Playground;
 import org.drooms.impl.GameController;
 import org.drooms.impl.logic.commands.Command;
+import org.drooms.impl.logic.commands.CrashPlayerCommand;
 import org.drooms.impl.logic.commands.DeactivatePlayerCommand;
 import org.drooms.impl.logic.commands.PlayerActionCommand;
 import org.drooms.impl.util.DroomsStrategyValidator;
@@ -73,17 +72,6 @@ public class CommandDistributor {
         return Collections.unmodifiableMap(positions);
     }
 
-    private static Set<Player> retrievePlayersToRemove(final List<Command> commands) {
-        final Set<Player> players = new HashSet<>();
-        for (final Command command : commands) {
-            if (command instanceof DeactivatePlayerCommand) {
-                // player being removed from the game
-                players.add(((PlayerRelated) command).getPlayer());
-            }
-        }
-        return Collections.unmodifiableSet(players);
-    }
-
     private final Map<Player, DecisionMaker> players = new LinkedHashMap<>();
     private final Map<Player, PathTracker> trackers = new LinkedHashMap<>();
 
@@ -92,6 +80,7 @@ public class CommandDistributor {
     private final int playerTimeoutInSeconds;
 
     private final ExecutorService e = Executors.newFixedThreadPool(1);
+    private final List<Command> commands = new LinkedList<>();
 
     /**
      * Initialize the class.
@@ -161,7 +150,7 @@ public class CommandDistributor {
      *            in this exact order.
      * @return Strategy decisions.
      */
-    public Map<Player, Action> execute(final List<Command> commands) {
+    public Map<Player, Action> execute() {
         // hint GC to potentially not interrupt decision making later
         System.gc();
         CommandDistributor.LOGGER.info("First reporting what happens in this turn.");
@@ -176,13 +165,9 @@ public class CommandDistributor {
         }
         CommandDistributor.LOGGER.info("Now passing these changes to players.");
         final Map<Player, Deque<Node>> positions = CommandDistributor.retrieveNewPlayerPositions(commands);
-        final Set<Player> playersToRemove = CommandDistributor.retrievePlayersToRemove(commands);
         final Map<Player, Action> moves = new HashMap<Player, Action>();
         for (final Map.Entry<Player, DecisionMaker> entry : this.players.entrySet()) {
             final Player player = entry.getKey();
-            if (playersToRemove.contains(player)) {
-                continue;
-            }
             final DecisionMaker playerLogic = entry.getValue();
             this.trackers.get(player).movePlayers(positions);
             CommandDistributor.LOGGER.debug("Processing player {}.", player.getName());
@@ -206,13 +191,7 @@ public class CommandDistributor {
             // end the time-box for a player strategy
             CommandDistributor.LOGGER.debug("Player {} processed.", player.getName());
         }
-        // purge dead players
-        for (final Player p : playersToRemove) {
-            CommandDistributor.LOGGER.debug("Removing player {}.", p.getName());
-            final DecisionMaker dm = this.players.remove(p);
-            dm.terminate();
-            this.trackers.remove(p);
-        }
+        commands.clear();
         CommandDistributor.LOGGER.info("Turn processed completely.");
         return Collections.unmodifiableMap(moves);
     }
@@ -234,4 +213,36 @@ public class CommandDistributor {
         this.e.shutdownNow();
     }
 
+    /**
+     * Get the players in the game (i.e. not disqualified, nor dead).
+     * 
+     * @return Unmodifiable collection of current players.
+     */
+    public Collection<Player> getPlayers() {
+        return Collections.unmodifiableCollection(players.keySet());
+    }
+
+    /**
+     * Distribute the command to players.
+     * 
+     * @param command
+     *            Command to distribute.
+     */
+    public void distributeCommand(Command command) {
+        if (command instanceof DeactivatePlayerCommand) {
+            removePlayer(((DeactivatePlayerCommand) command).getPlayer());
+        }
+        if (command instanceof CrashPlayerCommand) {
+            removePlayer(((CrashPlayerCommand) command).getPlayer());
+        }
+
+        commands.add(command);
+    }
+
+    private void removePlayer(Player player) {
+        CommandDistributor.LOGGER.debug("Removing player {}.", player.getName());
+        final DecisionMaker dm = this.players.remove(player);
+        dm.terminate();
+        this.trackers.remove(player);
+    }
 }
