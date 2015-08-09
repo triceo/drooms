@@ -1,6 +1,8 @@
 package org.drooms.impl.logic;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -113,10 +115,14 @@ public class DecisionMaker implements Channel {
         final KieSessionConfiguration config = KieServices.Factory.get().newKieSessionConfiguration();
         config.setOption(ClockTypeOption.get("pseudo"));
         this.session = p.constructKieBase().newKieSession(config, null);
-
-        // FIXME figure out how to audit kie session
-        DecisionMaker.LOGGER.info("Auditing the Drools session is disabled.");
-        this.sessionAudit = null;
+        if (reportFolder != null) {
+            Path reportFile = Paths.get(reportFolder.getPath(), player.getName());
+            this.sessionAudit = KieServices.Factory.get().getLoggers().newFileLogger(session, reportFile.toString());
+            DecisionMaker.LOGGER.info("Auditing the Drools session is enabled.");
+        } else {
+            this.sessionAudit = null;
+            DecisionMaker.LOGGER.info("Auditing the Drools session is disabled.");
+        }
         // this is where we listen for decisions
         this.session.registerChannel("decision", this);
         // this is where we will send events from the game
