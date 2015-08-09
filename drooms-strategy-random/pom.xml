@@ -28,9 +28,20 @@
       <plugin>
         <groupId>org.kie</groupId>
         <artifactId>kie-maven-plugin</artifactId>
-        <version>6.0.2-SNAPSHOT</version>
+        <version>${drools.version}</version>
         <extensions>true</extensions>
       </plugin>
     </plugins>
   </build>
+
+  <distributionManagement>
+    <repository>
+      <id>drooms-strategies-releases</id>
+      <url>http://nexus-drooms.rhcloud.com/nexus/content/repositories/strategies-releases</url>
+    </repository>
+    <snapshotRepository>
+      <id>drooms-strategies-snapshots</id>
+      <url>http://nexus-drooms.rhcloud.com/nexus/content/repositories/strategies-snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
 </project>
