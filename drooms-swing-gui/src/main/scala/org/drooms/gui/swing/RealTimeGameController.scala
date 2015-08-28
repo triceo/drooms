@@ -5,6 +5,7 @@ import java.util.Properties
 import javax.swing.SwingUtilities
 
 import com.typesafe.scalalogging.slf4j.Logging
+import org.drooms.gui.swing.event.{NewTurnAvailable, GameStateChanged, EventBusFactory}
 import org.drooms.impl.DroomsGame
 import org.drooms.impl.util.PlayerAssembly
 

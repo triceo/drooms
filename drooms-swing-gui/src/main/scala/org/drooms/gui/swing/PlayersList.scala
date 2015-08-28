@@ -3,6 +3,8 @@ package org.drooms.gui.swing
 import java.awt.Color
 import javax.swing.BorderFactory
 
+import org.drooms.gui.swing.event.{NewUIComponentsRequested, GoToTurnState, TurnStepPerformed, EventBusFactory}
+
 import scala.swing.ListView.Renderer
 import scala.swing.{Alignment, BorderPanel, Component, Label, ListView}
 
