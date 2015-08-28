@@ -1,27 +1,14 @@
 package org.drooms.gui.swing
 
-import java.awt.Color
-import java.awt.Dimension
+import java.awt.{Color, Dimension}
 import java.io.File
-import scala.swing.Alignment
-import scala.swing.BorderPanel
-import scala.swing.BoxPanel
-import scala.swing.Button
-import scala.swing.Dialog
-import scala.swing.FileChooser
-import scala.swing.FlowPanel
-import scala.swing.Label
-import scala.swing.Orientation
-import scala.swing.ScrollPane
-import scala.swing.TextField
-import scala.swing.event.ButtonClicked
-import javax.swing.BorderFactory
-import javax.swing.Box
-import scala.swing.event.Key
-import scala.swing.event.KeyPressed
-import scala.io.Source
-import java.io.FileInputStream
-import javax.swing.JOptionPane
+import javax.swing.{BorderFactory, Box, JOptionPane}
+
+import org.drooms.api.Player
+import org.drooms.impl.util.PlayerAssembly
+
+import scala.swing.event.{ButtonClicked, Key, KeyPressed}
+import scala.swing.{Alignment, BorderPanel, BoxPanel, Button, Dialog, FileChooser, FlowPanel, Label, Orientation, ScrollPane, TextField}
 
 /**
  * Dialog used to specify configuration needed for new Drooms game.
@@ -38,9 +25,6 @@ class NewGameDialog extends Dialog {
   preferredSize = new Dimension(700, 600)
   title = "New Drooms Game"
 
-  /* Indicated if the dialog was submitted or not */
-  private var submitted = false
-
   val leftColumn = new BoxPanel(Orientation.Vertical) {
     xLayoutAlignment = 0.0
     contents += new Label("Game configuration") {
@@ -53,33 +37,30 @@ class NewGameDialog extends Dialog {
       horizontalAlignment = Alignment.Trailing
     }
   }
-
   val playgrUpload = new SelectFileLine()
   val configUpload = new SelectFileLine()
   val rightColumn = new BoxPanel(Orientation.Vertical) {
     contents += configUpload
     contents += playgrUpload
   }
-
   val configs = new FlowPanel() {
     border = BorderFactory.createTitledBorder("Configuration")
     contents += leftColumn
     contents += rightColumn
   }
-
   val players = new PlayersConfigView
-
   val mainArea = new BoxPanel(Orientation.Vertical) {
     contents += configs
     contents += players
   }
-
   val okBtn = new Button("Create")
   val cancelBtn = new Button("Cancel")
   val buttons = new FlowPanel(FlowPanel.Alignment.Right)() {
     contents += okBtn
     contents += cancelBtn
   }
+  /* Indicated if the dialog was submitted or not */
+  private var submitted = false
 
   contents = new BorderPanel {
     layout(mainArea) = BorderPanel.Position.Center
@@ -150,10 +131,10 @@ class NewGameDialog extends Dialog {
   }
 
   class PlayersConfigView extends ScrollPane {
-    private var playersList: List[PlayerView] = List()
     val addPlayerBtn = new Button("Add Player")
     val loadPlayersBtn = new Button("Load players")
     val playersView = new BoxPanel(Orientation.Vertical)
+    private var playersList: List[PlayerView] = List()
 
     listenTo(addPlayerBtn)
     listenTo(loadPlayersBtn)
@@ -173,11 +154,10 @@ class NewGameDialog extends Dialog {
 
     def getPlayersInfo(): List[PlayerInfo] = {
       for (playerView <- playersList)
-        yield (if (playerView.getJarOrDir().isDirectory()) {
-        new PlayerInfo(playerView.getName(), None, Some(playerView.getJarOrDir()), playerView.getStrategyClass())
-      } else {
-        new PlayerInfo(playerView.getName(), Some(playerView.getJarOrDir()), None, playerView.getStrategyClass())
-      })
+        yield (
+          new PlayerInfo(playerView.getName(), playerView.getStrategyGroupId(), playerView.getStrategyArtifactId(),
+            playerView.getStrategyVersionId())
+          )
     }
 
     /**
@@ -188,32 +168,20 @@ class NewGameDialog extends Dialog {
       val fileChooser = new FileChooser(NewGameSettings.lastOpenedDir)
       val dialogRes = fileChooser.showOpenDialog(this)
       if (dialogRes == FileChooser.Result.Approve) {
-        NewGameSettings.lastOpenedDir = fileChooser.selectedFile.getParentFile()
-        val props = new java.util.Properties()
-        props.load(new FileInputStream(fileChooser.selectedFile))
-        for (playerName <- props.keySet()) {
-          val value = props.getProperty(playerName.asInstanceOf[String])
-          val strs = value.split("@")
-          if (strs.size != 2) {
-            throw new RuntimeException("Can't parse following player definition: " + value)
-          }
-          // cut off the 'file://' prefix if present
-          val filePath =
-            if (strs(1).startsWith("file://"))
-              strs(1).substring(7)
-            else
-              strs(1)
-          addPlayerView(playerName.asInstanceOf[String], strs(0), filePath)
+        val assembly = new PlayerAssembly(fileChooser.selectedFile)
+        for (player <- assembly.assemblePlayers()) {
+          addPlayerView(player)
         }
         update()
       }
     }
 
-    def addPlayerView(name: String, clazz: String, path: String) = {
+    def addPlayerView(player: Player) = {
       val playerView = new PlayerView(this)
-      playerView.nameField.text = name
-      playerView.strategyClassField.text = clazz
-      playerView.jarDirFileLine.path.text = path
+      playerView.nameField.text = player.getName
+      playerView.strategyArtifactIdField.text = player.getStrategyReleaseId.getArtifactId
+      playerView.strategyGroupIdField.text = player.getStrategyReleaseId.getGroupId
+      playerView.strategyVersionField.text = player.getStrategyReleaseId.getVersion
       playersList ::= playerView
     }
 
@@ -256,8 +224,13 @@ class NewGameDialog extends Dialog {
     val nameField = new TextField("") {
       columns = 10
     }
-    val jarDirFileLine = new SelectFileLine()
-    val strategyClassField = new TextField("") {
+    val strategyGroupIdField = new TextField("com.github.triceo.drooms") {
+      columns = 40
+    }
+    val strategyArtifactIdField = new TextField("drooms-strategy-random") {
+      columns = 40
+    }
+    val strategyVersionField = new TextField("2.0-SNAPSHOT") {
       columns = 40
     }
 
@@ -273,14 +246,20 @@ class NewGameDialog extends Dialog {
       peer.add(Box.createVerticalStrut(5))
       contents += new BoxPanel(Orientation.Horizontal) {
         peer.add(Box.createHorizontalStrut(30))
-        contents += new Label("Strategy jar/dir ")
-        contents += jarDirFileLine
+        contents += new Label("Strategy Group ID ")
+        contents += strategyGroupIdField
       }
       peer.add(Box.createVerticalStrut(5))
       contents += new BoxPanel(Orientation.Horizontal) {
         peer.add(Box.createHorizontalStrut(30))
-        contents += new Label("Strategy class  ")
-        contents += strategyClassField
+        contents += new Label("Strategy Artifact ID  ")
+        contents += strategyArtifactIdField
+      }
+      peer.add(Box.createVerticalStrut(5))
+      contents += new BoxPanel(Orientation.Horizontal) {
+        peer.add(Box.createHorizontalStrut(30))
+        contents += new Label("Strategy Version  ")
+        contents += strategyVersionField
       }
     }
     listenTo(deleteBtn)
@@ -291,11 +270,16 @@ class NewGameDialog extends Dialog {
     }
 
     def getName(): String = nameField.text
-    def getJarOrDir(): File = jarDirFileLine.file
-    def getStrategyClass(): String = strategyClassField.text
-    
+
+    def getStrategyArtifactId(): String = strategyArtifactIdField.text
+
+    def getStrategyGroupId(): String = strategyGroupIdField.text
+
+    def getStrategyVersionId(): String = strategyVersionField.text
+
     def validateInput(): Boolean = {
-      val res = !nameField.text.isEmpty && !jarDirFileLine.path.text.isEmpty() && !strategyClassField.text.isEmpty()
+      val res = !nameField.text.isEmpty && !strategyArtifactIdField.text.isEmpty() && !strategyGroupIdField.text
+        .isEmpty() && !strategyVersionField.text.isEmpty()
       println(res)
       res
     }

@@ -7,14 +7,14 @@ import java.awt.Color
  *
  * @Immutable 
  */
-case class Player(val name: String, val score: Int, val color: Color) {
+case class GamePlayer(val name: String, val score: Int, val color: Color) {
   def this(name: String) = this(name, 0, PlayerColors.DEFAULT_COLOR)
 
-  def addPoints(points: Int): Player = 
-    new Player(name, score + points, color)
+  def addPoints(points: Int): GamePlayer =
+    new GamePlayer(name, score + points, color)
   
   override def equals(obj: Any): Boolean = {
-    obj.isInstanceOf[Player] && obj.asInstanceOf[Player].name == this.name
+    obj.isInstanceOf[GamePlayer] && obj.asInstanceOf[GamePlayer].name == this.name
   }
 
   override def hashCode(): Int = this.name.hashCode()

@@ -1,17 +1,10 @@
 package org.drooms.gui.swing
 
 import java.awt.Color
-import scala.swing.Alignment
-import scala.swing.BorderPanel
-import scala.swing.Component
-import scala.swing.Label
-import scala.swing.ListView
-import scala.swing.ListView.Renderer
-import org.drooms.gui.swing.event.EventBusFactory
-import org.drooms.gui.swing.event.GoToTurnState
-import org.drooms.gui.swing.event.TurnStepPerformed
 import javax.swing.BorderFactory
-import org.drooms.gui.swing.event.NewUIComponentsRequested
+
+import scala.swing.ListView.Renderer
+import scala.swing.{Alignment, BorderPanel, Component, Label, ListView}
 
 /**
  * Utility class used for creating {@link PlayersList}s.
@@ -28,27 +21,13 @@ object PlayersListFactory {
  * List is immutable. All operations that are altering the list are returning new instance with those
  * changes applied.
  */
-class PlayersList(val players: List[Player], val colors: PlayerColors) {
+class PlayersList(val players: List[GamePlayer], val colors: PlayerColors) {
   def this() = this(List(), PlayerColors.getDefault())
   def this(colors: PlayerColors) = this(List(), colors)
 
-  /**
-   * Returns {@link Player} with the specified name.
-   *
-   * @param playerName name of the player
-   *
-   * @return {@link Player} if he exists, {@link NoSuchElementException} otherwise
-   */
-  def getPlayer(playerName: String): Player = {
-    players.find(_.name == playerName) match {
-      case Some(player) => player
-      case None => throw new NoSuchElementException("Player '" + playerName + " 'not found!")
-    }
-  }
+  def addPlayer(player: GamePlayer): PlayersList = new PlayersList(player :: players, colors)
 
-  def addPlayer(player: Player): PlayersList = new PlayersList(player :: players, colors)
-
-  def addPlayer(name: String, color: Color): PlayersList = addPlayer(new Player(name, 0, color))
+  def addPlayer(name: String, color: Color): PlayersList = addPlayer(new GamePlayer(name, 0, color))
 
   def addPlayer(name: String): PlayersList = addPlayer(name, colors.getNext())
 
@@ -57,7 +36,7 @@ class PlayersList(val players: List[Player], val colors: PlayerColors) {
    *
    * @param playersNames list of players names to be added
    *
-   * @return new {@link PlayersList} that contains all original {@link Player}s and the newly created ones
+   * @return new { @link PlayersList} that contains all original { @link GamePlayer}s and the newly created ones
    */
   def addPlayers(playersNames: List[String]): PlayersList = {
     if (playersNames.isEmpty)
@@ -67,7 +46,7 @@ class PlayersList(val players: List[Player], val colors: PlayerColors) {
   }
 
   /**
-   * Updates score for all specified players and returns new {@link PlayersList} with new {@link Player} scores.
+   * Updates score for all specified players and returns new {@link PlayersList} with new {@link GamePlayer} scores.
    *
    * @param newScores map that contains playerName -> score mapping
    *
@@ -77,15 +56,16 @@ class PlayersList(val players: List[Player], val colors: PlayerColors) {
     new PlayersList(
       newScores.keys.map(name =>
         players.find(_.name == name) match {
-          case Some(p @ Player(name, score, color)) =>
-            new Player(name, newScores(name), color)
+          case Some(p@GamePlayer(name, score, color)) =>
+            new GamePlayer(name, newScores(name), color)
           case None => throw new IllegalStateException("Trying to update non-existing player '" + name + "'")
         }).toList,
       colors)
   }
 
   /**
-   * Add points to the specified {@link Player} and returns new {@link PlayersList} with the increased score for {@link Player}.
+   * Add points to the specified {@link GamePlayer} and returns new {@link PlayersList} with the increased score for
+   * {@link GamePlayer}.
    *
    * @param playerName name of the player to which add the points
    * @param points how many point to add
@@ -97,6 +77,20 @@ class PlayersList(val players: List[Player], val colors: PlayerColors) {
   }
 
   /**
+   * Returns {@link GamePlayer} with the specified name.
+   *
+   * @param playerName name of the player
+   *
+   * @return { @link Player} if he exists, { @link NoSuchElementException} otherwise
+   */
+  def getPlayer(playerName: String): GamePlayer = {
+    players.find(_.name == playerName) match {
+      case Some(player) => player
+      case None => throw new NoSuchElementException("Player '" + playerName + " 'not found!")
+    }
+  }
+
+  /**
    * Sets a specified score for all {@link Player}s.
    *
    * @param points how many points to assign to each player
@@ -105,7 +99,7 @@ class PlayersList(val players: List[Player], val colors: PlayerColors) {
    */
   def setScoreForAllPlayers(points: Int): PlayersList = {
     new PlayersList(players.map(p =>
-      new Player(p.name, 0, p.color)).toList, colors)
+      new GamePlayer(p.name, 0, p.color)).toList, colors)
   }
 
   override def toString(): String = players.toString()
@@ -155,7 +149,7 @@ class PlayersListView(var playersList: PlayersList) extends BorderPanel {
 
   class PlayersListRenderer extends Renderer {
     override def componentFor(list: ListView[_], isSelected: Boolean, focused: Boolean, a: Any, index: Int): Component = {
-      val player = a.asInstanceOf[Player]
+      val player = a.asInstanceOf[GamePlayer]
       new BorderPanel() {
         opaque = true
         background = player.color
