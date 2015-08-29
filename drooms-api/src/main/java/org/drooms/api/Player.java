@@ -26,9 +26,28 @@ public class Player {
     public Player(final String name, final ReleaseId strategy) {
         if (name == null || strategy == null) {
             throw new IllegalArgumentException("None of the parameters can be null.");
+        } else if (strategy.getArtifactId() == null || strategy.getGroupId() == null) {
+            throw new IllegalArgumentException("Strategy has an incomplete GAV: " + strategy);
         }
         this.strategy = strategy;
         this.name = name;
+    }
+
+    /**
+     * Create a player instance.
+     *
+     * @param name
+     *            Name of the player.
+     * @param strategyGroupId
+     *            Strategy of the player, the Maven group ID
+     * @param strategyArtifactId
+     *            Strategy of the player, the Maven artifact ID
+     * @param strategyVersion
+     *            Strategy of the player, the version.
+     */
+    public Player(final String name, final String strategyGroupId, final String strategyArtifactId, final String
+            strategyVersion) {
+        this(name, KieServices.Factory.get().newReleaseId(strategyGroupId, strategyArtifactId, strategyVersion));
     }
 
     /**

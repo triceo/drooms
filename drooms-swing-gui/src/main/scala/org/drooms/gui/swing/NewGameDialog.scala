@@ -5,7 +5,7 @@ import java.io.File
 import javax.swing.{BorderFactory, Box, JOptionPane}
 
 import org.drooms.api.Player
-import org.drooms.impl.util.PlayerAssembly
+import org.drooms.impl.util.PlayerProperties
 
 import scala.swing.event.{ButtonClicked, Key, KeyPressed}
 import scala.swing.{Alignment, BorderPanel, BoxPanel, Button, Dialog, FileChooser, FlowPanel, Label, Orientation, ScrollPane, TextField}
@@ -168,8 +168,8 @@ class NewGameDialog extends Dialog {
       val fileChooser = new FileChooser(NewGameSettings.lastOpenedDir)
       val dialogRes = fileChooser.showOpenDialog(this)
       if (dialogRes == FileChooser.Result.Approve) {
-        val assembly = new PlayerAssembly(fileChooser.selectedFile)
-        for (player <- assembly.assemblePlayers()) {
+        val assembly = new PlayerProperties(fileChooser.selectedFile)
+        for (player <- assembly.read()) {
           addPlayerView(player)
         }
         update()

@@ -9,7 +9,7 @@ import java.util.Properties;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.drooms.api.Game;
 import org.drooms.api.Player;
-import org.drooms.impl.util.PlayerAssembly;
+import org.drooms.impl.util.PlayerProperties;
 import org.drooms.util.CommonProperties;
 
 /**
@@ -24,7 +24,7 @@ import org.drooms.util.CommonProperties;
  * <dd>Which {@link Game} implementation the {@link DroomsTournament} should use. Fully qualified name.</dd>
  * <dt>players</dt>
  * <dd>Path to the file containing descriptions of the {@link Player}s that will participate in the tournament. See
- * {@link PlayerAssembly}. Relative to the current working directory.</dd>
+ * {@link PlayerProperties}. Relative to the current working directory.</dd>
  * <dt>playgrounds</dt>
  * <dd>Comma-separated list of playground on which to play the tournament.</dd>
  * </dl>
@@ -85,7 +85,7 @@ public class TournamentProperties extends CommonProperties {
         }
         // prepare a list of players
         final File playerConfigFile = new File(this.resourceFolder, this.getMandatoryProperty("players"));
-        this.players = Collections.unmodifiableList(new PlayerAssembly(playerConfigFile).assemblePlayers());
+        this.players = Collections.unmodifiableList(new PlayerProperties(playerConfigFile).read());
         // parse the playgrounds
         final Collection<ImmutablePair<File, File>> playgrounds = new ArrayList<>();
         for (final String playgroundName : this.getMandatoryProperty("playgrounds").split("\\Q,\\E")) {

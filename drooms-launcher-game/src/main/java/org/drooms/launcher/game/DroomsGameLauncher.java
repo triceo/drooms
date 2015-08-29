@@ -4,7 +4,7 @@ import java.io.File;
 
 import org.drooms.impl.DefaultGame;
 import org.drooms.impl.DroomsGame;
-import org.drooms.impl.util.PlayerAssembly;
+import org.drooms.impl.util.PlayerProperties;
 
 /**
  * Main class of the application, used to launch a particular game.
@@ -27,7 +27,7 @@ public class DroomsGameLauncher {
         }
         // play the game
         final File reportFolder = (configs.length == 4) ? configs[3] : new File("reports/");
-        final DroomsGame d = new DroomsGame(DefaultGame.class, configs[0], new PlayerAssembly(configs[2]).assemblePlayers(), configs[1], reportFolder);
+        final DroomsGame d = new DroomsGame(DefaultGame.class, configs[0], new PlayerProperties(configs[2]).read(), configs[1], reportFolder);
         d.play(configs[0].getName());
     }
 }
