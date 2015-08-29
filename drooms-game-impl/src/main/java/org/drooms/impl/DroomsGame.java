@@ -1,25 +1,17 @@
 package org.drooms.impl;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Writer;
-import java.sql.Timestamp;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.drooms.api.Game;
 import org.drooms.api.GameProgressListener;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
+import org.drooms.impl.util.DroomsStrategyValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.*;
+import java.sql.Timestamp;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Convenient class used to create Drooms game based on the specified parameters.
@@ -47,6 +39,23 @@ public class DroomsGame {
         this.f = reportFolder;
         this.cls = game;
         this.players = players;
+        // validate players
+        List<Player> invalidPlayers = this.players.stream().filter(player -> {
+            boolean isInvalid = false;
+            final DroomsStrategyValidator validator = new DroomsStrategyValidator(player.getStrategyReleaseId());
+            if (!validator.isValid()) {
+                isInvalid = true;
+                DroomsGame.LOGGER.error("Player {} has malformed strategy:", player.getName());
+                validator.getErrors().forEach(message -> DroomsGame.LOGGER.error("    {}", message));
+            } else if (!validator.isClean()) {
+                DroomsGame.LOGGER.warn("Player {} has an incomplete strategy:", player.getName());
+                validator.getWarnings().forEach(message -> DroomsGame.LOGGER.warn("    {}", message));
+            }
+            return isInvalid;
+        }).collect(Collectors.toList());
+        if (invalidPlayers.size() > 0) {
+            throw new IllegalArgumentException("Some players have invalid strategies. Check log for details.");
+        }
     }
 
     public boolean addListener(final GameProgressListener listener) {
