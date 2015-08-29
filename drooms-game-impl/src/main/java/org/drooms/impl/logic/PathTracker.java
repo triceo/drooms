@@ -1,27 +1,18 @@
 package org.drooms.impl.logic;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.drooms.api.Edge;
-import org.drooms.api.Node;
-import org.drooms.api.Player;
-import org.drooms.api.Playground;
-import org.drooms.impl.util.shortestpath.astar.UnweightedAStarShortestPath;
-import org.drooms.impl.util.shortestpath.astar.UnweightedAStarShortestPath.VertexDistanceHeuristics;
-
 import edu.uci.ics.jung.algorithms.shortestpath.ShortestPath;
 import edu.uci.ics.jung.algorithms.shortestpath.ShortestPathUtils;
+import edu.uci.ics.jung.algorithms.shortestpath.UnweightedShortestPath;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.UndirectedGraph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.Graphs;
+import org.drooms.api.Edge;
+import org.drooms.api.Node;
+import org.drooms.api.Player;
+import org.drooms.api.Playground;
+
+import java.util.*;
 
 /**
  * A helper class for the strategies to be able to quickly and easily find paths
@@ -29,22 +20,27 @@ import edu.uci.ics.jung.graph.util.Graphs;
  */
 public class PathTracker {
 
+    /**
+     * Create a clone of the original graph with certain nodes removed.
+     *
+     * @param src Original graph.
+     * @param removeNodes Nodes to remove from the original graph.
+     * @return Original graph, except all the edges with specified incident nodes are removed.
+     */
     private static UndirectedGraph<Node, Edge> cloneGraph(final Graph<Node, Edge> src,
             final Collection<Node> removeNodes) {
         final UndirectedGraph<Node, Edge> clone = new UndirectedSparseGraph<>();
-        for (final Edge e : src.getEdges()) {
+        src.getEdges().forEach(e -> {
             final boolean isEdgeAdded = clone.addEdge(e, src.getIncidentVertices(e));
             if (!isEdgeAdded) {
                 throw new IllegalStateException("Failed cloning graph. This surely is a bug in Drooms.");
             }
-        }
-        for (final Node node : removeNodes) {
-            clone.removeVertex(node);
-        }
-        return Graphs.unmodifiableUndirectedGraph(clone);
+        });
+        removeNodes.forEach(node -> clone.removeVertex(node));
+        return clone;
     }
 
-    private UndirectedGraph<Node, Edge> currentGraph;
+    private Graph<Node, Edge> currentGraph;
     private ShortestPath<Node, Edge> currentPath;
     private Node currentPosition;
 
@@ -66,9 +62,9 @@ public class PathTracker {
 
     /**
      * Retrieve the current position of the player's worm's head, that is the
-     * one found during the last {@link #movePlayers(Map)} call.
+     * one found during the last {@link #updatePlayerPositions(Map)} call.
      * 
-     * @return The position, or null if {@link #movePlayers(Map)} had never been
+     * @return The position, or null if {@link #updatePlayerPositions(Map)} had never been
      *         called before.
      */
     public Node getCurrentPosition() {
@@ -132,23 +128,21 @@ public class PathTracker {
      * @param newPositions
      *            New current positions of all the worms.
      */
-    protected void movePlayers(final Map<Player, Deque<Node>> newPositions) {
-        final Set<Node> unavailable = new HashSet<>();
-        for (final Map.Entry<Player, Deque<Node>> entry : newPositions.entrySet()) {
-            final Deque<Node> playerNodes = entry.getValue();
-            unavailable.addAll(playerNodes);
-            if (entry.getKey() == this.player) {
-                /*
-                 * the head node needs to remain, since otherwise there would be
-                 * no path between the current position and any other position.
-                 */
-                unavailable.remove(playerNodes.getFirst());
-            }
+    protected void updatePlayerPositions(final Map<Player, Deque<Node>> newPositions) {
+        if (newPositions.isEmpty()) {
+            this.currentGraph = Graphs.unmodifiableGraph(this.playground.getGraph());
+        } else {
+            // enumerate all the nodes occupied by worms at this point
+            final Set<Node> unavailable = new HashSet<>();
+            newPositions.forEach((player, nodes) -> unavailable.addAll(nodes));
+            // make sure we keep the head node, since otherwise there is no path from the current position to any other
+            this.currentPosition = newPositions.get(this.player).getFirst();
+            unavailable.remove(this.currentPosition);
+            // update internal structures
+            this.currentGraph = Graphs.unmodifiableUndirectedGraph(PathTracker.cloneGraph(this.playground.getGraph(),
+                    unavailable));
         }
-        final Graph<Node, Edge> graphWithoutPlayers = this.playground.getGraph();
-        this.currentGraph = PathTracker.cloneGraph(graphWithoutPlayers, unavailable);
-        this.currentPath = new UnweightedAStarShortestPath<>(this.currentGraph, VertexDistanceHeuristics.EUCLIDEAN);
-        this.currentPosition = newPositions.get(this.player).getFirst();
+        this.currentPath = new UnweightedShortestPath<>(this.currentGraph);
     }
 
 }
