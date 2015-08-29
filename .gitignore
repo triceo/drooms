@@ -1,10 +1,11 @@
+.idea
 .classpath
 .project
 .settings
 .cache
 target
 **/*.log
-drooms-strategy-hungry
+**/*.iml
 reports
 local
 
