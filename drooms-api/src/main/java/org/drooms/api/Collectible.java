@@ -23,7 +23,7 @@ public class Collectible {
      * @param n
      *            Where the collectible is located.
      * @param points
-     *            How many points to award. Must be > 0.
+     *            How many points to award. Must be greater than 0.
      */
     public Collectible(final Node n, final int points) {
         if (points <= 0) {
@@ -41,9 +41,9 @@ public class Collectible {
      * @param n
      *            Where the collectible is located.
      * @param points
-     *            How many points to award. Must be > 0.
+     *            How many points to award. Must be greater than 0.
      * @param expiresInTurn
-     *            At which turn the item expires. Must be > 0.
+     *            At which turn the item expires. Must be greater than 0.
      */
     public Collectible(final Node n, final int points, final int expiresInTurn) {
         if (expiresInTurn <= 0) {
@@ -72,7 +72,7 @@ public class Collectible {
      * The number of the turn at the beginning of which this item will disappear
      * from the {@link Playground}.
      * 
-     * @return A number >= 0 when {@link #expires()} is true, -1 otherwise.
+     * @return A number greater than or equal to when {@link #expires()} is true, -1 otherwise.
      */
     public int expiresInTurn() {
         return this.expiresInTurn;

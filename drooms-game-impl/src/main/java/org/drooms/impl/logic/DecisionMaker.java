@@ -1,6 +1,5 @@
 package org.drooms.impl.logic;
 
-import org.codehaus.plexus.classworlds.strategy.Strategy;
 import org.drools.core.time.SessionPseudoClock;
 import org.drooms.api.Action;
 import org.drooms.api.Node;
@@ -36,9 +35,9 @@ import java.util.concurrent.TimeUnit;
  * and maintains Drools engine's state for each particular player.
  * 
  * <p>
- * When asked (see {@link #decideNextMove()}), the strategy should make a decision on the next move, based on the
- * current state of the working memory. This decision should be sent over the provided 'decision' channel. If not sent,
- * it will default to STAY. See {@link Action} for the various types of decisions.
+ * When submitted to an {@link java.util.concurrent.Executor}, the strategy should make a decision on the next move,
+ * based on the current state of the working memory. This decision should be sent over the provided 'decision'
+ * channel. If not sent, it will default to STAY. See {@link Action} for the various types of decisions.
  * </p>
  * <p>
  * This class enforces the following requirements on the strategies:
@@ -63,9 +62,10 @@ import java.util.concurrent.TimeUnit;
  * </ul>
  * 
  * <p>
- * Your strategies can be validated for all these - just make your tests extend {@link DroomsTestHelper}.
+ * Your strategies can be validated for all these - check {@link org.drooms.impl.util.DroomsStrategyValidator} and
+ * feel free to use it in your unit testing.
  * </p>
- * 
+ *
  * <p>
  * The working memory will contain instances of the various helper fact types:
  * </p>

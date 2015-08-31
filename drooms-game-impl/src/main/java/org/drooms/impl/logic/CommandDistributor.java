@@ -73,7 +73,7 @@ public class CommandDistributor {
     /**
      * Add another listener.
      * 
-     * @param listener
+     * @param listener Listener to be added.
      * @return True if added, false if already added.
      */
     public boolean addListener(final GameProgressListener listener) {

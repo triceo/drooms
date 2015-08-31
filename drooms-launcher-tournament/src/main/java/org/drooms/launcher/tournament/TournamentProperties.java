@@ -1,16 +1,16 @@
 package org.drooms.launcher.tournament;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Properties;
-
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.drooms.api.Game;
 import org.drooms.api.Player;
 import org.drooms.impl.util.PlayerProperties;
 import org.drooms.util.CommonProperties;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Properties;
 
 /**
  * Prepares the tournament properties by reading them from a property file.
@@ -35,7 +35,7 @@ import org.drooms.util.CommonProperties;
  * 
  * <dl>
  * <dt>runs</dt>
- * <dd>How many times should each playground be played. Number > 0, default value is 1.</dd>
+ * <dd>How many times should each playground be played. Number greater than 0, default value is 1.</dd>
  * <dt>folder.resources</dt>
  * <dd>Where to load all input files from, relative to the current working directory. If it doesn't exist, it is
  * created. Default value is "src/main/resources".</dd>

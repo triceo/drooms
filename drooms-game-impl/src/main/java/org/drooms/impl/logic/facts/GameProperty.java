@@ -14,8 +14,7 @@ public class GameProperty {
          */
         MAX_TURNS,
         /**
-         * How many turns a worm can {@link Move#STAY} and not be removed from
-         * the game.
+         * How many turns a worm can make no move without being removed from the game.
          */
         MAX_INACTIVE_TURNS,
         /**
