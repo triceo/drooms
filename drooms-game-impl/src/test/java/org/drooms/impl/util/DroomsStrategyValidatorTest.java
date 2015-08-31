@@ -1,7 +1,5 @@
 package org.drooms.impl.util;
 
-import java.util.List;
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.kie.api.KieServices;
@@ -9,13 +7,14 @@ import org.kie.api.builder.KieRepository;
 import org.kie.api.builder.ReleaseId;
 import org.kie.api.io.Resource;
 
+import java.util.List;
+
 public class DroomsStrategyValidatorTest {
 
     @Test
     public void testInvalidReleaseId() {
         ReleaseId releaseId = KieServices.Factory.get().newReleaseId("this", "artifact", "is.invalid");
-
-        DroomsStrategyValidator validator = new DroomsStrategyValidator(releaseId);
+        DroomsStrategyValidator validator = DroomsStrategyValidator.getInstance(releaseId);
         Assert.assertFalse(validator.isValid());
         List<String> errors = validator.getErrors();
         Assert.assertEquals("Unexpected number of errors", 1, errors.size());
@@ -25,20 +24,21 @@ public class DroomsStrategyValidatorTest {
     @Test
     public void testMissingDefaultKieBase() {
         ReleaseId releaseId = deployArtifact("test-strategy-1.0");
-
-        DroomsStrategyValidator validator = new DroomsStrategyValidator(releaseId);
+        DroomsStrategyValidator validator = DroomsStrategyValidator.getInstance(releaseId);
         Assert.assertFalse(validator.isValid());
         List<String> errors = validator.getErrors();
         Assert.assertEquals("Unexpected number of errors", 1, errors.size());
-        // FIXME a typo in Kie API
+        /*
+         * TODO fix typo once we upgrade to codebase with this commit:
+         * https://github.com/droolsjbpm/drools/commit/fa1db09a5a6c0ac076ac3f0bcef39286716d8a65
+         */
         Assert.assertEquals("Wrong error message", "Cannot find a defualt KieBase", errors.get(0));
     }
 
     @Test
     public void testMissingEntryPoints() {
         ReleaseId releaseId = deployArtifact("test-strategy-2.0");
-
-        DroomsStrategyValidator validator = new DroomsStrategyValidator(releaseId);
+        DroomsStrategyValidator validator = DroomsStrategyValidator.getInstance(releaseId);
         Assert.assertFalse(validator.isValid());
         List<String> errors = validator.getErrors();
         Assert.assertEquals("Unexpected number of errors", 2, errors.size());
@@ -49,8 +49,7 @@ public class DroomsStrategyValidatorTest {
     @Test
     public void testMissingLogger() {
         ReleaseId releaseId = deployArtifact("test-strategy-3.0");
-
-        DroomsStrategyValidator validator = new DroomsStrategyValidator(releaseId);
+        DroomsStrategyValidator validator = DroomsStrategyValidator.getInstance(releaseId);
         Assert.assertTrue(validator.isValid());
         Assert.assertFalse(validator.isClean());
         List<String> warnings = validator.getWarnings();
@@ -62,7 +61,6 @@ public class DroomsStrategyValidatorTest {
     private ReleaseId deployArtifact(String jarName) {
         KieServices ks = KieServices.Factory.get();
         Resource resource = ks.getResources().newClassPathResource(jarName, getClass());
-
         KieRepository repository = ks.getRepository();
         return repository.addKieModule(resource).getReleaseId();
     }

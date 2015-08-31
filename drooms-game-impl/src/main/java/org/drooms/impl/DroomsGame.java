@@ -42,7 +42,7 @@ public class DroomsGame {
         // validate players
         List<Player> invalidPlayers = this.players.stream().filter(player -> {
             boolean isInvalid = false;
-            final DroomsStrategyValidator validator = new DroomsStrategyValidator(player.getStrategyReleaseId());
+            final DroomsStrategyValidator validator = DroomsStrategyValidator.getInstance(player.getStrategyReleaseId());
             if (!validator.isValid()) {
                 isInvalid = true;
                 DroomsGame.LOGGER.error("Player {} has malformed strategy:", player.getName());
