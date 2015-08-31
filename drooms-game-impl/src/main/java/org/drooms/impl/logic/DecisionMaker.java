@@ -1,32 +1,14 @@
 package org.drooms.impl.logic;
 
-import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
 import org.codehaus.plexus.classworlds.strategy.Strategy;
 import org.drools.core.time.SessionPseudoClock;
 import org.drooms.api.Action;
 import org.drooms.api.Node;
+import org.drooms.api.Node.Type;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
-import org.drooms.api.Node.Type;
-import org.drooms.impl.logic.events.CollectibleAdditionEvent;
-import org.drooms.impl.logic.events.CollectibleRemovalEvent;
-import org.drooms.impl.logic.events.CollectibleRewardEvent;
-import org.drooms.impl.logic.events.PlayerActionEvent;
-import org.drooms.impl.logic.events.PlayerDeathEvent;
-import org.drooms.impl.logic.events.SurvivalRewardEvent;
-import org.drooms.impl.logic.facts.CurrentPlayer;
-import org.drooms.impl.logic.facts.CurrentTurn;
-import org.drooms.impl.logic.facts.GameProperty;
-import org.drooms.impl.logic.facts.Wall;
-import org.drooms.impl.logic.facts.Worm;
+import org.drooms.impl.logic.events.*;
+import org.drooms.impl.logic.facts.*;
 import org.drooms.impl.util.GameProperties;
 import org.kie.api.KieServices;
 import org.kie.api.logger.KieRuntimeLogger;
@@ -38,6 +20,16 @@ import org.kie.api.runtime.rule.EntryPoint;
 import org.kie.api.runtime.rule.FactHandle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Represents a {@link Player}'s Strategy in action. This class holds
@@ -87,7 +79,7 @@ import org.slf4j.LoggerFactory;
  * </ul>
  * 
  */
-public class DecisionMaker implements Channel {
+public class DecisionMaker implements Channel, Callable<Action> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DecisionMaker.class);
 
@@ -159,34 +151,6 @@ public class DecisionMaker implements Channel {
         // insert info about the game status
         this.currentTurn = this.session.insert(new CurrentTurn(0));
         this.session.insert(new CurrentPlayer(p));
-    }
-
-    /**
-     * Call on the Drools engine to make the decision on worm's next move,
-     * according to the {@link Player}'s {@link Strategy}.
-     * 
-     * @return The move. STAY will be chosen when the strategy doesn't respond.
-     */
-    public Action decideNextMove() {
-        this.validate();
-        DecisionMaker.LOGGER.trace("Player {} advancing time. ", new Object[]{this.player.getName()});
-        final SessionPseudoClock clock = this.session.getSessionClock();
-        clock.advanceTime(1, TimeUnit.MINUTES);
-        // decide
-        DecisionMaker.LOGGER.trace("Player {} deciding. ", new Object[]{this.player.getName()});
-        this.latestDecision = null;
-        this.session.fireAllRules();
-        // increase turn number
-        final CurrentTurn turn = (CurrentTurn) this.session.getObject(this.currentTurn);
-        this.session.update(this.currentTurn, new CurrentTurn(turn.getNumber() + 1));
-        // store the decision
-        if (this.latestDecision == null) {
-            DecisionMaker.LOGGER.info("Player {} didn't make a decision. STAY forced.", this.player.getName());
-            return Action.NOTHING;
-        } else {
-            DecisionMaker.LOGGER.info("Player {} final decision is {}. ", this.player.getName(), this.latestDecision);
-            return this.latestDecision;
-        }
     }
 
     public Player getPlayer() {
@@ -300,4 +264,32 @@ public class DecisionMaker implements Channel {
         }
     }
 
+    /**
+     * Call on the Drools engine to make the decision on worm's next move,
+     * according to the {@link Player}'s strategy.
+     *
+     * @return The move. STAY will be chosen when the strategy doesn't respond.
+     */
+    @Override
+    public Action call() throws Exception {
+        this.validate();
+        DecisionMaker.LOGGER.trace("Player {} advancing time. ", new Object[]{this.player.getName()});
+        final SessionPseudoClock clock = this.session.getSessionClock();
+        clock.advanceTime(1, TimeUnit.MINUTES);
+        // decide
+        DecisionMaker.LOGGER.trace("Player {} deciding. ", new Object[]{this.player.getName()});
+        this.latestDecision = null;
+        this.session.fireAllRules();
+        // increase turn number
+        final CurrentTurn turn = (CurrentTurn) this.session.getObject(this.currentTurn);
+        this.session.update(this.currentTurn, new CurrentTurn(turn.getNumber() + 1));
+        // store the decision
+        if (this.latestDecision == null) {
+            DecisionMaker.LOGGER.info("Player {} didn't make a decision. STAY forced.", this.player.getName());
+            return Action.NOTHING;
+        } else {
+            DecisionMaker.LOGGER.info("Player {} final decision is {}. ", this.player.getName(), this.latestDecision);
+            return this.latestDecision;
+        }
+    }
 }

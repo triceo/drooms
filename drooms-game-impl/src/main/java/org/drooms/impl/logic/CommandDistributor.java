@@ -3,7 +3,6 @@ package org.drooms.impl.logic;
 import org.drooms.api.*;
 import org.drooms.impl.GameController;
 import org.drooms.impl.logic.commands.Command;
-import org.drooms.impl.logic.commands.CrashPlayerCommand;
 import org.drooms.impl.logic.commands.DeactivatePlayerCommand;
 import org.drooms.impl.logic.commands.PlayerActionCommand;
 import org.drooms.impl.util.GameProperties;
@@ -110,7 +109,7 @@ public class CommandDistributor {
             this.commands.forEach(command -> command.perform(decisionMaker));
             // begin the time-box for a player strategy to make decisions
             CommandDistributor.LOGGER.debug("Starting time-box for player {}.", player.getName());
-            final Future<Action> move = this.e.submit(() -> decisionMaker.decideNextMove());
+            final Future<Action> move = this.e.submit(decisionMaker);
             try {
                 moves.put(player, move.get(this.playerTimeoutInSeconds, TimeUnit.SECONDS));
             } catch (InterruptedException | ExecutionException e) {
@@ -123,7 +122,7 @@ public class CommandDistributor {
                 moves.put(player, Action.NOTHING);
             } finally {
                 move.cancel(true);
-                decisionMaker.halt(); // otherwise other players' are slowed down
+                decisionMaker.halt(); // otherwise other players' could be slowed down
             }
             // end the time-box for a player strategy
             CommandDistributor.LOGGER.debug("Player {} processed.", player.getName());
@@ -164,13 +163,10 @@ public class CommandDistributor {
      *            Command to distribute.
      */
     public void distributeCommand(Command command) {
+        CommandDistributor.LOGGER.debug("Command scheduled for distribution: {}.", command);
         if (command instanceof DeactivatePlayerCommand) {
             removePlayer(((DeactivatePlayerCommand) command).getPlayer());
         }
-        if (command instanceof CrashPlayerCommand) {
-            removePlayer(((CrashPlayerCommand) command).getPlayer());
-        }
-
         commands.add(command);
     }
 
