@@ -6,7 +6,7 @@ import org.drooms.api.Action;
 import org.drooms.api.GameProgressListener;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
-import org.drooms.impl.logic.DecisionMaker;
+import org.drooms.impl.logic.PlayerLogic;
 import org.drooms.impl.logic.PlayerRelated;
 import org.drooms.impl.logic.events.PlayerActionEvent;
 
@@ -34,7 +34,7 @@ public class PlayerActionCommand implements Command, PlayerRelated {
     }
 
     @Override
-    public void perform(final DecisionMaker logic) {
+    public void perform(final PlayerLogic logic) {
         logic.notifyOfPlayerMove(this.event);
     }
 

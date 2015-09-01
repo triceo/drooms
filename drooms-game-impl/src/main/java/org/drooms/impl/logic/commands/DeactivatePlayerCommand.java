@@ -2,7 +2,7 @@ package org.drooms.impl.logic.commands;
 
 import org.drooms.api.GameProgressListener;
 import org.drooms.api.Player;
-import org.drooms.impl.logic.DecisionMaker;
+import org.drooms.impl.logic.PlayerLogic;
 import org.drooms.impl.logic.PlayerRelated;
 import org.drooms.impl.logic.events.PlayerDeathEvent;
 
@@ -26,7 +26,7 @@ public class DeactivatePlayerCommand implements Command, PlayerRelated {
     }
 
     @Override
-    public void perform(final DecisionMaker logic) {
+    public void perform(final PlayerLogic logic) {
         logic.notifyOfDeath(this.getEvent());
     }
 

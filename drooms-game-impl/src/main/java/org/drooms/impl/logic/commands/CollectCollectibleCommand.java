@@ -3,10 +3,7 @@ package org.drooms.impl.logic.commands;
 import org.drooms.api.Collectible;
 import org.drooms.api.GameProgressListener;
 import org.drooms.api.Player;
-import org.drooms.impl.logic.CollectibleRelated;
-import org.drooms.impl.logic.DecisionMaker;
-import org.drooms.impl.logic.PlayerRelated;
-import org.drooms.impl.logic.RewardRelated;
+import org.drooms.impl.logic.*;
 import org.drooms.impl.logic.events.CollectibleRewardEvent;
 
 public class CollectCollectibleCommand implements Command, PlayerRelated,
@@ -38,7 +35,7 @@ public class CollectCollectibleCommand implements Command, PlayerRelated,
     }
 
     @Override
-    public void perform(final DecisionMaker logic) {
+    public void perform(final PlayerLogic logic) {
         logic.notifyOfCollectibleReward(this.event);
     }
 

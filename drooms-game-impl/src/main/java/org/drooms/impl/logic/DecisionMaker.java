@@ -80,7 +80,7 @@ import java.util.stream.Collectors;
  * </ul>
  * 
  */
-public class DecisionMaker implements Channel, Callable<Action> {
+class DecisionMaker implements PlayerLogic, Channel, Callable<Action> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DecisionMaker.class);
 
@@ -156,44 +156,36 @@ public class DecisionMaker implements Channel, Callable<Action> {
         this.session.insert(new CurrentPlayer(p));
     }
 
-    public Player getPlayer() {
-        return this.player;
-    }
-
     /**
      * Stop the decision-making process, no matter where it currently is.
      */
-    protected void halt() {
+    public void halt() {
         this.session.halt();
     }
 
-    /**
-     * Whether or not this object can still be used for decision making.
-     * 
-     * @return False when it can be used.
-     */
-    public boolean isTerminated() {
-        return this.isDisposed;
-    }
-
+    @Override
     public void notifyOfCollectibleAddition(final CollectibleAdditionEvent evt) {
         this.gameEvents.insert(evt);
     }
 
+    @Override
     public void notifyOfCollectibleRemoval(final CollectibleRemovalEvent evt) {
         this.gameEvents.insert(evt);
     }
 
+    @Override
     public void notifyOfCollectibleReward(final CollectibleRewardEvent evt) {
         this.rewardEvents.insert(evt);
     }
 
+    @Override
     public void notifyOfDeath(final PlayerDeathEvent evt) {
         this.playerEvents.insert(evt);
         // remove player from the WM
         this.handles.remove(evt.getPlayer()).forEach((node, handle) -> this.session.delete(handle));
     }
 
+    @Override
     public void notifyOfPlayerMove(final PlayerActionEvent evt) {
         final Player player = evt.getPlayer();
         this.playerEvents.insert(evt);
@@ -214,6 +206,7 @@ public class DecisionMaker implements Channel, Callable<Action> {
         }
     }
 
+    @Override
     public void notifyOfSurvivalReward(final SurvivalRewardEvent evt) {
         this.rewardEvents.insert(evt);
     }
@@ -240,7 +233,7 @@ public class DecisionMaker implements Channel, Callable<Action> {
      * 
      * @return False if already terminated.
      */
-    protected boolean terminate() {
+    public boolean terminate() {
         if (this.isDisposed) {
             DecisionMaker.LOGGER.warn("Player {} already terminated.", new Object[]{this.player.getName()});
             return false;
@@ -259,7 +252,7 @@ public class DecisionMaker implements Channel, Callable<Action> {
      * Signifies that this tracker has been notified of all events and that the immediately following action is
      * {@link #call()}.
      */
-    protected void commit() {
+    public void commit() {
         this.validate();
         DecisionMaker.LOGGER.trace("Player {} updating path tracker. ", new Object[]{this.player.getName()});
         Map<Player, Collection<Node>> positions = handles.keySet().stream().collect(Collectors.toMap(Function.identity
@@ -286,7 +279,7 @@ public class DecisionMaker implements Channel, Callable<Action> {
      * @return The move. STAY will be chosen when the strategy doesn't respond.
      */
     @Override
-    public Action call() throws Exception {
+    public Action call() {
         DecisionMaker.LOGGER.trace("Player {} deciding. ", new Object[]{this.player.getName()});
         this.latestDecision = null;
         this.session.fireAllRules();

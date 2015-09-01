@@ -3,7 +3,7 @@ package org.drooms.impl.logic.commands;
 import org.drooms.api.Collectible;
 import org.drooms.api.GameProgressListener;
 import org.drooms.impl.logic.CollectibleRelated;
-import org.drooms.impl.logic.DecisionMaker;
+import org.drooms.impl.logic.PlayerLogic;
 import org.drooms.impl.logic.events.CollectibleRemovalEvent;
 
 public class RemoveCollectibleCommand implements Command, CollectibleRelated {
@@ -22,7 +22,7 @@ public class RemoveCollectibleCommand implements Command, CollectibleRelated {
     }
 
     @Override
-    public void perform(final DecisionMaker logic) {
+    public void perform(final PlayerLogic logic) {
         logic.notifyOfCollectibleRemoval(this.event);
     }
 
