@@ -29,8 +29,8 @@ public class PathTrackerTest {
         final List<Edge> path = PathTracker.getPath(GRAPH, start, Collections.singleton(end));
         Assert.assertEquals(1, path.size());
         final Edge edge = path.get(0);
-        Assert.assertEquals(start, edge.getNodes().getLeft());
-        Assert.assertEquals(end, edge.getNodes().getRight());
+        Assert.assertEquals(start, edge.getFirstNode());
+        Assert.assertEquals(end, edge.getSecondNode());
     }
 
     @Test
@@ -41,8 +41,8 @@ public class PathTrackerTest {
         final List<Edge> path = PathTracker.getPath(GRAPH, start, PathTrackerTest.toSet(start, end, null));
         Assert.assertEquals(1, path.size());
         final Edge edge = path.get(0);
-        Assert.assertEquals(start, edge.getNodes().getLeft());
-        Assert.assertEquals(end, edge.getNodes().getRight());
+        Assert.assertEquals(start, edge.getFirstNode());
+        Assert.assertEquals(end, edge.getSecondNode());
     }
 
     private static int getManhattanDistance(final Node start, final Node end) {

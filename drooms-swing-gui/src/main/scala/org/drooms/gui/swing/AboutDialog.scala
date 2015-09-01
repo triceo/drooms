@@ -9,10 +9,7 @@ import scala.swing.FlowPanel
 import scala.swing.event.ButtonClicked
 import scala.swing.BoxPanel
 import scala.swing.Orientation
-import scala.swing.TextArea
 import javax.swing.BorderFactory
-import jxl.write.VerticalAlignment
-import scala.swing.Alignment
 import java.awt.Font
 
 /**

@@ -1,12 +1,21 @@
 package org.drooms.impl;
 
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.drooms.api.Edge;
 import org.drooms.api.Node;
 
 class DefaultEdge implements Edge {
 
-    private final ImmutablePair<Node, Node> nodes;
+    @Override
+    public Node getFirstNode() {
+        return firstNode;
+    }
+
+    @Override
+    public Node getSecondNode() {
+        return secondNode;
+    }
+
+    private final Node firstNode, secondNode;
 
     /**
      * A {@link Node} is considered larger than the other if it has a bigger {@link #getY()}. In case these equal,
@@ -44,53 +53,34 @@ class DefaultEdge implements Edge {
                     "Edges between the same node make no sense.");
         }
         if (!DefaultEdge.isNodeLarger(firstNode, secondNode)) {
-            this.nodes = ImmutablePair.of(firstNode, secondNode);
+            this.firstNode = firstNode;
+            this.secondNode = secondNode;
         } else {
-            this.nodes = ImmutablePair.of(secondNode, firstNode);
+            this.firstNode = secondNode;
+            this.secondNode = firstNode;
         }
     }
 
     @Override
-    public boolean equals(final Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (!(obj instanceof DefaultEdge)) {
-            return false;
-        }
-        final DefaultEdge other = (DefaultEdge) obj;
-        if (this.nodes == null) {
-            if (other.nodes != null) {
-                return false;
-            }
-        } else if (!this.nodes.equals(other.nodes)) {
-            return false;
-        }
-        return true;
-    }
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || this.getClass() != o.getClass()) return false;
+        DefaultEdge that = (DefaultEdge) o;
+        if (this.firstNode != null ? !this.firstNode.equals(that.firstNode) : that.firstNode != null) return false;
+        return !(this.secondNode != null ? !this.secondNode.equals(that.secondNode) : that.secondNode != null);
 
-    @Override
-    public ImmutablePair<Node, Node> getNodes() {
-        return this.nodes;
     }
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result
-                + ((this.nodes == null) ? 0 : this.nodes.hashCode());
+        int result = this.firstNode != null ? this.firstNode.hashCode() : 0;
+        result = 31 * result + (this.secondNode != null ? this.secondNode.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("Edge [nodes=").append(this.nodes).append("]");
-        return builder.toString();
+        return "DefaultEdge [firstNode=" + this.firstNode + ", secondNode=" + this.secondNode + ']';
     }
 
 }

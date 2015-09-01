@@ -15,10 +15,6 @@
       <artifactId>drooms-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-    </dependency>
-    <dependency>
       <groupId>net.sf.jung</groupId>
       <artifactId>jung-algorithms</artifactId>
     </dependency>

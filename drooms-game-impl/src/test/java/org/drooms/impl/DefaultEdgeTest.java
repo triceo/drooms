@@ -33,42 +33,42 @@ public class DefaultEdgeTest {
     @Test
     public void testOrdering1() {
         final Edge e1 = new DefaultEdge(this.leastNode, this.largerNode);
-        Assert.assertSame(this.leastNode, e1.getNodes().getLeft());
-        Assert.assertSame(this.largerNode, e1.getNodes().getRight());
+        Assert.assertSame(this.leastNode, e1.getFirstNode());
+        Assert.assertSame(this.largerNode, e1.getSecondNode());
     }
 
     @Test
     public void testOrdering2() {
         final Edge e1 = new DefaultEdge(this.largerNode, this.leastNode);
-        Assert.assertSame(this.leastNode, e1.getNodes().getLeft());
-        Assert.assertSame(this.largerNode, e1.getNodes().getRight());
+        Assert.assertSame(this.leastNode, e1.getFirstNode());
+        Assert.assertSame(this.largerNode, e1.getSecondNode());
     }
 
     @Test
     public void testOrdering3() {
         final Edge e1 = new DefaultEdge(this.leastNode, this.largestNode);
-        Assert.assertSame(this.leastNode, e1.getNodes().getLeft());
-        Assert.assertSame(this.largestNode, e1.getNodes().getRight());
+        Assert.assertSame(this.leastNode, e1.getFirstNode());
+        Assert.assertSame(this.largestNode, e1.getSecondNode());
     }
 
     @Test
     public void testOrdering4() {
         final Edge e1 = new DefaultEdge(this.largestNode, this.leastNode);
-        Assert.assertSame(this.leastNode, e1.getNodes().getLeft());
-        Assert.assertSame(this.largestNode, e1.getNodes().getRight());
+        Assert.assertSame(this.leastNode, e1.getFirstNode());
+        Assert.assertSame(this.largestNode, e1.getSecondNode());
     }
 
     @Test
     public void testOrdering5() {
         final Edge e1 = new DefaultEdge(this.largerNode, this.largestNode);
-        Assert.assertSame(this.largerNode, e1.getNodes().getLeft());
-        Assert.assertSame(this.largestNode, e1.getNodes().getRight());
+        Assert.assertSame(this.largerNode, e1.getFirstNode());
+        Assert.assertSame(this.largestNode, e1.getSecondNode());
     }
 
     @Test
     public void testOrdering6() {
         final Edge e1 = new DefaultEdge(this.largestNode, this.largerNode);
-        Assert.assertSame(this.largerNode, e1.getNodes().getLeft());
-        Assert.assertSame(this.largestNode, e1.getNodes().getRight());
+        Assert.assertSame(this.largerNode, e1.getFirstNode());
+        Assert.assertSame(this.largestNode, e1.getSecondNode());
     }
 }
