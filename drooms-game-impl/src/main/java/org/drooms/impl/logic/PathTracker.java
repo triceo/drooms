@@ -111,7 +111,6 @@ public class PathTracker {
 
     private Graph<Node, Edge> currentGraph;
     private ShortestPath<Node, Edge> currentPath;
-    private Node currentPosition;
 
     private final Player player;
     private final Playground playground;
@@ -125,17 +124,6 @@ public class PathTracker {
     public PathTracker(final Playground playground, final Player p) {
         this.playground = playground;
         this.player = p;
-    }
-
-    /**
-     * Retrieve the current position of the player's worm's head, that is the
-     * one found during the last {@link #updatePlayerPositions(Map)} call.
-     *
-     * @return The position, or null if {@link #updatePlayerPositions(Map)} had never been
-     * called before.
-     */
-    public Node getCurrentPosition() {
-        return this.currentPosition;
     }
 
     public List<Edge> getPath(final Node start, final Set<Node> otherNodeSet) {
@@ -170,16 +158,17 @@ public class PathTracker {
      *
      * @param newPositions New current positions of all the worms.
      */
-    protected void updatePlayerPositions(final Map<Player, Deque<Node>> newPositions) {
-        if (newPositions.isEmpty()) {
+    protected void updatePlayerPositions(final Map<Player, Collection<Node>> newPositions, final Node currentHead) {
+        if (currentHead == null || !newPositions.get(this.player).contains(currentHead)) {
+            throw new IllegalStateException("Invalid worm head node: " + currentHead);
+        } else if (newPositions.isEmpty()) {
             this.currentGraph = Graphs.unmodifiableGraph(this.playground.getGraph());
         } else {
             // enumerate all the nodes occupied by worms at this point
             final Set<Node> unavailable = new LinkedHashSet<>();
             newPositions.forEach((player, nodes) -> unavailable.addAll(nodes));
             // make sure we keep the head node, since otherwise there is no path from the current position to any other
-            this.currentPosition = newPositions.get(this.player).getFirst();
-            unavailable.remove(this.currentPosition);
+            unavailable.remove(currentHead);
             // update internal structures
             this.currentGraph = Graphs.unmodifiableUndirectedGraph(PathTracker.cloneGraph(this.playground.getGraph(),
                     unavailable));

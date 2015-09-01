@@ -1,5 +1,8 @@
 package org.drooms.impl.util;
 
+import org.drooms.api.Player;
+import org.drooms.util.CommonProperties;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -7,9 +10,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Properties;
-
-import org.drooms.api.Player;
-import org.drooms.util.CommonProperties;
 
 /**
  * Prepares the game properties by reading them from a property file.
@@ -46,6 +46,8 @@ import org.drooms.util.CommonProperties;
  * </dl>
  */
 public class GameProperties extends CommonProperties {
+
+    public static final int FIRST_TURN_NUMBER = 1;
 
     public static class CollectibleType {
 

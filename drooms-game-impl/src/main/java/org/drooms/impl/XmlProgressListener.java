@@ -1,21 +1,16 @@
 package org.drooms.impl;
 
+import org.drooms.api.*;
+import org.drooms.impl.util.GameProperties;
+import org.drooms.impl.util.XmlUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.drooms.api.Collectible;
-import org.drooms.api.GameProgressListener;
-import org.drooms.api.Action;
-import org.drooms.api.Node;
-import org.drooms.api.Player;
-import org.drooms.api.Playground;
-import org.drooms.impl.util.GameProperties;
-import org.drooms.impl.util.XmlUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class XmlProgressListener implements GameProgressListener {
 
@@ -35,7 +30,7 @@ public class XmlProgressListener implements GameProgressListener {
 
     private final StringBuilder report = new StringBuilder();
 
-    private int turnNumber = 0;
+    private int turnNumber = GameProperties.FIRST_TURN_NUMBER;
 
     private final Map<Player, Integer> playerPoints = new HashMap<>();
 
@@ -104,7 +99,7 @@ public class XmlProgressListener implements GameProgressListener {
 
     @Override
     public void nextTurn() {
-        if (this.turnNumber > 0) {
+        if (this.turnNumber > GameProperties.FIRST_TURN_NUMBER) {
             this.report.append("</turn>");
         }
         this.report.append("<turn number='" + this.turnNumber + "'>");

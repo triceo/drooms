@@ -23,12 +23,13 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Represents a {@link Player}'s Strategy in action. This class holds
@@ -93,22 +94,24 @@ public class DecisionMaker implements Channel, Callable<Action> {
 
     private final FactHandle currentTurn;
     private final EntryPoint gameEvents, playerEvents, rewardEvents;
-    private final Map<Player, Map<Node, FactHandle>> handles = new HashMap<Player, Map<Node, FactHandle>>();
+    private final Map<Player, Map<Node, FactHandle>> handles = new HashMap<>();
     private final boolean isDisposed = false;
-    private Action latestDecision = null;
     private final Player player;
+    private final PathTracker tracker;
     private final KieSession session;
-
     private final KieRuntimeLogger sessionAudit;
 
-    public DecisionMaker(final Player p, final PathTracker tracker, final GameProperties properties,
-            final File reportFolder) {
+    private Action latestDecision = null;
+    private Node currentHead = null;
+
+    public DecisionMaker(final Playground playground, final Player p, final GameProperties properties, final File
+            reportFolder) {
         this.player = p;
         final KieSessionConfiguration config = KieServices.Factory.get().newKieSessionConfiguration();
         config.setOption(ClockTypeOption.get("pseudo"));
         this.session = p.constructKieBase().newKieSession(config, null);
         if (reportFolder != null) {
-            Path reportFile = Paths.get(reportFolder.getPath(), player.getName());
+            Path reportFile = Paths.get(reportFolder.getPath(), p.getName());
             this.sessionAudit = KieServices.Factory.get().getLoggers().newFileLogger(session, reportFile.toString());
             DecisionMaker.LOGGER.info("Auditing the Drools session is enabled.");
         } else {
@@ -122,14 +125,14 @@ public class DecisionMaker implements Channel, Callable<Action> {
         this.gameEvents = this.session.getEntryPoint("gameEvents");
         this.playerEvents = this.session.getEntryPoint("playerEvents");
         // configure the globals for the session
+        this.tracker = new PathTracker(playground, p);
         DecisionMaker.setGlobal(this.session, "tracker", tracker);
         DecisionMaker.setGlobal(this.session, "logger",
-                LoggerFactory.getLogger("org.drooms.players." + this.player.getName()));
+                LoggerFactory.getLogger("org.drooms.players." + p.getName()));
         /*
          * insert playground walls; make sure the playground is always
          * surrounded with walls.
          */
-        final Playground playground = tracker.getPlayground();
         for (int x = -1; x <= playground.getWidth(); x++) {
             for (int y = -1; y <= playground.getHeight(); y++) {
                 Node n = playground.getNodeAt(x, y);
@@ -149,7 +152,7 @@ public class DecisionMaker implements Channel, Callable<Action> {
         this.session.insert(new GameProperty(GameProperty.Name.TIMEOUT_IN_SECONDS, properties
                 .getStrategyTimeoutInSeconds()));
         // insert info about the game status
-        this.currentTurn = this.session.insert(new CurrentTurn(0));
+        this.currentTurn = this.session.insert(new CurrentTurn(GameProperties.FIRST_TURN_NUMBER - 1));
         this.session.insert(new CurrentPlayer(p));
     }
 
@@ -160,7 +163,7 @@ public class DecisionMaker implements Channel, Callable<Action> {
     /**
      * Stop the decision-making process, no matter where it currently is.
      */
-    public void halt() {
+    protected void halt() {
         this.session.halt();
     }
 
@@ -187,33 +190,27 @@ public class DecisionMaker implements Channel, Callable<Action> {
 
     public void notifyOfDeath(final PlayerDeathEvent evt) {
         this.playerEvents.insert(evt);
-        final Player p = evt.getPlayer();
         // remove player from the WM
-        for (final Map.Entry<Node, FactHandle> entry : this.handles.remove(p).entrySet()) {
-            this.session.delete(entry.getValue());
-        }
+        this.handles.remove(evt.getPlayer()).forEach((node, handle) -> this.session.delete(handle));
     }
 
     public void notifyOfPlayerMove(final PlayerActionEvent evt) {
-        final Player p = evt.getPlayer();
+        final Player player = evt.getPlayer();
         this.playerEvents.insert(evt);
         // update player positions
-        if (!this.handles.containsKey(p)) {
-            this.handles.put(p, new HashMap<Node, FactHandle>());
+        if (!this.handles.containsKey(player)) {
+            this.handles.put(player, new HashMap<>());
         }
-        final Map<Node, FactHandle> playerHandles = this.handles.get(p);
-        final Set<Node> untraversedNodes = new HashSet<Node>(playerHandles.keySet());
-        for (final Node n : evt.getNodes()) {
-            if (!playerHandles.containsKey(n)) { // worm occupies a new node
-                final FactHandle fh = this.session.insert(new Worm(p, n));
-                playerHandles.put(n, fh);
-            }
-            untraversedNodes.remove(n);
-        }
-        for (final Node n : untraversedNodes) { // worm no longer
-                                                // occupies a node
-            final FactHandle fh = playerHandles.remove(n);
-            this.session.delete(fh);
+        final Map<Node, FactHandle> handles = this.handles.get(player);
+        // worm no longer occupies certain nodes
+        handles.keySet().stream().filter(n -> !evt.getNodes().contains(n)).collect(Collectors.toSet()).forEach(n ->
+                handles.remove(n));
+        // worm occupies a new node
+        evt.getNodes().stream().filter(n -> !handles.containsKey(n)).forEach(n -> handles.put(n, this.session.insert
+                (new Worm(player, n))));
+        // update head node
+        if (player == this.player) {
+            this.currentHead = evt.getNodes().getFirst();
         }
     }
 
@@ -243,7 +240,7 @@ public class DecisionMaker implements Channel, Callable<Action> {
      * 
      * @return False if already terminated.
      */
-    public boolean terminate() {
+    protected boolean terminate() {
         if (this.isDisposed) {
             DecisionMaker.LOGGER.warn("Player {} already terminated.", new Object[]{this.player.getName()});
             return false;
@@ -256,6 +253,24 @@ public class DecisionMaker implements Channel, Callable<Action> {
             this.session.dispose();
             return true;
         }
+    }
+
+    /**
+     * Signifies that this tracker has been notified of all events and that the immediately following action is
+     * {@link #call()}.
+     */
+    protected void commit() {
+        this.validate();
+        DecisionMaker.LOGGER.trace("Player {} updating path tracker. ", new Object[]{this.player.getName()});
+        Map<Player, Collection<Node>> positions = handles.keySet().stream().collect(Collectors.toMap(Function.identity
+                (), player -> handles.get(player).keySet()));
+        this.tracker.updatePlayerPositions(positions, this.currentHead);
+        DecisionMaker.LOGGER.trace("Player {} advancing time. ", new Object[]{this.player.getName()});
+        final SessionPseudoClock clock = this.session.getSessionClock();
+        clock.advanceTime(1, TimeUnit.MINUTES);
+        // increase turn number
+        final CurrentTurn turn = (CurrentTurn) this.session.getObject(this.currentTurn);
+        this.session.update(this.currentTurn, new CurrentTurn(turn.getNumber() + 1));
     }
 
     private void validate() {
@@ -272,18 +287,9 @@ public class DecisionMaker implements Channel, Callable<Action> {
      */
     @Override
     public Action call() throws Exception {
-        this.validate();
-        DecisionMaker.LOGGER.trace("Player {} advancing time. ", new Object[]{this.player.getName()});
-        final SessionPseudoClock clock = this.session.getSessionClock();
-        clock.advanceTime(1, TimeUnit.MINUTES);
-        // decide
         DecisionMaker.LOGGER.trace("Player {} deciding. ", new Object[]{this.player.getName()});
         this.latestDecision = null;
         this.session.fireAllRules();
-        // increase turn number
-        final CurrentTurn turn = (CurrentTurn) this.session.getObject(this.currentTurn);
-        this.session.update(this.currentTurn, new CurrentTurn(turn.getNumber() + 1));
-        // store the decision
         if (this.latestDecision == null) {
             DecisionMaker.LOGGER.info("Player {} didn't make a decision. STAY forced.", this.player.getName());
             return Action.NOTHING;

@@ -1,10 +1,12 @@
 package org.drooms.impl.logic;
 
-import org.drooms.api.*;
+import org.drooms.api.Action;
+import org.drooms.api.GameProgressListener;
+import org.drooms.api.Player;
+import org.drooms.api.Playground;
 import org.drooms.impl.GameController;
 import org.drooms.impl.logic.commands.Command;
 import org.drooms.impl.logic.commands.DeactivatePlayerCommand;
-import org.drooms.impl.logic.commands.PlayerActionCommand;
 import org.drooms.impl.util.GameProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
 /**
  * Receives state changes ({@link Command}s) from the {@link GameController} and
@@ -23,18 +24,8 @@ public class CommandDistributor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandDistributor.class);
 
-    private static Map<Player, Deque<Node>> retrieveNewPlayerPositions(final List<Command> commands) {
-        final Map<Player, Deque<Node>> positions = new HashMap<>();
-        commands.stream().filter(command -> command instanceof PlayerActionCommand).collect(Collectors.toMap(
-                command -> ((PlayerActionCommand) command).getPlayer(), command -> ((PlayerActionCommand) command)
-                        .getNodes()));
-        return Collections.unmodifiableMap(positions);
-    }
-
     private final Map<Player, DecisionMaker> players = new LinkedHashMap<>();
-    private final Map<Player, PathTracker> trackers = new LinkedHashMap<>();
-
-    private final List<GameProgressListener> listeners = new LinkedList<GameProgressListener>();
+    private final List<GameProgressListener> listeners = new LinkedList<>();
 
     private final int playerTimeoutInSeconds;
 
@@ -62,9 +53,7 @@ public class CommandDistributor {
             final GameProgressListener report, final GameProperties properties, final File reportFolder,
             final int playerTimeoutInSeconds) {
         players.forEach(player -> {
-            final PathTracker tracker = new PathTracker(playground, player);
-            this.trackers.put(player, tracker);
-            this.players.put(player, new DecisionMaker(player, tracker, properties, reportFolder));
+            this.players.put(player, new DecisionMaker(playground, player, properties, reportFolder));
         });
         this.listeners.add(report);
         this.playerTimeoutInSeconds = playerTimeoutInSeconds;
@@ -100,13 +89,12 @@ public class CommandDistributor {
             this.listeners.forEach(listener -> command.report(listener));
         });
         CommandDistributor.LOGGER.info("Now passing these changes to players.");
-        final Map<Player, Deque<Node>> positions = CommandDistributor.retrieveNewPlayerPositions(commands);
-        final Map<Player, Action> moves = new HashMap<Player, Action>();
+        final Map<Player, Action> moves = new HashMap<>();
         this.players.forEach((player, decisionMaker) -> {
             CommandDistributor.LOGGER.debug("Processing player {}.", player.getName());
-            this.trackers.get(player).updatePlayerPositions(positions);
             // send commands to the player's strategy
             this.commands.forEach(command -> command.perform(decisionMaker));
+            decisionMaker.commit();
             // begin the time-box for a player strategy to make decisions
             CommandDistributor.LOGGER.debug("Starting time-box for player {}.", player.getName());
             final Future<Action> move = this.e.submit(decisionMaker);
@@ -174,6 +162,5 @@ public class CommandDistributor {
         CommandDistributor.LOGGER.debug("Removing player {}.", player.getName());
         final DecisionMaker dm = this.players.remove(player);
         dm.terminate();
-        this.trackers.remove(player);
     }
 }
