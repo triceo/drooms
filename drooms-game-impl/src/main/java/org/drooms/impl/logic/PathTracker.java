@@ -13,6 +13,7 @@ import org.drooms.api.Player;
 import org.drooms.api.Playground;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * A helper class for the strategies to be able to quickly and easily find paths
@@ -31,8 +32,7 @@ public class PathTracker {
     }
 
     /**
-     * Finds the shortest path through given nodes. This method assumes that all nodes exist in the graph and will
-     * not function properly otherwise.
+     * Finds the shortest path through given nodes.
      *
      * @param graph                 Graph to look inside of.
      * @param start                 The starting node for the path.
@@ -47,25 +47,35 @@ public class PathTracker {
         if (start == null || otherNodeSet == null || otherNodeSet.size() == 0) {
             throw new IllegalArgumentException("Please provide both a start node and a set of other nodes.");
         }
+        // some nodes make no sense; start node is included implicitly, null nodes are nonsense
+        final Set<V> filteredNodeSet = otherNodeSet.stream().filter(node -> !(node == null || node.equals(start)))
+                .collect(Collectors.toSet());
         /*
          * a brute-force algorithm to recursively find the shortest path. this algorithm picks all the other nodes,
          * one after another, and will call this algorithm again with the chosen node as the starting node and the
          * remaining nodes as the other nodes. it will try to be smart and not include among the other nodes the
          * nodes that it already went through earlier in the recursion.
          */
-        final List<E> path = otherNodeSet.parallelStream().filter(node -> !node.equals(start)).map(newStart -> {
+        final List<E> path = filteredNodeSet.parallelStream().map(newStart -> {
                 // path to this node
                 final List<E> totalPath = PathTracker.getPath(graph, shortestPathAlgorithm, start, newStart);
+                if (totalPath.size() == 0) { // no route exists between two nodes; path is impossible
+                    return null;
+                }
                 // if any of the other nodes are in the above path already, don't go through them again
-                final Set<V> nodesToTraverse = new LinkedHashSet<>(otherNodeSet);
+                final Set<V> nodesToTraverse = new LinkedHashSet<>(filteredNodeSet);
                 totalPath.forEach(edge -> nodesToTraverse.removeAll(graph.getIncidentVertices(edge)));
                 if (nodesToTraverse.size() > 0) {
                     // find the new path and merge it
-                    totalPath.addAll(PathTracker.getPath(graph, newStart, Collections.unmodifiableSet(nodesToTraverse),
-                            shortestPathAlgorithm));
+                    final List<E> remainingPath = PathTracker.getPath(graph, newStart, Collections.unmodifiableSet
+                                    (nodesToTraverse), shortestPathAlgorithm);
+                    if (remainingPath.size() == 0) { // no route exists between remaining nodes; path is impossible
+                        return null;
+                    }
+                    totalPath.addAll(remainingPath);
                 }
                 return totalPath;
-            }).min((edges, edges2) -> {
+            }).filter(edges -> !(edges == null || edges.isEmpty())).min((edges, edges2) -> {
                 final int size1 = edges.size();
                 final int size2 = edges2.size();
                 if (size1 > size2) {
@@ -128,12 +138,7 @@ public class PathTracker {
         return this.currentPosition;
     }
 
-    protected List<Edge> getPath(final Node start, final Set<Node> otherNodeSet) {
-        if (!this.currentGraph.containsVertex(start)) {
-            throw new IllegalArgumentException("Starting node not in the graph.");
-        } else if (otherNodeSet.stream().filter(node -> this.currentGraph.containsVertex(node)).count() > 0) {
-            throw new IllegalArgumentException("Some of the other nodes are not in the graph.");
-        }
+    public List<Edge> getPath(final Node start, final Set<Node> otherNodeSet) {
         return PathTracker.getPath(this.currentGraph, start, otherNodeSet, this.currentPath);
     }
 
@@ -143,7 +148,8 @@ public class PathTracker {
      * This is effectively TSP, so try to keep the amount of nodes very, very small. :-)
      *
      * @param start      Beginning of the path.
-     * @param otherNodes All the other nodes to go through. If this includes the start node, it will be ignored.
+     * @param otherNodes All the other nodes to go through. If this includes the start node, it will be ignored. Null
+     *                   nodes will be ignored as well.
      * @return Unmodifiable list of nodes on the path, ordered from start to end. Empty if path cannot be found.
      */
     public List<Edge> getPath(final Node start, final Node... otherNodes) {

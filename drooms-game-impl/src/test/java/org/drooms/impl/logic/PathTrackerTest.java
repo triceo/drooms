@@ -33,6 +33,18 @@ public class PathTrackerTest {
         Assert.assertEquals(end, edge.getNodes().getRight());
     }
 
+    @Test
+    public void testPathToNextWithGarbage() {
+        final Node start = PLAYGROUND.getNodeAt(10, 10);
+        final Node end = PLAYGROUND.getNodeAt(10, start.getY() + 1);
+        // start and null in the set will be ignored as garbage
+        final List<Edge> path = PathTracker.getPath(GRAPH, start, PathTrackerTest.toSet(start, end, null));
+        Assert.assertEquals(1, path.size());
+        final Edge edge = path.get(0);
+        Assert.assertEquals(start, edge.getNodes().getLeft());
+        Assert.assertEquals(end, edge.getNodes().getRight());
+    }
+
     private static int getManhattanDistance(final Node start, final Node end) {
         return Math.abs(end.getX() - start.getX()) + Math.abs(end.getY() - start.getY());
     }
@@ -75,6 +87,37 @@ public class PathTrackerTest {
     @Test
     public void testShortestPathThroughNodeEndFirst() {
         this.testShortestPathThroughNode(true);
+    }
+
+    private void testWrongNode(final boolean unreachableFirst, final boolean doesNodeExist) {
+        final Node start = PLAYGROUND.getNodeAt(3, 0);
+        final Node end = PLAYGROUND.getNodeAt(0, 3);
+        // first node is surrounded by walls, the other is a wall itself and therefore not present in the graph
+        final Node unreachable = doesNodeExist ? PLAYGROUND.getNodeAt(68, 12) : PLAYGROUND.getNodeAt(10, 15);
+        final List<Edge> path = PathTracker.getPath(GRAPH, start, unreachableFirst ? PathTrackerTest.toSet(unreachable,
+                end) : PathTrackerTest.toSet(end, unreachable));
+        Assert.assertEquals(0, path.size());
+    }
+
+
+    @Test
+    public void testUnreachableNodeFirst() {
+        this.testWrongNode(true, true);
+    }
+
+    @Test
+    public void testUnreachableNodeLast() {
+        this.testWrongNode(false, true);
+    }
+
+    @Test
+    public void testNonexistentNodeFirst() {
+        this.testWrongNode(true, false);
+    }
+
+    @Test
+    public void testNonexistentNodeLast() {
+        this.testWrongNode(false, false);
     }
 
     @Test
