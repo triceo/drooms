@@ -1,41 +1,17 @@
 package org.drooms.impl;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.SecureRandom;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import org.apache.commons.io.IOUtils;
-import org.drooms.api.Action;
-import org.drooms.api.Collectible;
-import org.drooms.api.Game;
-import org.drooms.api.GameProgressListener;
-import org.drooms.api.Node;
-import org.drooms.api.Player;
-import org.drooms.api.Playground;
+import org.drooms.api.*;
 import org.drooms.impl.logic.CommandDistributor;
-import org.drooms.impl.logic.commands.AddCollectibleCommand;
-import org.drooms.impl.logic.commands.CollectCollectibleCommand;
-import org.drooms.impl.logic.commands.CrashPlayerCommand;
-import org.drooms.impl.logic.commands.DeactivatePlayerCommand;
-import org.drooms.impl.logic.commands.PlayerActionCommand;
-import org.drooms.impl.logic.commands.RemoveCollectibleCommand;
-import org.drooms.impl.logic.commands.RewardSurvivalCommand;
+import org.drooms.impl.logic.commands.*;
 import org.drooms.impl.util.GameProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.*;
+import java.security.SecureRandom;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 /**
  * Provide a common ground for various types of games. We introduce a couple of
@@ -394,8 +370,8 @@ public abstract class GameController implements Game {
      */
     @Override
     public Playground buildPlayground(final String name, final InputStream source) {
-        try {
-            final List<String> lines = IOUtils.readLines(source);
+        try (final BufferedReader reader = new BufferedReader(new InputStreamReader(source))) {
+            final List<String> lines = reader.lines().collect(Collectors.toList());
             Collections.reverse(lines); // this way, 0,0 is bottom left
             return new DefaultPlayground(name, lines);
         } catch (final Exception ex) {

@@ -1,27 +1,12 @@
 package org.drooms.impl;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.drooms.api.Action;
-import org.drooms.api.Collectible;
-import org.drooms.api.Node;
+import org.drooms.api.*;
 import org.drooms.api.Node.Type;
-import org.drooms.api.Player;
-import org.drooms.api.Playground;
 import org.drooms.impl.util.GameProperties;
 import org.drooms.impl.util.GameProperties.CollectibleType;
 
-import com.google.common.collect.Lists;
+import java.math.BigDecimal;
+import java.util.*;
 
 /**
  * On top of the rules implemented by {@link GameController}, this game
@@ -146,9 +131,10 @@ public class DefaultGame extends GameController {
         final Node currentHeadPos = currentPos.getFirst();
         Node newHeadPos;
         switch (decision) {
-            case REVERSE:
-                // reverse the snake and do nothing else
-                return new LinkedList<Node>(Lists.reverse(new ArrayList<Node>(currentPos)));
+            case REVERSE: // reverse the snake and do nothing else
+                final LinkedList<Node> nodes = new LinkedList<>(currentPos);
+                Collections.reverse(nodes);
+                return nodes;
             case MOVE_UP:
                 newHeadPos = playground.getNodeAt(currentHeadPos.getX(), currentHeadPos.getY() + 1);
                 break;

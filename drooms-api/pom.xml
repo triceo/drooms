@@ -14,9 +14,10 @@
       <groupId>org.drools</groupId>
       <artifactId>drools-decisiontables</artifactId>
     </dependency>
-    <dependency>
+    <dependency> <!-- Maven strategy resolving -->
       <groupId>org.kie</groupId>
       <artifactId>kie-ci</artifactId>
+      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>net.sf.jung</groupId>
