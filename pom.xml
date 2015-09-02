@@ -17,7 +17,6 @@
     <scala.version>2.10.5</scala.version>
     <scala.maven.plugin.version>2.15.2</scala.maven.plugin.version>
     <jung.version>2.0.1</jung.version>
-    <drools.version>6.3.0.CR1</drools.version>
   </properties>
 
   <dependencyManagement>
@@ -25,7 +24,7 @@
       <dependency>
         <groupId>org.drools</groupId>
         <artifactId>drools-bom</artifactId>
-        <version>${drools.version}</version>
+        <version>6.3.0.CR2</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
