@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -18,17 +19,12 @@ import java.util.stream.Collectors;
  */
 public class DroomsGame {
 
-    private static String getTimestamp() {
-        final Date date = new java.util.Date();
-        return new Timestamp(date.getTime()).toString();
-    }
-
     private final File p;
     private final File c;
     private final Collection<Player> players;
     private final File f;
     private final Class<? extends Game> cls;
-    private final Set<GameProgressListener> listeners = new HashSet<GameProgressListener>();
+    private final Set<GameProgressListener> listeners = new HashSet<>();
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DroomsGame.class);
 
@@ -40,7 +36,7 @@ public class DroomsGame {
         this.cls = game;
         this.players = players;
         // validate players
-        List<Player> invalidPlayers = this.players.stream().filter(player -> {
+        final List<Player> invalidPlayers = this.players.stream().filter(player -> {
             boolean isInvalid = false;
             final DroomsStrategyValidator validator = DroomsStrategyValidator.getInstance(player.getStrategyReleaseId());
             if (!validator.isValid()) {
@@ -63,7 +59,7 @@ public class DroomsGame {
     }
 
     public Playground getPlayground() {
-        try (InputStream is = new FileInputStream(this.p)) {
+        try (final InputStream is = new FileInputStream(this.p)) {
             return this.cls.newInstance().buildPlayground(this.p.getName(), is);
         } catch (InstantiationException | IllegalAccessException e) {
             throw new IllegalStateException("Cannot find game class.", e);
@@ -73,20 +69,18 @@ public class DroomsGame {
     }
 
     public Map<Player, Integer> play(final String name) {
-        final File f = new File(this.f, name + "-" + DroomsGame.getTimestamp());
+        final File f = new File(this.f, name + "-" + Timestamp.from(Instant.now()));
         if (!f.exists()) {
             f.mkdirs();
         }
-        try (InputStream contextFis = new FileInputStream(this.c);
-                InputStream playgroundFis = new FileInputStream(this.p)) {
+        try (final InputStream contextFis = new FileInputStream(this.c); final InputStream playgroundFis = new
+                FileInputStream(this.p)) {
             final Game g = this.cls.newInstance();
             g.setContext(contextFis);
-            for (final GameProgressListener listener : this.listeners) {
-                g.addListener(listener);
-            }
+            this.listeners.forEach(listener -> g.addListener(listener));
             final Map<Player, Integer> result = g.play(g.buildPlayground(name, playgroundFis), this.players, f);
             // report
-            try (Writer w = new FileWriter(new File(f, "report.xml"))) {
+            try (final Writer w = new FileWriter(new File(f, "report.xml"))) {
                 g.getReport().write(w);
             } catch (final IOException e) {
                 DroomsGame.LOGGER.info("Failed writing report for game: {}.", name);

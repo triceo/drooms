@@ -3,10 +3,10 @@ package org.drooms.impl;
 import org.drooms.api.*;
 import org.drooms.api.Node.Type;
 import org.drooms.impl.util.GameProperties;
-import org.drooms.impl.util.GameProperties.CollectibleType;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * On top of the rules implemented by {@link GameController}, this game
@@ -36,7 +36,7 @@ public class DefaultGame extends GameController {
 
     @Override
     protected Map<Collectible, Player> performCollectibleCollection(final Collection<Player> players) {
-        final Map<Collectible, Player> collections = new HashMap<Collectible, Player>();
+        final Map<Collectible, Player> collections = new HashMap<>();
         for (final Player p : players) {
             final Node headPosition = this.getPlayerPosition(p).getFirst();
             final Collectible c = this.getCollectible(headPosition);
@@ -50,26 +50,23 @@ public class DefaultGame extends GameController {
     @Override
     protected Collection<Collectible> performCollectibleDistribution(final GameProperties gameConfig,
             final Playground playground, final Collection<Player> players, final int currentTurnNumber) {
-        final Set<Collectible> collectibles = new HashSet<Collectible>();
-        for (final CollectibleType ct : gameConfig.getCollectibleTypes()) {
+        return Collections.unmodifiableSet(gameConfig.getCollectibleTypes().stream().filter(ct -> {
             final BigDecimal probability = ct.getProbabilityOfAppearance();
             final BigDecimal chosen = BigDecimal.valueOf(GameController.RANDOM.nextDouble());
-            if (probability.compareTo(chosen) > 0) {
-                final double expirationAdjustmentRate = GameController.RANDOM.nextDouble() + 0.5;
-                final double turnsToLast = expirationAdjustmentRate * ct.getExpiration();
-                final int expiresIn = (int) Math.round(currentTurnNumber + turnsToLast);
-                final int points = ct.getPoints();
-                final Node target = this.pickRandomUnusedNode(playground, players);
-                final Collectible c = new Collectible(target, points, expiresIn);
-                collectibles.add(c);
-            }
-        }
-        return Collections.unmodifiableSet(collectibles);
+            return (probability.compareTo(chosen) > 0);
+        }).map(ct -> {
+            final double expirationAdjustmentRate = GameController.RANDOM.nextDouble() + 0.5;
+            final double turnsToLast = expirationAdjustmentRate * ct.getExpiration();
+            final int expiresIn = (int) Math.round(currentTurnNumber + turnsToLast);
+            final int points = ct.getPoints();
+            final Node target = this.pickRandomUnusedNode(playground, players);
+            return new Collectible(target, points, expiresIn);
+        }).collect(Collectors.toSet()));
     }
 
     @Override
     protected Set<Player> performCollisionDetection(final Playground playground, final Collection<Player> currentPlayers) {
-        final Set<Player> collisions = new HashSet<Player>();
+        final Set<Player> collisions = new HashSet<>();
         for (final Player p1 : currentPlayers) {
             final Deque<Node> position = this.getPlayerPosition(p1);
             final Node firstPosition = position.getFirst();
@@ -78,7 +75,7 @@ public class DefaultGame extends GameController {
                 continue;
             } else {
                 // make sure the worm didn't crash into itself
-                final Set<Node> nodes = new HashSet<Node>(position);
+                final Set<Node> nodes = new HashSet<>(position);
                 if (nodes.size() < position.size()) {
                     // a worm occupies one node twice = a crash into itself
                     collisions.add(p1);
@@ -106,22 +103,19 @@ public class DefaultGame extends GameController {
     @Override
     protected Set<Player> performInactivityDetection(final Collection<Player> currentPlayers,
             final int currentTurnNumber, final int allowedInactiveTurns) {
-        final Set<Player> inactiveWorms = new HashSet<Player>();
         if (currentTurnNumber > allowedInactiveTurns) {
-            for (final Player p : currentPlayers) {
+            return Collections.unmodifiableSet(currentPlayers.parallelStream().filter(p -> {
                 final List<Action> allMoves = this.getDecisionRecord(p);
                 final int size = allMoves.size();
-                final List<Action> relevantMoves = allMoves.subList(Math.max(0, size - allowedInactiveTurns - 1), size);
-                if (!relevantMoves.contains(Action.NOTHING)) {
-                    continue;
+                final Set<Action> relevantMoves = new HashSet<>(allMoves.subList(Math.max(0, size -
+                        allowedInactiveTurns - 1), size));
+                if (relevantMoves.size() == 1 &&  relevantMoves.contains(Action.NOTHING)){
+                    return true;
                 }
-                final Set<Action> uniqueMoves = new HashSet<Action>(relevantMoves);
-                if (uniqueMoves.size() == 1) {
-                    inactiveWorms.add(p);
-                }
-            }
+                return false;
+            }).collect(Collectors.toSet()));
         }
-        return Collections.unmodifiableSet(inactiveWorms);
+        return Collections.EMPTY_SET;
     }
 
     @Override
@@ -165,7 +159,7 @@ public class DefaultGame extends GameController {
             throw new IllegalStateException("Moving to a non-existent node!");
         }
         // move the head of the snake
-        final Deque<Node> newPosition = new LinkedList<Node>(currentPos);
+        final Deque<Node> newPosition = new LinkedList<>(currentPos);
         if (newHeadPos != currentHeadPos) {
             newPosition.push(newHeadPos);
         }
@@ -183,15 +177,12 @@ public class DefaultGame extends GameController {
             return Collections.emptyMap();
         }
         final int amount = rewardAmount * (allPlayers.size() - survivingPlayers.size());
-        final Map<Player, Integer> result = new HashMap<>();
-        for (final Player p : survivingPlayers) {
-            result.put(p, amount);
-        }
-        return Collections.unmodifiableMap(result);
+        return Collections.unmodifiableMap(survivingPlayers.stream().collect(Collectors.toMap(player -> player,
+                player -> amount)));
     }
 
     private Node pickRandomUnusedNode(final Playground p, final Collection<Player> players) {
-        final List<Node> nodes = new LinkedList<Node>();
+        final List<Node> nodes = new LinkedList<>();
         // locate available nodes
         for (int x = 0; x < p.getWidth(); x++) {
             for (int y = 0; y < p.getHeight(); y++) {
@@ -201,20 +192,14 @@ public class DefaultGame extends GameController {
             }
         }
         // exclude nodes where worms are
-        for (final Player player : players) {
-            nodes.removeAll(this.getPlayerPosition(player));
-        }
+        players.forEach(player -> nodes.removeAll(this.getPlayerPosition(player)));
         // exclude nodes where collectibles are
-        final List<Node> nodesCopy = new LinkedList<Node>(nodes);
-        for (final Node n : nodesCopy) {
-            if (this.getCollectible(n) != null) {
-                nodes.remove(n);
-            }
-        }
-        if (nodes.size() == 0) {
+        final List<Node> finalNodes = nodes.stream().filter(n -> this.getCollectible(n) == null).collect(Collectors
+                .toList());
+        if (finalNodes.size() == 0) {
             return null;
         } else {
-            return nodes.get(GameController.RANDOM.nextInt(nodes.size()));
+            return finalNodes.get(GameController.RANDOM.nextInt(finalNodes.size()));
         }
     }
 
