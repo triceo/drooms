@@ -2,10 +2,12 @@ package org.drooms.impl;
 
 import org.drooms.api.*;
 import org.drooms.api.Node.Type;
+import org.drooms.impl.util.Detectors;
 import org.drooms.impl.util.GameProperties;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -66,56 +68,15 @@ public class DefaultGame extends GameController {
 
     @Override
     protected Set<Player> performCollisionDetection(final Playground playground, final Collection<Player> currentPlayers) {
-        final Set<Player> collisions = new HashSet<>();
-        for (final Player p1 : currentPlayers) {
-            final Deque<Node> position = this.getPlayerPosition(p1);
-            final Node firstPosition = position.getFirst();
-            if (!playground.isAvailable(firstPosition.getX(), firstPosition.getY())) {
-                collisions.add(p1);
-                continue;
-            } else {
-                // make sure the worm didn't crash into itself
-                final Set<Node> nodes = new HashSet<>(position);
-                if (nodes.size() < position.size()) {
-                    // a worm occupies one node twice = a crash into itself
-                    collisions.add(p1);
-                }
-            }
-            for (final Player p2 : currentPlayers) {
-                if (p1 == p2) {
-                    // the same worm
-                    continue;
-                }
-                final Node secondPosition = this.getPlayerPosition(p2).getFirst();
-                if (firstPosition.equals(secondPosition)) {
-                    // head-on-head collision
-                    collisions.add(p1);
-                    collisions.add(p2);
-                } else if (position.contains(secondPosition)) {
-                    // head-on-body collision
-                    collisions.add(p2);
-                }
-            }
-        }
-        return Collections.unmodifiableSet(collisions);
+        return Detectors.detectCollision(playground, currentPlayers.stream()
+                .collect(Collectors.toMap(Function.identity(), player -> this.getPlayerPosition(player))));
     }
 
     @Override
     protected Set<Player> performInactivityDetection(final Collection<Player> currentPlayers,
             final int currentTurnNumber, final int allowedInactiveTurns) {
-        if (currentTurnNumber > allowedInactiveTurns) {
-            return Collections.unmodifiableSet(currentPlayers.parallelStream().filter(p -> {
-                final List<Action> allMoves = this.getDecisionRecord(p);
-                final int size = allMoves.size();
-                final Set<Action> relevantMoves = new HashSet<>(allMoves.subList(Math.max(0, size -
-                        allowedInactiveTurns - 1), size));
-                if (relevantMoves.size() == 1 &&  relevantMoves.contains(Action.NOTHING)){
-                    return true;
-                }
-                return false;
-            }).collect(Collectors.toSet()));
-        }
-        return Collections.EMPTY_SET;
+        return Detectors.detectInactivity(currentTurnNumber, allowedInactiveTurns, currentPlayers.stream()
+                .collect(Collectors.toMap(Function.identity(), player -> this.getDecisionRecord(player))));
     }
 
     @Override
