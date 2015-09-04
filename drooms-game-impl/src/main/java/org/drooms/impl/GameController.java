@@ -244,7 +244,7 @@ public abstract class GameController implements Game {
             decisions.put(p, Action.NOTHING);
         }
         // start the game
-        int turnNumber = 0;
+        int turnNumber = GameProperties.FIRST_TURN_NUMBER;
         do {
             GameController.LOGGER.info("--- Starting turn no. {}.", turnNumber);
             final int preRemoval = playerControl.getPlayers().size();
