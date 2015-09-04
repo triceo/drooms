@@ -10,21 +10,40 @@ import java.util.stream.Collectors;
 
 public class Detectors {
 
-    public static Set<Player> detectInactivity(final int currentTurn, final int allowedInactiveTurns,
-                                                      Map<Player, List<Action>> players) {
-        if (currentTurn <= allowedInactiveTurns) {
+    /**
+     * Detect players that have been inactive for so long, they have gone over the threshold.
+     *
+     * @param allowedInactiveTurns The maximum allowed number of turns for which the player is allowed to be inactive.
+     *                             Any more than this and the player will be considered inactive. Negative number means
+     *                             infinity.
+     * @param players Players and their activities. The closer to the end of the list, the more recent the action.
+     * @return Players that have been inactive for longer than allowed.
+     */
+    public static Set<Player> detectInactivity(final int allowedInactiveTurns, Map<Player, List<Action>> players) {
+        if (players == null) {
+            throw new IllegalArgumentException("Players must not be null.");
+        } else if (players.isEmpty()) {
+            return Collections.emptySet();
+        } else if (allowedInactiveTurns < 0) {
             return Collections.emptySet();
         }
-        return Collections.unmodifiableSet(players.keySet().parallelStream().filter(p -> {
-            final List<Action> allMoves = players.get(p);
-            final int size = allMoves.size();
-            final Collection<Action> relevantMoves = new HashSet<>(allMoves.subList(Math.max(0,
-                    size - allowedInactiveTurns - 1), size));
-            if (relevantMoves.size() == 1 && relevantMoves.contains(Action.NOTHING)) {
-                return true;
-            }
+        return Collections.unmodifiableSet(players.keySet().parallelStream().filter(p ->
+                !Detectors.isActive(players.get(p), allowedInactiveTurns)).collect(Collectors.toSet()));
+    }
+
+    protected static boolean isActive(final List<Action> actions, final int allowedInactiveTurns) {
+        final int turnCount = actions.size();
+        if (turnCount < allowedInactiveTurns) {
+            return true;
+        }
+        final List<Action> relevantActions = actions.subList(Math.max(0, turnCount - allowedInactiveTurns - 1),
+                turnCount);
+        final Collection<Action> uniqueActions = new HashSet<>(relevantActions);
+        // TODO is "NOTHING" the only inactivity?
+        if (uniqueActions.size() == 1 && uniqueActions.contains(Action.NOTHING)) {
             return false;
-        }).collect(Collectors.toSet()));
+        }
+        return true;
     }
 
     public static Set<Player> detectCollision(final Playground playground, final Map<Player, Deque<Node>> players) {

@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
  * <dd>This class implements three types of collectibles with varying probabilities of appearance, expirations and
  * valuations. There are cheap ones that occur all the time, good ones that occur sometimes and extremely lucrative ones
  * that occur scarcely and don't last long.</dd>
- * <dt>Simultaneos collections</dt>
+ * <dt>Simultaneous collections</dt>
  * <dd>When two worms collect the same item at the same time, it is considered a collision. Both worms are terminated
  * and neither is awarded points for the item.</dd>
  * <dt>Survival bonuses</dt>
@@ -75,7 +75,7 @@ public class DefaultGame extends GameController {
     @Override
     protected Set<Player> performInactivityDetection(final Collection<Player> currentPlayers,
             final int currentTurnNumber, final int allowedInactiveTurns) {
-        return Detectors.detectInactivity(currentTurnNumber, allowedInactiveTurns, currentPlayers.stream()
+        return Detectors.detectInactivity(allowedInactiveTurns, currentPlayers.stream()
                 .collect(Collectors.toMap(Function.identity(), player -> this.getDecisionRecord(player))));
     }
 
