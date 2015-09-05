@@ -1,5 +1,6 @@
 package org.drooms.impl.util;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Assert;
 import org.junit.Test;
 import org.kie.api.KieServices;
@@ -13,55 +14,51 @@ public class DroomsStrategyValidatorTest {
 
     @Test
     public void testInvalidReleaseId() {
-        ReleaseId releaseId = KieServices.Factory.get().newReleaseId("this", "artifact", "is.invalid");
-        DroomsStrategyValidator validator = DroomsStrategyValidator.getInstance(releaseId);
+        final ReleaseId releaseId = KieServices.Factory.get().newReleaseId("this", "artifact", "is.invalid");
+        final DroomsStrategyValidator validator = DroomsStrategyValidator.getInstance(releaseId);
         Assert.assertFalse(validator.isValid());
-        List<String> errors = validator.getErrors();
-        Assert.assertEquals("Unexpected number of errors", 1, errors.size());
-        Assert.assertEquals("Wrong error message", "Cannot find KieModule: this:artifact:is.invalid", errors.get(0));
+        final List<String> errors = validator.getErrors();
+        Assertions.assertThat(errors).containsOnly("Cannot find KieModule: this:artifact:is.invalid");
     }
 
     @Test
     public void testMissingDefaultKieBase() {
-        ReleaseId releaseId = deployArtifact("test-strategy-1.0");
-        DroomsStrategyValidator validator = DroomsStrategyValidator.getInstance(releaseId);
+        final ReleaseId releaseId = deployArtifact("test-strategy-1.0");
+        final DroomsStrategyValidator validator = DroomsStrategyValidator.getInstance(releaseId);
         Assert.assertFalse(validator.isValid());
-        List<String> errors = validator.getErrors();
-        Assert.assertEquals("Unexpected number of errors", 1, errors.size());
+        final List<String> errors = validator.getErrors();
         /*
          * TODO fix typo once we upgrade to codebase with this commit:
          * https://github.com/droolsjbpm/drools/commit/fa1db09a5a6c0ac076ac3f0bcef39286716d8a65
          */
-        Assert.assertEquals("Wrong error message", "Cannot find a defualt KieBase", errors.get(0));
+        Assertions.assertThat(errors).containsOnly("Cannot find a defualt KieBase");
     }
 
     @Test
     public void testMissingEntryPoints() {
-        ReleaseId releaseId = deployArtifact("test-strategy-2.0");
-        DroomsStrategyValidator validator = DroomsStrategyValidator.getInstance(releaseId);
+        final ReleaseId releaseId = deployArtifact("test-strategy-2.0");
+        final DroomsStrategyValidator validator = DroomsStrategyValidator.getInstance(releaseId);
         Assert.assertFalse(validator.isValid());
-        List<String> errors = validator.getErrors();
-        Assert.assertEquals("Unexpected number of errors", 2, errors.size());
-        Assert.assertTrue("Wrong error message", errors.contains("Entry point 'playerEvents' not declared."));
-        Assert.assertTrue("Wrong error message", errors.contains("Entry point 'gameEvents' not declared."));
+        final List<String> errors = validator.getErrors();
+        Assertions.assertThat(errors).containsOnly("Entry point 'playerEvents' not declared.",
+                "Entry point 'gameEvents' not declared.");
     }
 
     @Test
     public void testMissingLogger() {
-        ReleaseId releaseId = deployArtifact("test-strategy-3.0");
-        DroomsStrategyValidator validator = DroomsStrategyValidator.getInstance(releaseId);
+        final ReleaseId releaseId = deployArtifact("test-strategy-3.0");
+        final DroomsStrategyValidator validator = DroomsStrategyValidator.getInstance(releaseId);
         Assert.assertTrue(validator.isValid());
         Assert.assertFalse(validator.isClean());
-        List<String> warnings = validator.getWarnings();
-        Assert.assertEquals("Unexpected number of warnings", 2, warnings.size());
-        Assert.assertTrue("Wrong warning message", warnings.contains("Global 'logger' of type 'org.slf4j.Logger' not declared."));
-        Assert.assertTrue("Wrong warning message", warnings.contains("Global 'tracker' of type 'org.drooms.impl.logic.PathTracker' not declared."));
+        final List<String> warnings = validator.getWarnings();
+        Assertions.assertThat(warnings).containsOnly("Global 'logger' of type 'org.slf4j.Logger' not declared.",
+                "Global 'tracker' of type 'org.drooms.impl.logic.PathTracker' not declared.");
     }
 
-    private ReleaseId deployArtifact(String jarName) {
-        KieServices ks = KieServices.Factory.get();
-        Resource resource = ks.getResources().newClassPathResource(jarName, getClass());
-        KieRepository repository = ks.getRepository();
+    private ReleaseId deployArtifact(final String jarName) {
+        final KieServices ks = KieServices.Factory.get();
+        final Resource resource = ks.getResources().newClassPathResource(jarName, getClass());
+        final KieRepository repository = ks.getRepository();
         return repository.addKieModule(resource).getReleaseId();
     }
 }

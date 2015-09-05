@@ -1,6 +1,6 @@
 package org.drooms.api;
 
-import org.junit.Assert;
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
 public class NodeTest {
@@ -9,7 +9,7 @@ public class NodeTest {
     public void testGetNode() {
         final Node n1 = new Node(10, 20);
         final Node n2 = new Node(10, 20);
-        Assert.assertEquals(n1, n2);
+        Assertions.assertThat(n2).isEqualTo(n1);
     }
 
 }

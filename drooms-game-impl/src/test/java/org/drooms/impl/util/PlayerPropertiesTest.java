@@ -1,5 +1,6 @@
 package org.drooms.impl.util;
 
+import org.assertj.core.api.Assertions;
 import org.drooms.api.Player;
 import org.junit.Assert;
 import org.junit.Test;
@@ -31,12 +32,12 @@ public class PlayerPropertiesTest {
         props.write(players.values());
         final List<Player> retrievedPlayers = props.read();
         // and now figure out the assertions
-        Assert.assertEquals("Number of players doesn't match", players.size(), retrievedPlayers.size());
+        Assertions.assertThat(retrievedPlayers).hasSameSizeAs(players.keySet());
         retrievedPlayers.forEach(player -> {
+            Assertions.assertThat(players.keySet()).contains(player.getName());
             Assert.assertTrue("No such player in the original collection", players.containsKey(player.getName()));
             final Player originalPlayer = players.get(player.getName());
-            Assert.assertEquals("Strategy GAVs do not match", originalPlayer.getStrategyReleaseId(), player
-                    .getStrategyReleaseId());
+            Assertions.assertThat(player.getStrategyReleaseId()).isEqualTo(originalPlayer.getStrategyReleaseId());
         });
     }
 

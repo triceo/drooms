@@ -1,6 +1,6 @@
 package org.drooms.api;
 
-import org.junit.Assert;
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
 /**
@@ -31,16 +31,16 @@ public class PlayerTest {
     @Test
     public void testEquality() {
         final Player p = new Player("a", "b", "c", "1.0");
-        Assert.assertEquals(p, p);
+        Assertions.assertThat(p).isEqualTo(p);
         final Player sameNameSameStrategy = new Player(p.getName(), p.getStrategyReleaseId());
-        Assert.assertEquals(p, sameNameSameStrategy);
-        final Player sameNameDifferentStrategy = new Player(p.getName(), p.getStrategyReleaseId().getGroupId(), p
-                .getStrategyReleaseId().getArtifactId(), "2.0");
-        Assert.assertEquals(p, sameNameDifferentStrategy);
+        Assertions.assertThat(sameNameSameStrategy).isEqualTo(p);
+        final Player sameNameDifferentStrategy = new Player(p.getName(), p.getStrategyReleaseId().getGroupId(),
+                p.getStrategyReleaseId().getArtifactId(), "2.0");
+        Assertions.assertThat(sameNameDifferentStrategy).isEqualTo(p);
         final Player sameNameDifferentStrategyVersion = new Player(p.getName(), "d", "e", "3.0");
-        Assert.assertEquals(p, sameNameDifferentStrategyVersion);
+        Assertions.assertThat(sameNameDifferentStrategyVersion).isEqualTo(p);
         final Player differentNameSameStrategy = new Player("b", p.getStrategyReleaseId());
-        Assert.assertNotEquals(p, differentNameSameStrategy);
+        Assertions.assertThat(differentNameSameStrategy).isNotEqualTo(p);
     }
 
 }

@@ -1,8 +1,6 @@
 package org.drooms.api;
 
-import org.hamcrest.CoreMatchers;
-import org.junit.Assert;
-import org.junit.Assume;
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
 public class CollectibleTest {
@@ -14,9 +12,9 @@ public class CollectibleTest {
         final int points = 5;
         final int expiration = 2;
         final Collectible c = new Collectible(CollectibleTest.LOCATION, points, expiration);
-        Assume.assumeThat(c.getPoints(), CoreMatchers.is(points));
-        Assert.assertTrue(c.expires());
-        Assert.assertThat(c.expiresInTurn(), CoreMatchers.is(expiration));
+        Assertions.assertThat(c.getPoints()).isEqualTo(points);
+        Assertions.assertThat(c.expires()).isTrue();
+        Assertions.assertThat(c.expiresInTurn()).isEqualTo(expiration);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -43,9 +41,9 @@ public class CollectibleTest {
     public void testCollectibleConstructorUnexpiring() {
         final int points = 10;
         final Collectible c = new Collectible(CollectibleTest.LOCATION, points);
-        Assume.assumeThat(c.getPoints(), CoreMatchers.is(points));
-        Assert.assertFalse(c.expires());
-        Assert.assertThat(c.expiresInTurn(), CoreMatchers.is(-1));
+        Assertions.assertThat(c.getPoints()).isEqualTo(points);
+        Assertions.assertThat(c.expires()).isFalse();
+        Assertions.assertThat(c.expiresInTurn()).isEqualTo(-1);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -61,13 +59,13 @@ public class CollectibleTest {
     @Test
     public void testEqualsSame() {
         final Collectible c = new Collectible(CollectibleTest.LOCATION, 5, 2);
-        Assert.assertEquals(c, c);
+        Assertions.assertThat(c).isEqualTo(c);
     }
 
     @Test
     public void testEqualsSameParameters() {
         final Collectible c1 = new Collectible(CollectibleTest.LOCATION, 5, 2);
         final Collectible c2 = new Collectible(CollectibleTest.LOCATION, 5, 2);
-        Assert.assertNotEquals(c1, c2);
+        Assertions.assertThat(c2).isNotEqualTo(c1);
     }
 }

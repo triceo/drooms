@@ -1,5 +1,6 @@
 package org.drooms.impl.util;
 
+import org.assertj.core.api.Assertions;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
@@ -105,8 +106,7 @@ public class CollisionDetectionTest {
                 CollisionDetectionTest.PLAYER_COLLIDED_WITH_ITSELF));
         // run the scenario
         final Set<PlayerPosition> collided = Detectors.detectCollision(players);
-        Assert.assertEquals(players.size() - 1, collided.size());
-        Assert.assertFalse(collided.contains(expected));
+        Assertions.assertThat(collided).doesNotContain(expected);
     }
 
 }

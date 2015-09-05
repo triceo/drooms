@@ -1,11 +1,11 @@
 package org.drooms.impl.logic;
 
 import edu.uci.ics.jung.graph.Graph;
+import org.assertj.core.api.Assertions;
 import org.drooms.api.Edge;
 import org.drooms.api.Node;
 import org.drooms.api.Playground;
 import org.drooms.impl.DefaultGame;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.*;
@@ -19,7 +19,7 @@ public class PathTrackerTest {
     @Test
     public void testPathToItself() {
         final Node start = PLAYGROUND.getNodeAt(10, 10);
-        Assert.assertEquals(Collections.EMPTY_LIST, PathTracker.getPath(GRAPH, start, Collections.singleton(start)));
+        Assertions.assertThat(PathTracker.getPath(GRAPH, start, Collections.singleton(start))).isEmpty();
     }
 
     @Test
@@ -27,10 +27,10 @@ public class PathTrackerTest {
         final Node start = PLAYGROUND.getNodeAt(10, 10);
         final Node end = PLAYGROUND.getNodeAt(10, start.getY() + 1);
         final List<Edge> path = PathTracker.getPath(GRAPH, start, Collections.singleton(end));
-        Assert.assertEquals(1, path.size());
+        Assertions.assertThat(path).hasSize(1);
         final Edge edge = path.get(0);
-        Assert.assertEquals(start, edge.getFirstNode());
-        Assert.assertEquals(end, edge.getSecondNode());
+        Assertions.assertThat(edge.getFirstNode()).isEqualToComparingFieldByField(start);
+        Assertions.assertThat(edge.getSecondNode()).isEqualToComparingFieldByField(end);
     }
 
     @Test
@@ -39,10 +39,10 @@ public class PathTrackerTest {
         final Node end = PLAYGROUND.getNodeAt(10, start.getY() + 1);
         // start and null in the set will be ignored as garbage
         final List<Edge> path = PathTracker.getPath(GRAPH, start, PathTrackerTest.toSet(start, end, null));
-        Assert.assertEquals(1, path.size());
+        Assertions.assertThat(path).hasSize(1);
         final Edge edge = path.get(0);
-        Assert.assertEquals(start, edge.getFirstNode());
-        Assert.assertEquals(end, edge.getSecondNode());
+        Assertions.assertThat(edge.getFirstNode()).isEqualToComparingFieldByField(start);
+        Assertions.assertThat(edge.getSecondNode()).isEqualToComparingFieldByField(end);
     }
 
     private static int getManhattanDistance(final Node start, final Node end) {
@@ -60,7 +60,7 @@ public class PathTrackerTest {
         // the length of shortest path between two objects in a 2D grid is their Manhattan distance
         final int manhattanDistance = PathTrackerTest.getManhattanDistance(start, end);
         final List<Edge> path = PathTracker.getPath(GRAPH, start, Collections.singleton(end));
-        Assert.assertEquals(manhattanDistance, path.size());
+        Assertions.assertThat(path).hasSize(manhattanDistance);
     }
 
     private void testShortestPathThroughNode(final boolean endFirst) {
@@ -72,11 +72,11 @@ public class PathTrackerTest {
         final int manhattanDistance = PathTrackerTest.getManhattanDistance(start, end);
         final List<Edge> path = PathTracker.getPath(GRAPH, start, endFirst ? PathTrackerTest.toSet(end, middle) :
                 PathTrackerTest.toSet(middle, end));
-        Assert.assertEquals(manhattanDistance, path.size());
+        Assertions.assertThat(path).hasSize(manhattanDistance);
         // make sure that in the path there is the middle node
         final Collection<Edge> edges = GRAPH.getIncidentEdges(middle);
-        Assert.assertEquals(2, edges.size()); // otherwise the following assertion makes no sense
-        edges.forEach(edge -> Assert.assertTrue(path.contains(edge)));
+        Assertions.assertThat(edges).hasSize(2); // otherwise the following assertion makes no sense
+        Assertions.assertThat(path).containsAll(edges);
     }
 
     @Test
@@ -96,7 +96,7 @@ public class PathTrackerTest {
         final Node unreachable = doesNodeExist ? PLAYGROUND.getNodeAt(68, 12) : PLAYGROUND.getNodeAt(10, 15);
         final List<Edge> path = PathTracker.getPath(GRAPH, start, unreachableFirst ? PathTrackerTest.toSet(unreachable,
                 end) : PathTrackerTest.toSet(end, unreachable));
-        Assert.assertEquals(0, path.size());
+        Assertions.assertThat(path).isEmpty();
     }
 
 
@@ -130,10 +130,10 @@ public class PathTrackerTest {
         final Node end = PLAYGROUND.getNodeAt(0, DISTANCE);
         // minimal possible path length
         final List<Edge> path = PathTracker.getPath(GRAPH, start, PathTrackerTest.toSet(middle1, end, middle2));
-        Assert.assertEquals(DISTANCE + DISTANCE + DISTANCE, path.size());
+        Assertions.assertThat(path).hasSize(DISTANCE + DISTANCE + DISTANCE);
         // make sure that all nodes are in path
         Set<Node> nodesToFind = PathTrackerTest.toSet(start, middle1, middle2, end);
         path.forEach(edge -> nodesToFind.removeAll(GRAPH.getIncidentVertices(edge)));
-        Assert.assertEquals(0, nodesToFind.size());
+        Assertions.assertThat(nodesToFind).isEmpty();
     }
 }

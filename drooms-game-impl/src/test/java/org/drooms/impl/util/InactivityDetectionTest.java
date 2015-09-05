@@ -1,5 +1,6 @@
 package org.drooms.impl.util;
 
+import org.assertj.core.api.Assertions;
 import org.drooms.api.Action;
 import org.drooms.api.Player;
 import org.junit.Assert;
@@ -15,22 +16,22 @@ public class InactivityDetectionTest {
 
     @Test
     public void testActivity1() {
-        Assert.assertEquals(true, Detectors.isActive(InactivityDetectionTest.toList(Action.MOVE_UP), 1));
+        Assert.assertTrue(Detectors.isActive(InactivityDetectionTest.toList(Action.MOVE_UP), 1));
     }
 
     @Test
     public void testActivity2() {
-        Assert.assertEquals(true, Detectors.isActive(InactivityDetectionTest.toList(Action.MOVE_UP, Action.NOTHING, Action.NOTHING), 3));
+        Assert.assertTrue(Detectors.isActive(InactivityDetectionTest.toList(Action.MOVE_UP, Action.NOTHING, Action.NOTHING), 3));
     }
 
     @Test
     public void testInactivityDetectionWorks() {
-        Assert.assertEquals(false, Detectors.isActive(InactivityDetectionTest.toList(Action.MOVE_UP, Action.NOTHING, Action.NOTHING, Action.NOTHING), 2));
+        Assert.assertFalse(Detectors.isActive(InactivityDetectionTest.toList(Action.MOVE_UP, Action.NOTHING, Action.NOTHING, Action.NOTHING), 2));
     }
 
     @Test
     public void testInactivityEvaluatesFromTheBack() {
-        Assert.assertEquals(true, Detectors.isActive(InactivityDetectionTest.toList(Action.NOTHING, Action.NOTHING, Action.MOVE_UP, Action.NOTHING), 2));
+        Assert.assertTrue(Detectors.isActive(InactivityDetectionTest.toList(Action.NOTHING, Action.NOTHING, Action.MOVE_UP, Action.NOTHING), 2));
     }
 
     @Test
@@ -40,17 +41,17 @@ public class InactivityDetectionTest {
         players.put(active, InactivityDetectionTest.toList(Action.MOVE_LEFT, Action.MOVE_UP, Action.NOTHING));
         final Player inactive = new Player("b", "c", "d", "1.0");
         players.put(inactive, InactivityDetectionTest.toList(Action.MOVE_RIGHT, Action.NOTHING, Action.NOTHING));
-        Assert.assertEquals(Collections.singleton(inactive), Detectors.detectInactivity(1, players));
+        Assertions.assertThat(Detectors.detectInactivity(1, players)).containsOnly(inactive);
     }
 
     @Test
     public void testNegativeTurnCount() {
-        Assert.assertEquals(0, Detectors.detectInactivity(-1, Collections.emptyMap()).size());
+        Assertions.assertThat(Detectors.detectInactivity(-1, Collections.emptyMap())).isEmpty();
     }
 
     @Test
     public void testEmptyPlayers() {
-        Assert.assertEquals(0, Detectors.detectInactivity(1, Collections.emptyMap()).size());
+        Assertions.assertThat(Detectors.detectInactivity(1, Collections.emptyMap())).isEmpty();
     }
 
     @Test(expected = IllegalArgumentException.class)
