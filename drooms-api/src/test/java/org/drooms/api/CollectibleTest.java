@@ -5,7 +5,23 @@ import org.junit.Test;
 
 public class CollectibleTest {
 
-    private static final Node LOCATION = new Node(0, 0);
+    private static final Node LOCATION = new Node() {
+
+        @Override
+        public Type getType() {
+            return Type.REGULAR;
+        }
+
+        @Override
+        public int getX() {
+            return 0;
+        }
+
+        @Override
+        public int getY() {
+            return 0;
+        }
+    };
 
     @Test
     public void testCollectibleConstructorExpiring() {

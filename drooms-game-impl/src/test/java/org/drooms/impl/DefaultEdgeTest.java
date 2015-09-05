@@ -7,9 +7,34 @@ import org.junit.Test;
 
 public class DefaultEdgeTest {
 
-    private final Node leastNode = new Node(10, 20);
-    private final Node largerNode = new Node(11, 20);
-    private final Node largestNode = new Node(9, 21);
+    private static class NodeImpl implements Node {
+
+        private final int x, y;
+
+        public NodeImpl(final int x, final int y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        @Override
+        public Type getType() {
+            return Type.REGULAR;
+        }
+
+        @Override
+        public int getX() {
+            return this.x;
+        }
+
+        @Override
+        public int getY() {
+            return this.y;
+        }
+    }
+
+    private final Node leastNode = new NodeImpl(10, 20);
+    private final Node largerNode = new NodeImpl(11, 20);
+    private final Node largestNode = new NodeImpl(9, 21);
 
     @Test(expected = IllegalArgumentException.class)
     public void testEdgeSame() {

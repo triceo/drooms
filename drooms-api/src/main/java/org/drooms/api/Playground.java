@@ -1,9 +1,8 @@
 package org.drooms.api;
 
-import java.util.Collection;
-import java.util.List;
-
 import edu.uci.ics.jung.graph.Graph;
+
+import java.util.List;
 
 /**
  * Represents a playing field for the worms as a graph of {@link Node}s and {@link Edge}s.
@@ -15,7 +14,7 @@ public interface Playground {
      * 
      * @return An unmodifiable graph representing the playing field.
      */
-    public Graph<Node, Edge> getGraph();
+    Graph<Node, Edge> getGraph();
 
     /**
      * Return the height of the playing field.
@@ -23,14 +22,14 @@ public interface Playground {
      * @return Of all the nodes in the field, this is the maximum vertical
      *         co-ordinate.
      */
-    public int getHeight();
+    int getHeight();
 
     /**
      * Return the playground name.
      * 
      * @return String representing the playground.
      */
-    public String getName();
+    String getName();
 
     /**
      * Retrieve a node at the particular position.
@@ -39,16 +38,9 @@ public interface Playground {
      *            Horizontal co-ordinate.
      * @param y
      *            Vertical co-ordinate.
-     * @return Null if there is no node at the given coordinates.
+     * @return A node if {@link #isAvailable(int, int)}, a wall otherwise.
      */
-    public Node getNodeAt(int x, int y);
-
-    /**
-     * Get all available nodes.
-     * 
-     * @return A collection of all nodes in this playground.
-     */
-    public Collection<Node> getNodes();
+    Node getNodeAt(int x, int y);
 
     /**
      * Retrieve the other end of a portal.
@@ -59,7 +51,7 @@ public interface Playground {
      * @throws IllegalArgumentException
      *             when not portal or not a known portal.
      */
-    public Node getOtherEndOfPortal(Node portal);
+    Node getOtherEndOfPortal(Node portal);
 
     /**
      * Returns {@link Node}s at which {@link Player}s are allowed to start out
@@ -67,7 +59,7 @@ public interface Playground {
      * 
      * @return An unmodifiable list of starting positions.
      */
-    public List<Node> getStartingPositions();
+    List<Node> getStartingPositions();
 
     /**
      * Return the width of the playing field.
@@ -75,7 +67,7 @@ public interface Playground {
      * @return Of all the nodes in the field, this is the maximum horizontal
      *         co-ordinate.
      */
-    public int getWidth();
+    int getWidth();
 
     /**
      * Whether or not a {@link Node} is available for a {@link Player}'s worm to
@@ -87,6 +79,6 @@ public interface Playground {
      *            Vertical co-ordinate.
      * @return True if available.
      */
-    public boolean isAvailable(int x, int y);
+    boolean isAvailable(int x, int y);
 
 }

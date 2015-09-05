@@ -18,8 +18,8 @@ class DefaultEdge implements Edge {
     private final Node firstNode, secondNode;
 
     /**
-     * A {@link Node} is considered larger than the other if it has a bigger {@link #getY()}. In case these equal,
-     * larger {@link #getX()} wins. Otherwise the nodes are equal.
+     * A {@link Node} is considered larger than the other if it has a bigger {@link Node#getY()}. In case these equal,
+     * larger {@link Node#getX()} wins. Otherwise the nodes are equal.
      */
     private static boolean isNodeLarger(final Node isLarger, final Node target) {
         if (isLarger.getY() > target.getY()) {
@@ -45,7 +45,7 @@ class DefaultEdge implements Edge {
      * @param secondNode
      *            The other.
      */
-    public DefaultEdge(final Node firstNode, final Node secondNode) {
+    protected DefaultEdge(final Node firstNode, final Node secondNode) {
         if (firstNode == null || secondNode == null) {
             throw new IllegalArgumentException("Neither nodes can be null.");
         } else if (firstNode.equals(secondNode)) {

@@ -1,51 +1,41 @@
 package org.drooms.impl;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-
+import edu.uci.ics.jung.graph.Graph;
+import edu.uci.ics.jung.graph.UndirectedSparseGraph;
+import edu.uci.ics.jung.graph.util.Graphs;
 import org.drooms.api.Edge;
 import org.drooms.api.Node;
 import org.drooms.api.Node.Type;
 import org.drooms.api.Playground;
 
-import edu.uci.ics.jung.graph.Graph;
-import edu.uci.ics.jung.graph.UndirectedSparseGraph;
-import edu.uci.ics.jung.graph.util.Graphs;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.util.*;
 
 class DefaultPlayground implements Playground {
 
     private static final char WALL_SIGN = '#';
     private static final char PLAYER_SIGN = '@';
 
-    private final Set<Node> nodes = new HashSet<Node>();
-    private final Map<Node, Character> portals = new HashMap<Node, Character>();
+    private final Map<Node, Character> portals = new HashMap<>();
 
-    private final List<Node[]> nodeLocations = new ArrayList<Node[]>();
+    private final List<Node[]> nodeLocations = new ArrayList<>();
 
-    private final Graph<Node, Edge> graph = new UndirectedSparseGraph<Node, Edge>();
-    private final List<Node> startingNodes = new ArrayList<Node>();
+    private final Graph<Node, Edge> graph = new UndirectedSparseGraph<>();
+    private final List<Node> startingNodes = new ArrayList<>();
     private final int width;
     private final String name;
 
     DefaultPlayground(final String name, final List<String> lines) {
         this.name = name;
         // portal data
-        final Map<Character, Node> portalEntries = new TreeMap<Character, Node>();
-        final Map<Character, Node> portalExits = new TreeMap<Character, Node>();
+        final Map<Character, Node> portalEntries = new TreeMap<>();
+        final Map<Character, Node> portalExits = new TreeMap<>();
         // assemble nodes
         int maxX = Integer.MIN_VALUE;
+        final Collection<Node> identifiedNodes = new HashSet<>();
         for (final String line : lines) {
             int y = this.nodeLocations.size();
             final Node[] locations = new Node[line.length()];
@@ -54,17 +44,17 @@ class DefaultPlayground implements Playground {
                 Node n;
                 switch (nodeLabel) {
                     case WALL_SIGN: // wall node
-                        n = new Node(Type.WALL, x, y);
+                        n = new DefaultNode(Type.WALL, x, y);
                         break;
                     case PLAYER_SIGN: // player starting position
-                        n = new Node(Type.STARTING_POSITION, x, y);
+                        n = new DefaultNode(Type.STARTING_POSITION, x, y);
                         this.startingNodes.add(n);
                         break;
                     case ' ': // regular node
-                        n = new Node(x, y);
+                        n = new DefaultNode(x, y);
                         break;
                     default: // any other character is a portal
-                        n = new Node(Type.PORTAL, x, y);
+                        n = new DefaultNode(Type.PORTAL, x, y);
                         if (portalEntries.containsKey(nodeLabel)) {
                             if (portalExits.containsKey(nodeLabel)) {
                                 throw new IllegalStateException("Portal " + nodeLabel + " appears more than twice!");
@@ -75,7 +65,7 @@ class DefaultPlayground implements Playground {
                             portalEntries.put(nodeLabel, n);
                         }
                 }
-                this.nodes.add(n);
+                identifiedNodes.add(n);
                 locations[x] = n;
                 maxX = Math.max(maxX, x);
             }
@@ -84,7 +74,7 @@ class DefaultPlayground implements Playground {
         }
         this.width = maxX + 1;
         // link nodes
-        for (final Node n : this.nodes) {
+        for (final Node n : identifiedNodes) {
             if (n.getType() == Type.WALL) {
                 // don't link wall node to any other node
                 continue;
@@ -138,17 +128,6 @@ class DefaultPlayground implements Playground {
         return this.name;
     }
 
-    private Node getNode(final int x, final int y) {
-        if (y < 0 || y >= this.nodeLocations.size()) {
-            throw new IllegalArgumentException("There are no nodes with coordinates [x, " + y + "]");
-        }
-        final Node[] nodes = this.nodeLocations.get(y);
-        if (x < 0 || x >= nodes.length) {
-            throw new IllegalArgumentException("There are no nodes with coordinates [" + x + ", " + y + "]");
-        }
-        return this.nodeLocations.get(y)[x];
-    }
-
     @Override
     public List<Node> getStartingPositions() {
         return Collections.unmodifiableList(this.startingNodes);
@@ -161,19 +140,15 @@ class DefaultPlayground implements Playground {
 
     @Override
     public boolean isAvailable(final int x, final int y) {
-        try {
-            return (this.getNode(x, y).getType() == Type.WALL) ? false : true;
-        } catch (final IllegalArgumentException ex) {
-            return false;
-        }
+        return (this.getNodeAt(x, y).getType() == Type.WALL) ? false : true;
     }
 
     private Edge link(final int x, final int y, final int otherX, final int otherY) {
         if (!this.isAvailable(x, y) || !this.isAvailable(otherX, otherY)) {
             return null;
         }
-        final Node node1 = this.getNode(x, y);
-        final Node node2 = this.getNode(otherX, otherY);
+        final Node node1 = this.getNodeAt(x, y);
+        final Node node2 = this.getNodeAt(otherX, otherY);
         Edge e = this.graph.findEdge(node1, node2);
         if (e == null) {
             e = new DefaultEdge(node1, node2);
@@ -183,8 +158,7 @@ class DefaultPlayground implements Playground {
     }
 
     /**
-     * Write out the playground into a stream, according to the spec described
-     * in {@link #read(InputStream)}.
+     * Write out the playground into a stream.
      * 
      * @param s
      *            The stream
@@ -216,16 +190,14 @@ class DefaultPlayground implements Playground {
 
     @Override
     public Node getNodeAt(final int x, final int y) {
-        try {
-            return this.getNode(x, y);
-        } catch (final IllegalArgumentException ex) {
-            return null;
+        if (y < 0 || y >= this.nodeLocations.size()) {
+            return new DefaultNode(Type.WALL, x, y);
         }
-    }
-
-    @Override
-    public Collection<Node> getNodes() {
-        return Collections.unmodifiableSet(this.nodes);
+        final Node[] nodes = this.nodeLocations.get(y);
+        if (x < 0 || x >= nodes.length) {
+            return new DefaultNode(Type.WALL, x, y);
+        }
+        return this.nodeLocations.get(y)[x];
     }
 
     @Override

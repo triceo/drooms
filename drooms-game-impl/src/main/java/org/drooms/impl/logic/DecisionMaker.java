@@ -129,16 +129,10 @@ class DecisionMaker implements PlayerLogic, Channel, Callable<Action> {
         DecisionMaker.setGlobal(this.session, "tracker", tracker);
         DecisionMaker.setGlobal(this.session, "logger",
                 LoggerFactory.getLogger("org.drooms.players." + p.getName()));
-        /*
-         * insert playground walls; make sure the playground is always
-         * surrounded with walls.
-         */
+        // insert playground walls
         for (int x = -1; x <= playground.getWidth(); x++) {
             for (int y = -1; y <= playground.getHeight(); y++) {
                 Node n = playground.getNodeAt(x, y);
-                if (n == null) {
-                    n = new Node(Type.WALL, x, y);
-                }
                 if (n.getType() == Type.WALL) {
                     this.session.insert(new Wall(n));
                 }
