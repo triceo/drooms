@@ -4,6 +4,7 @@ import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
 import org.drooms.impl.DefaultGame;
+import org.drooms.impl.PlayerPosition;
 import org.drooms.impl.logic.PathTrackerTest;
 import org.junit.Assert;
 import org.junit.Test;
@@ -62,43 +63,50 @@ public class CollisionDetectionTest {
 
     @Test
     public void testCollidedWithWall() {
-        Assert.assertTrue(Detectors.didPlayerHitWall(CollisionDetectionTest.PLAYER_COLLIDED_WITH_WALL,
+        Assert.assertTrue(Detectors.didPlayerHitWall(CollisionDetectionTest.PLAYER_COLLIDED_WITH_WALL.getFirst(),
                 CollisionDetectionTest.PLAYGROUND));
     }
 
     @Test
     public void testMutuallyUncollided() {
-        Assert.assertFalse(Detectors.didPlayerCollideWithOther(CollisionDetectionTest.PLAYER_COLLIDED_WITH_ITSELF,
+        Assert.assertFalse(Detectors.didPlayerCollideWithOther(
+                CollisionDetectionTest.PLAYER_COLLIDED_WITH_ITSELF.getFirst(),
                 CollisionDetectionTest.PLAYER_COLLIDED_WITH_WALL));
-        Assert.assertFalse(Detectors.didPlayerCollideWithOther(CollisionDetectionTest.PLAYER_COLLIDED_WITH_WALL,
+        Assert.assertFalse(Detectors.didPlayerCollideWithOther(
+                CollisionDetectionTest.PLAYER_COLLIDED_WITH_WALL.getFirst(),
                 CollisionDetectionTest.PLAYER_COLLIDED_WITH_ITSELF));
-        Assert.assertFalse(Detectors.didPlayerCollideWithOther(CollisionDetectionTest.PLAYER_COLLIDED_WITH_WALL,
-                CollisionDetectionTest.PLAYER_COLLIDED_WITH_WALL));
     }
 
     @Test
     public void testHeadOnCollision() {
-        Assert.assertFalse(Detectors.didPlayerCollideWithOther(CollisionDetectionTest.PLAYER_UNCOLLIDED,
+        Assert.assertFalse(Detectors.didPlayerCollideWithOther(CollisionDetectionTest.PLAYER_UNCOLLIDED.getFirst(),
                 CollisionDetectionTest.PLAYER_HITTING_THE_UNCOLLIDED));
-        Assert.assertTrue(Detectors.didPlayerCollideWithOther(CollisionDetectionTest.PLAYER_HITTING_THE_UNCOLLIDED,
+        Assert.assertTrue(Detectors.didPlayerCollideWithOther(
+                CollisionDetectionTest.PLAYER_HITTING_THE_UNCOLLIDED.getFirst(),
                 CollisionDetectionTest.PLAYER_UNCOLLIDED));
     }
 
     @Test
     public void testIntegration() {
         // prepare the scenario
-        final Player uncollided = new Player("a", "b", "c", "1.0");
-        final Map<Player, Deque<Node>> players = new HashMap<>();
-        players.put(uncollided, CollisionDetectionTest.PLAYER_UNCOLLIDED);
-        players.put(new Player("d", "e", "f", "1.0"), CollisionDetectionTest.PLAYER_HITTING_THE_UNCOLLIDED);
-        players.put(new Player("g", "h", "i", "1.0"), CollisionDetectionTest.PLAYER_HEAD_ON_HEAD_1);
-        players.put(new Player("j", "k", "l", "1.0"), CollisionDetectionTest.PLAYER_HEAD_ON_HEAD_2);
-        players.put(new Player("m", "n", "o", "1.0"), CollisionDetectionTest.PLAYER_COLLIDED_WITH_WALL);
-        players.put(new Player("p", "q", "r", "1.0"), CollisionDetectionTest.PLAYER_COLLIDED_WITH_ITSELF);
+        final PlayerPosition expected = PlayerPosition.build(CollisionDetectionTest.PLAYGROUND,
+                new Player("a", "b", "c", "1.0"), CollisionDetectionTest.PLAYER_UNCOLLIDED);
+        final Set<PlayerPosition> players = new HashSet<>();
+        players.add(expected);
+        players.add(PlayerPosition.build(CollisionDetectionTest.PLAYGROUND, new Player("d", "e", "f", "1.0"),
+                CollisionDetectionTest.PLAYER_HITTING_THE_UNCOLLIDED));
+        players.add(PlayerPosition.build(CollisionDetectionTest.PLAYGROUND, new Player("g", "h", "i", "1.0"),
+                CollisionDetectionTest.PLAYER_HEAD_ON_HEAD_1));
+        players.add(PlayerPosition.build(CollisionDetectionTest.PLAYGROUND, new Player("j", "k", "l", "1.0"),
+                CollisionDetectionTest.PLAYER_HEAD_ON_HEAD_2));
+        players.add(PlayerPosition.build(CollisionDetectionTest.PLAYGROUND, new Player("m", "n", "o", "1.0"),
+                CollisionDetectionTest.PLAYER_COLLIDED_WITH_WALL));
+        players.add(PlayerPosition.build(CollisionDetectionTest.PLAYGROUND, new Player("p", "q", "r", "1.0"),
+                CollisionDetectionTest.PLAYER_COLLIDED_WITH_ITSELF));
         // run the scenario
-        final Set<Player> collided = Detectors.detectCollision(CollisionDetectionTest.PLAYGROUND, players);
+        final Set<PlayerPosition> collided = Detectors.detectCollision(players);
         Assert.assertEquals(players.size() - 1, collided.size());
-        Assert.assertFalse(collided.contains(uncollided));
+        Assert.assertFalse(collided.contains(expected));
     }
 
 }

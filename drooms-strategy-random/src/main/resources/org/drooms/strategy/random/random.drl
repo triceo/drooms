@@ -39,7 +39,7 @@ when
     not PlayerActionEvent(player == $p, this after $added) from entry-point "playerEvents"
 then
     insertLogical (
-        new CurrentPosition($added.getNodes().getFirst())
+        new CurrentPosition($added.getHeadNode())
     );
 end
 

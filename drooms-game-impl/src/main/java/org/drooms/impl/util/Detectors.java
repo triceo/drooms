@@ -4,6 +4,7 @@ import org.drooms.api.Action;
 import org.drooms.api.Node;
 import org.drooms.api.Player;
 import org.drooms.api.Playground;
+import org.drooms.impl.PlayerPosition;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -46,48 +47,46 @@ public class Detectors {
         return true;
     }
 
-    protected static boolean didPlayerHitItself(final Deque<Node> player) {
+    protected static boolean didPlayerHitItself(final Collection<Node> player) {
         final Collection<Node> nodes = new HashSet<>(player);
         return nodes.size() < player.size();
     }
 
-    protected static boolean didPlayerHitWall(final Deque<Node> player, final Playground playground) {
-        final Node playerHeadPosition = player.getFirst();
+    protected static boolean didPlayerHitWall(final Node playerHeadPosition, final Playground playground) {
         return !playground.isAvailable(playerHeadPosition.getX(), playerHeadPosition.getY());
     }
 
-    protected static boolean didPlayerCollideWithOther(final Deque<Node> player, final Deque<Node> otherPlayer) {
-        if (player == otherPlayer) { // identical players
-            return false;
-        }
-        return otherPlayer.contains(player.getFirst());
+    protected static boolean didPlayerCollideWithOther(final Node playerHeadNode, final Collection<Node> otherPlayer) {
+        return otherPlayer.contains(playerHeadNode);
     }
 
     /**
      * Detect players who performed a move that will get them killed. This either means running into a wall, colliding
      * with themselves or colliding with another player.
      *
-     * @param playground Playground in which the players compete.
-     * @param players Positions of the players to be evaluated.
+     * @param players Positions of the players to be evaluated. Assumed to have come from the same playground.
      * @return Unmodifiable set of players that have in some way collided.
      */
-    public static Set<Player> detectCollision(final Playground playground, final Map<Player, Deque<Node>> players) {
+    public static Set<PlayerPosition> detectCollision(final Set<PlayerPosition> players) {
         // find all players that collided by crashing into themselves or into a wall
-        final Collection<Player> playersNotFailed = players.keySet().stream().filter(player ->
-                !Detectors.didPlayerHitItself(players.get(player))).filter(player ->
-                !Detectors.didPlayerHitWall(players.get(player), playground)).collect(Collectors.toSet());
+        final Collection<PlayerPosition> playersNotFailed = players.stream().filter(player ->
+                !Detectors.didPlayerHitItself(player.getNodes())).filter(player ->
+                !Detectors.didPlayerHitWall(player.getHeadNode(), player.getPlayground())).collect(Collectors.toSet());
         // for every other player, check for collisions with all known players
-        final Collection<Player> playersSurviving = playersNotFailed.stream().filter(player -> {
-            final Deque<Node> position = players.get(player);
-            for (Deque<Node> otherPosition: players.values()) {
-                if (Detectors.didPlayerCollideWithOther(position, otherPosition)) {
+        final Collection<PlayerPosition> playersSurviving = playersNotFailed.stream().filter(position -> {
+            for (PlayerPosition otherPosition: players) {
+                if (otherPosition.equals(position)) {
+                    // no point in checking for collisions of the player with itself
+                    continue;
+                }
+                if (Detectors.didPlayerCollideWithOther(position.getHeadNode(), otherPosition.getNodes())) {
                     return false;
                 }
             }
             return true;
         }).collect(Collectors.toSet());
         // and assemble the final collection of worms that have somehow crashed
-        return Collections.unmodifiableSet(players.keySet().stream().filter(player ->
+        return Collections.unmodifiableSet(players.stream().filter(player ->
                 !playersSurviving.contains(player)).collect(Collectors.toSet()));
     }
 

@@ -202,7 +202,7 @@ class DecisionMaker implements PlayerLogic, Channel, Callable<Action> {
                 (new Worm(player, n))));
         // update head node
         if (player == this.player) {
-            this.currentHead = evt.getNodes().getFirst();
+            this.currentHead = evt.getHeadNode();
         }
     }
 

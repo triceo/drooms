@@ -40,7 +40,7 @@ public class DefaultGame extends GameController {
     protected Map<Collectible, Player> performCollectibleCollection(final Collection<Player> players) {
         final Map<Collectible, Player> collections = new HashMap<>();
         for (final Player p : players) {
-            final Node headPosition = this.getPlayerPosition(p).getFirst();
+            final Node headPosition = this.getPlayerPosition(p).getHeadNode();
             final Collectible c = this.getCollectible(headPosition);
             if (c != null) { // successfully collected
                 collections.put(c, p);
@@ -67,29 +67,28 @@ public class DefaultGame extends GameController {
     }
 
     @Override
-    protected Set<Player> performCollisionDetection(final Playground playground, final Collection<Player> currentPlayers) {
-        return Detectors.detectCollision(playground, currentPlayers.stream()
-                .collect(Collectors.toMap(Function.identity(), player -> this.getPlayerPosition(player))));
+    protected Set<Player> performCollisionDetection(final Playground playground,
+                                                    final Collection<Player> currentPlayers) {
+        return Detectors.detectCollision(currentPlayers.stream().map(this::getPlayerPosition).collect(
+                Collectors.toSet())).stream().map(PlayerPosition::getPlayer).collect(Collectors.toSet());
     }
 
     @Override
     protected Set<Player> performInactivityDetection(final Collection<Player> currentPlayers,
-            final int currentTurnNumber, final int allowedInactiveTurns) {
-        return Detectors.detectInactivity(allowedInactiveTurns, currentPlayers.stream()
-                .collect(Collectors.toMap(Function.identity(), player -> this.getDecisionRecord(player))));
+                                                     final int currentTurnNumber, final int allowedInactiveTurns) {
+        return Detectors.detectInactivity(allowedInactiveTurns, currentPlayers.stream().collect(
+                Collectors.toMap(Function.identity(), this::getDecisionRecord)));
     }
 
     @Override
-    protected Deque<Node> performPlayerAction(final Player player, final Playground playground, final Action decision) {
+    protected PlayerPosition performPlayerAction(final PlayerPosition currentPos, final Action decision) {
         // move the head of the worm
-        final Deque<Node> currentPos = this.getPlayerPosition(player);
-        final Node currentHeadPos = currentPos.getFirst();
+        final Node currentHeadPos = currentPos.getHeadNode();
+        final Playground playground = currentPos.getPlayground();
         Node newHeadPos;
         switch (decision) {
             case REVERSE: // reverse the snake and do nothing else
-                final LinkedList<Node> nodes = new LinkedList<>(currentPos);
-                Collections.reverse(nodes);
-                return nodes;
+                return currentPos.reverse();
             case MOVE_UP:
                 newHeadPos = playground.getNodeAt(currentHeadPos.getX(), currentHeadPos.getY() + 1);
                 break;
@@ -120,15 +119,12 @@ public class DefaultGame extends GameController {
             throw new IllegalStateException("Moving to a non-existent node!");
         }
         // move the head of the snake
-        final Deque<Node> newPosition = new LinkedList<>(currentPos);
         if (newHeadPos != currentHeadPos) {
-            newPosition.push(newHeadPos);
+            final PlayerPosition newPosition = currentPos.newHead(newHeadPos);
+            return newPosition.ensureMaxLength(this.getPlayerLength(currentPos.getPlayer()));
+        } else {
+            return currentPos.ensureMaxLength(this.getPlayerLength(currentPos.getPlayer()));
         }
-        // make sure the snake is as long as it should be
-        while (newPosition.size() > this.getPlayerLength(player)) {
-            newPosition.removeLast();
-        }
-        return newPosition;
     }
 
     @Override
@@ -153,7 +149,7 @@ public class DefaultGame extends GameController {
             }
         }
         // exclude nodes where worms are
-        players.forEach(player -> nodes.removeAll(this.getPlayerPosition(player)));
+        players.forEach(player -> nodes.removeAll(this.getPlayerPosition(player).getNodes()));
         // exclude nodes where collectibles are
         final List<Node> finalNodes = nodes.stream().filter(n -> this.getCollectible(n) == null).collect(Collectors
                 .toList());

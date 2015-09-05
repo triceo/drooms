@@ -52,19 +52,19 @@ public abstract class GameController implements Game {
 
     protected static final SecureRandom RANDOM = new SecureRandom();
 
-    private final Map<Player, Integer> playerPoints = new HashMap<Player, Integer>();
+    private final Map<Player, Integer> playerPoints = new HashMap<>();
 
-    private final Map<Player, Integer> lengths = new HashMap<Player, Integer>();
+    private final Map<Player, Integer> lengths = new HashMap<>();
 
-    private final Map<Player, Deque<Node>> positions = new HashMap<Player, Deque<Node>>();
+    private final Map<Player, PlayerPosition> positions = new HashMap<>();
 
-    private final Map<Node, Collectible> collectiblesByNode = new HashMap<Node, Collectible>();
+    private final Map<Node, Collectible> collectiblesByNode = new HashMap<>();
 
-    private final Map<Player, SortedMap<Integer, Action>> decisionRecord = new HashMap<Player, SortedMap<Integer, Action>>();
+    private final Map<Player, SortedMap<Integer, Action>> decisionRecord = new HashMap<>();
 
     private GameProperties gameConfig;
 
-    private final Set<GameProgressListener> listeners = new HashSet<GameProgressListener>();
+    private final Set<GameProgressListener> listeners = new HashSet<>();
 
     private void addCollectible(final Collectible c) {
         this.collectiblesByNode.put(c.getAt(), c);
@@ -72,7 +72,7 @@ public abstract class GameController implements Game {
 
     private void addDecision(final Player p, final Action m, final int turnNumber) {
         if (!this.decisionRecord.containsKey(p)) {
-            this.decisionRecord.put(p, new TreeMap<Integer, Action>());
+            this.decisionRecord.put(p, new TreeMap<>());
         }
         this.decisionRecord.get(p).put(turnNumber, m);
     }
@@ -87,11 +87,12 @@ public abstract class GameController implements Game {
     }
 
     protected List<Action> getDecisionRecord(final Player p) {
-        final LinkedList<Action> moves = new LinkedList<Action>();
-        for (final SortedMap.Entry<Integer, Action> entry : this.decisionRecord.get(p).entrySet()) {
-            moves.add(entry.getKey(), entry.getValue());
+        if (!this.decisionRecord.containsKey(p)) {
+            return Collections.emptyList();
+        } else {
+            return Collections.unmodifiableList(this.decisionRecord.get(p).values().stream().collect(
+                    Collectors.toList()));
         }
-        return moves;
     }
 
     protected int getPlayerLength(final Player p) {
@@ -101,7 +102,7 @@ public abstract class GameController implements Game {
         return this.lengths.get(p);
     }
 
-    protected Deque<Node> getPlayerPosition(final Player p) {
+    protected PlayerPosition getPlayerPosition(final Player p) {
         if (!this.positions.containsKey(p)) {
             throw new IllegalStateException("Player doesn't have any position assigned: " + p);
         }
@@ -169,15 +170,12 @@ public abstract class GameController implements Game {
     /**
      * Decide where the worm should be after it has performed a particular action.
      * 
-     * @param player
-     *            The worm.
-     * @param playground
-     *            Playground on which the move is happening.
+     * @param currentPosition Current player position.
      * @param decision
      *            The action to perform.
-     * @return New positions for the worm, head-first.
+     * @return New positions for the worm.
      */
-    protected abstract Deque<Node> performPlayerAction(final Player player, final Playground playground, final Action decision);
+    protected abstract PlayerPosition performPlayerAction(final PlayerPosition currentPosition, final Action decision);
 
     /**
      * Decide which players should be rewarded for survival in this round.
@@ -223,9 +221,7 @@ public abstract class GameController implements Game {
         }
         int i = 0;
         for (final Player player : players) {
-            final Deque<Node> pos = new LinkedList<Node>();
-            pos.push(startingPositions.get(i));
-            this.setPlayerPosition(player, pos);
+            this.setPlayerPosition(PlayerPosition.build(playground, player, startingPositions.get(i)));
             this.setPlayerLength(player, wormLength);
             playerPoints.put(player, 0);
             GameController.LOGGER.info("Player {} assigned position {}.", player.getName(), i);
@@ -258,9 +254,9 @@ public abstract class GameController implements Game {
             for (final Player p : playerControl.getPlayers()) {
                 final Action m = decisions.get(p);
                 this.addDecision(p, m, turnNumber);
-                final Deque<Node> newPosition = this.performPlayerAction(p, playground, m);
-                this.setPlayerPosition(p, newPosition);
-                playerControl.distributeCommand(new PlayerActionCommand(p, m, newPosition));
+                final PlayerPosition newPosition = this.performPlayerAction(this.getPlayerPosition(p), m);
+                this.setPlayerPosition(newPosition);
+                playerControl.distributeCommand(new PlayerActionCommand(m, newPosition));
             }
             // resolve worms colliding
             for (final Player player : this.performCollisionDetection(playground, playerControl.getPlayers())) {
@@ -275,7 +271,7 @@ public abstract class GameController implements Game {
                 playerControl.distributeCommand(new RewardSurvivalCommand(p, amount));
             }
             // expire uncollected collectibles
-            final Set<Collectible> removeCollectibles = new HashSet<Collectible>();
+            final Set<Collectible> removeCollectibles = new HashSet<>();
             for (final Collectible c : this.collectiblesByNode.values()) {
                 if (c.expires() && turnNumber >= c.expiresInTurn()) {
                     removeCollectibles.add(c);
@@ -350,8 +346,8 @@ public abstract class GameController implements Game {
         this.lengths.put(p, length);
     }
 
-    private void setPlayerPosition(final Player p, final Deque<Node> position) {
-        this.positions.put(p, position);
+    private void setPlayerPosition(final PlayerPosition position) {
+        this.positions.put(position.getPlayer(), position);
     }
 
     /**
