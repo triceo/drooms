@@ -46,40 +46,49 @@ public class Detectors {
         return true;
     }
 
-    public static Set<Player> detectCollision(final Playground playground, final Map<Player, Deque<Node>> players) {
-        final Set<Player> collisions = new HashSet<>();
-        for (final Map.Entry<Player, Deque<Node>> entry: players.entrySet()) {
-            final Deque<Node> positions = entry.getValue();
-            final Player player = entry.getKey();
-            final Node playerHeadPosition = positions.getFirst();
-            if (!playground.isAvailable(playerHeadPosition.getX(), playerHeadPosition.getY())) {
-                collisions.add(player);
-                continue;
-            } else {
-                // make sure the worm didn't crash into itself
-                final Collection<Node> nodes = new HashSet<>(positions);
-                if (nodes.size() < positions.size()) {
-                    // a worm occupies one node twice = a crash into itself
-                    collisions.add(player);
-                }
-            }
-            for (final Player otherPlayer : players.keySet()) {
-                if (player == otherPlayer) {
-                    // the same worm
-                    continue;
-                }
-                final Node otherPlayerHeadPosition = players.get(otherPlayer).getFirst();
-                if (playerHeadPosition.equals(otherPlayerHeadPosition)) {
-                    // head-on-head collision
-                    collisions.add(player);
-                    collisions.add(otherPlayer);
-                } else if (positions.contains(otherPlayerHeadPosition)) {
-                    // head-on-body collision
-                    collisions.add(otherPlayer);
-                }
-            }
+    protected static boolean didPlayerHitItself(final Deque<Node> player) {
+        final Collection<Node> nodes = new HashSet<>(player);
+        return nodes.size() < player.size();
+    }
+
+    protected static boolean didPlayerHitWall(final Deque<Node> player, final Playground playground) {
+        final Node playerHeadPosition = player.getFirst();
+        return !playground.isAvailable(playerHeadPosition.getX(), playerHeadPosition.getY());
+    }
+
+    protected static boolean didPlayerCollideWithOther(final Deque<Node> player, final Deque<Node> otherPlayer) {
+        if (player == otherPlayer) { // identical players
+            return false;
         }
-        return Collections.unmodifiableSet(collisions);
+        return otherPlayer.contains(player.getFirst());
+    }
+
+    /**
+     * Detect players who performed a move that will get them killed. This either means running into a wall, colliding
+     * with themselves or colliding with another player.
+     *
+     * @param playground Playground in which the players compete.
+     * @param players Positions of the players to be evaluated.
+     * @return Unmodifiable set of players that have in some way collided.
+     */
+    public static Set<Player> detectCollision(final Playground playground, final Map<Player, Deque<Node>> players) {
+        // find all players that collided by crashing into themselves or into a wall
+        final Collection<Player> playersNotFailed = players.keySet().stream().filter(player ->
+                !Detectors.didPlayerHitItself(players.get(player))).filter(player ->
+                !Detectors.didPlayerHitWall(players.get(player), playground)).collect(Collectors.toSet());
+        // for every other player, check for collisions with all known players
+        final Collection<Player> playersSurviving = playersNotFailed.stream().filter(player -> {
+            final Deque<Node> position = players.get(player);
+            for (Deque<Node> otherPosition: players.values()) {
+                if (Detectors.didPlayerCollideWithOther(position, otherPosition)) {
+                    return false;
+                }
+            }
+            return true;
+        }).collect(Collectors.toSet());
+        // and assemble the final collection of worms that have somehow crashed
+        return Collections.unmodifiableSet(players.keySet().stream().filter(player ->
+                !playersSurviving.contains(player)).collect(Collectors.toSet()));
     }
 
 }
