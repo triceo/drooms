@@ -1,75 +1,52 @@
 package org.drooms.launcher.tournament;
 
-import java.math.BigDecimal;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
-
 import org.drooms.api.Player;
+
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class DroomsTournamentResults extends TournamentResults {
 
-    public DroomsTournamentResults(final String name,
-            final Collection<Player> players) {
+    public DroomsTournamentResults(final String name, final Collection<Player> players) {
         super(name, players);
     }
 
     @Override
-    protected List<Collection<Player>> evaluateGame(
-            final Collection<Player> players, final GameResults game) {
+    protected List<Collection<Player>> evaluateGame(final Collection<Player> players, final GameResults game) {
         // group players by their median results
         final SortedMap<BigDecimal, Collection<Player>> grouped = new TreeMap<>();
-        for (final Player p : players) {
-            final BigDecimal key = game.getMedian(p);
-            if (!grouped.containsKey(key)) {
-                grouped.put(key, new HashSet<Player>());
-            }
-            grouped.get(key).add(p);
-        }
+        players.forEach(p -> {
+            grouped.getOrDefault(game.getMedian(p), new HashSet<>()).add(p);
+        });
         // store the results in a reverse order; median biggest to lowest
-        final List<Collection<Player>> results = new LinkedList<>(
-                grouped.values());
+        final List<Collection<Player>> results = new LinkedList<>(grouped.values());
         Collections.reverse(results);
         return Collections.unmodifiableList(results);
     }
 
     @Override
-    protected SortedMap<Long, Collection<Player>> evaluateTournament(
-            final Collection<Player> players,
+    protected SortedMap<Long, Collection<Player>> evaluateTournament(final Collection<Player> players,
             final Collection<List<Collection<Player>>> gameResults) {
         final Map<Player, Long> points = new HashMap<>();
-        for (final Player p : players) {
-            points.put(p, 0l);
-        }
         // value each player
-        for (final List<Collection<Player>> gameResult : gameResults) {
+        gameResults.forEach(gameResult -> {
             // for each game result...
-            int i = 0;
-            for (final Collection<Player> playersSharingPosition : gameResult) {
+            final AtomicInteger i = new AtomicInteger(0);
+            gameResult.forEach(playersSharingPosition -> {
                 // for each player sharing the same position
-                for (final Player p : playersSharingPosition) {
+                playersSharingPosition.forEach(p -> {
                     // add 2^position points
-                    final long previousPoints = points.get(p);
-                    points.put(p, previousPoints + Math.round(Math.pow(2, i)));
-                }
-                i++;
-            }
-        }
+                    points.put(p, points.getOrDefault(p, 0l) + Math.round(Math.pow(2, i.get())));
+                });
+                i.incrementAndGet();
+            });
+        });
         // group players by their results
         final SortedMap<Long, Collection<Player>> grouped = new TreeMap<>();
-        for (final Player p : players) {
-            final long key = points.get(p);
-            if (!grouped.containsKey(key)) {
-                grouped.put(key, new HashSet<Player>());
-            }
-            grouped.get(key).add(p);
-        }
+        players.forEach(p -> {
+            grouped.getOrDefault(points.get(p), new HashSet<>()).add(p);
+        });
         return Collections.unmodifiableSortedMap(grouped);
     }
 

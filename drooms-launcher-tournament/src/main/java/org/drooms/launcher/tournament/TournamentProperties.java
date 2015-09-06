@@ -7,11 +7,10 @@ import org.drooms.impl.util.PlayerProperties;
 import org.drooms.util.CommonProperties;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Properties;
+import java.util.*;
+import java.util.stream.Collectors;
 
+// FIXME document player config file format.
 /**
  * Prepares the tournament properties by reading them from a property file.
  * 
@@ -44,7 +43,6 @@ import java.util.Properties;
  * Default value is "target/drooms".</dd>
  * </dl>
  * 
- * FIXME document player config file format.
  */
 public class TournamentProperties extends CommonProperties {
 
@@ -87,13 +85,12 @@ public class TournamentProperties extends CommonProperties {
         final File playerConfigFile = new File(this.resourceFolder, this.getMandatoryProperty("players"));
         this.players = Collections.unmodifiableList(new PlayerProperties(playerConfigFile).read());
         // parse the playgrounds
-        final Collection<ImmutablePair<File, File>> playgrounds = new ArrayList<>();
-        for (final String playgroundName : this.getMandatoryProperty("playgrounds").split("\\Q,\\E")) {
+        this.playgrounds = Collections.unmodifiableCollection(Arrays.stream(this.getMandatoryProperty("playgrounds")
+                .split("\\Q,\\E")).map(playgroundName -> {
             final File playground = new File(this.resourceFolder, playgroundName + ".playground");
             final File config = new File(this.resourceFolder, playgroundName + ".cfg");
-            playgrounds.add(new ImmutablePair<File, File>(playground, config));
-        }
-        this.playgrounds = Collections.unmodifiableCollection(playgrounds);
+            return new ImmutablePair<>(playground, config);
+        }).collect(Collectors.toList()));
     }
 
     public Class<? extends Game> getGameClass() {

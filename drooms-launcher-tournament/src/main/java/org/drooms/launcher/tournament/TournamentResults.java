@@ -1,27 +1,21 @@
 package org.drooms.launcher.tournament;
 
-import java.io.IOException;
-import java.io.Writer;
-import java.math.BigDecimal;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.SortedMap;
-
-import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.drooms.api.Player;
-
 import freemarker.ext.beans.BeansWrapper;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.drooms.api.Player;
+
+import java.io.IOException;
+import java.io.Writer;
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public abstract class TournamentResults {
 
-    public static class GameResults {
+    static class GameResults {
 
         private final Map<Player, DescriptiveStatistics> stats = new HashMap<>();
         private int games = 0;
@@ -32,22 +26,9 @@ public abstract class TournamentResults {
 
         public void addResults(final Map<Player, Integer> result) {
             this.games++;
-            for (final Map.Entry<Player, Integer> entry : result.entrySet()) {
-                final Player p = entry.getKey();
-                final int points = entry.getValue();
-                if (!this.stats.containsKey(p)) {
-                    this.stats.put(p, new DescriptiveStatistics());
-                }
-                this.stats.get(p).addValue(points);
-            }
-        }
-
-        public BigDecimal getAverage(final Player p) {
-            return BigDecimal.valueOf(this.getStats(p).getMean());
-        }
-
-        public BigDecimal getFirstQuartile(final Player p) {
-            return BigDecimal.valueOf(this.getStats(p).getPercentile(25));
+            result.forEach((p, points) -> {
+                this.stats.getOrDefault(p, new DescriptiveStatistics()).addValue(points);
+            });
         }
 
         // FIXME better name
@@ -55,20 +36,8 @@ public abstract class TournamentResults {
             return this.games;
         }
 
-        public BigDecimal getMax(final Player p) {
-            return BigDecimal.valueOf(this.getStats(p).getMax());
-        }
-
         public BigDecimal getMedian(final Player p) {
             return BigDecimal.valueOf(this.getStats(p).getPercentile(50));
-        }
-
-        public BigDecimal getMin(final Player p) {
-            return BigDecimal.valueOf(this.getStats(p).getMin());
-        }
-
-        public BigDecimal getStandardDeviation(final Player p) {
-            return BigDecimal.valueOf(this.getStats(p).getStandardDeviation());
         }
 
         private DescriptiveStatistics getStats(final Player p) {
@@ -81,9 +50,6 @@ public abstract class TournamentResults {
             }
         }
 
-        public BigDecimal getThirdQuartile(final Player p) {
-            return BigDecimal.valueOf(this.getStats(p).getPercentile(75));
-        }
     }
 
     private final Map<String, GameResults> results = new HashMap<>();
@@ -103,15 +69,9 @@ public abstract class TournamentResults {
         this.results.get(game).addResults(result);
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    private Map assembleGameOverview() {
-        final Map result = new HashMap();
-        for (final Map.Entry<String, GameResults> game : this.results
-                .entrySet()) {
-            result.put(game.getKey(),
-                    this.evaluateGame(this.players, game.getValue()));
-        }
-        return Collections.unmodifiableMap(result);
+    private Map<String, List<Collection<Player>>> assembleGameOverview() {
+        return Collections.unmodifiableMap(this.results.keySet().stream().collect(Collectors.toMap(Function.identity(),
+                key -> this.evaluateGame(this.players, this.results.get(key)))));
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -126,30 +86,20 @@ public abstract class TournamentResults {
         return Collections.unmodifiableMap(result);
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    private Map assembleTournamentOverview() {
-        final Map result = new HashMap();
-        for (final Map.Entry<String, GameResults> game : this.results
-                .entrySet()) {
-            result.put(game.getKey(), game.getValue().getGames());
-        }
-        return Collections.unmodifiableMap(result);
+    private Map<String, Integer> assembleTournamentOverview() {
+        return Collections.unmodifiableMap(this.results.keySet().stream().collect(Collectors.toMap(Function.identity(),
+                key -> this.results.get(key).getGames())));
     }
 
     public Map<Long, Collection<Player>> evaluate() {
-        final Collection<List<Collection<Player>>> gameResults = new LinkedList<>();
-        for (final String game : this.getGameNames()) {
-            gameResults.add(this.evaluateGame(this.players,
-                    this.results.get(game)));
-        }
+        final Collection<List<Collection<Player>>> gameResults = this.getGameNames().stream().map(game ->
+                this.evaluateGame(this.players, this.results.get(game))).collect(Collectors.toList());
         return this.evaluateTournament(this.players, gameResults);
     }
 
-    protected abstract List<Collection<Player>> evaluateGame(
-            final Collection<Player> players, final GameResults game);
+    protected abstract List<Collection<Player>> evaluateGame(final Collection<Player> players, final GameResults game);
 
-    protected abstract SortedMap<Long, Collection<Player>> evaluateTournament(
-            final Collection<Player> players,
+    protected abstract SortedMap<Long, Collection<Player>> evaluateTournament(final Collection<Player> players,
             final Collection<List<Collection<Player>>> gameResults);
 
     public Collection<String> getGameNames() {
