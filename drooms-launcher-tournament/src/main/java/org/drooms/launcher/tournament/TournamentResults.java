@@ -26,9 +26,7 @@ public abstract class TournamentResults {
 
         public void addResults(final Map<Player, Integer> result) {
             this.games++;
-            result.forEach((p, points) -> {
-                this.stats.getOrDefault(p, new DescriptiveStatistics()).addValue(points);
-            });
+            result.forEach((p, points) -> this.stats.getOrDefault(p, new DescriptiveStatistics()).addValue(points));
         }
 
         // FIXME better name

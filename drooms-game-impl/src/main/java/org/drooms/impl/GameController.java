@@ -11,6 +11,7 @@ import java.io.*;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -194,9 +195,64 @@ public abstract class GameController implements Game {
     protected abstract Map<Player, Integer> performSurvivalRewarding(Collection<Player> allPlayers,
             Collection<Player> survivingPlayers, int removedInThisRound, int rewardAmount);
 
+    private Map<Player, Action> playTurn(final Playground playground, final Collection<Player> players,
+                                         final CommandDistributor playerControl,
+                                         final Map<Player, Action> previousDecisions, final int turnNumber,
+                                         final int allowedInactiveTurns,
+                                         final int wormSurvivalBonus) {
+        GameController.LOGGER.info("--- Starting turn no. {}.", turnNumber);
+        final int preRemoval = playerControl.getPlayers().size();
+        // remove inactive worms
+        this.performInactivityDetection(playerControl.getPlayers(), turnNumber, allowedInactiveTurns).forEach(player -> {
+            GameController.LOGGER.info("Player {} will be removed for inactivity.", player.getName());
+            playerControl.distributeCommand(new DeactivatePlayerCommand(player));
+        });
+        // move the worms
+        playerControl.getPlayers().forEach(p -> {
+            final Action m = previousDecisions.get(p);
+            this.addDecision(p, m, turnNumber);
+            final PlayerPosition newPosition = this.performPlayerAction(this.getPlayerPosition(p), m);
+            this.setPlayerPosition(newPosition);
+            playerControl.distributeCommand(new PlayerActionCommand(m, newPosition));
+        });
+        // resolve worms colliding
+        this.performCollisionDetection(playground, playerControl.getPlayers()).stream().forEach(player -> {
+            playerControl.distributeCommand(new CrashPlayerCommand(player));
+        });
+        final Collection<Player> survivingPlayers = playerControl.getPlayers();
+        final int postRemoval = survivingPlayers.size();
+        // FIXME if postRemoval == 1, doesn't the game end now?
+        this.performSurvivalRewarding(players, survivingPlayers, preRemoval - postRemoval, wormSurvivalBonus)
+                .forEach((p, amount) -> {
+                    this.reward(p, amount);
+                    playerControl.distributeCommand(new RewardSurvivalCommand(p, amount));
+                });
+        // expire uncollected collectibles
+        this.collectiblesByNode.values().stream().filter(c -> c.expires() && turnNumber >= c.expiresInTurn())
+                .forEach(c -> {
+            playerControl.distributeCommand(new RemoveCollectibleCommand(c));
+            this.removeCollectible(c);
+        });
+        // add points for collected collectibles
+        this.performCollectibleCollection(survivingPlayers).forEach((c, p) -> {
+            this.reward(p, c.getPoints());
+            playerControl.distributeCommand(new CollectCollectibleCommand(c, p));
+            this.removeCollectible(c);
+            this.setPlayerLength(p, this.getPlayerLength(p) + 1);
+        });
+        // distribute new collectibles
+        this.performCollectibleDistribution(this.gameConfig, playground, survivingPlayers, turnNumber).stream()
+                .forEach(c -> {
+            this.addCollectible(c);
+            playerControl.distributeCommand(new AddCollectibleCommand(c));
+        });
+        // make the move decision
+        return playerControl.execute();
+    }
+
     @Override
     public Map<Player, Integer> play(final Playground playground, final Collection<Player> players,
-            final File reportFolder) {
+                                     final File reportFolder) {
         if (this.gameConfig == null) {
             throw new IllegalStateException("Game context had not been set!");
         }
@@ -219,88 +275,29 @@ public abstract class GameController implements Game {
             throw new IllegalArgumentException("The playground doesn't support " + playersAvailable + " players, only "
                     + playersSupported + "! ");
         }
-        int i = 0;
-        for (final Player player : players) {
-            this.setPlayerPosition(PlayerPosition.build(playground, player, startingPositions.get(i)));
+        players.forEach(player -> {
+            final int playerPosition = playerPoints.size();
+            this.setPlayerPosition(PlayerPosition.build(playground, player, startingPositions.get(playerPosition)));
             this.setPlayerLength(player, wormLength);
             playerPoints.put(player, 0);
-            GameController.LOGGER.info("Player {} assigned position {}.", player.getName(), i);
-            i++;
-        }
+            GameController.LOGGER.info("Player {} assigned position {}.", player.getName(), playerPosition);
+        });
         // prepare situation
         this.reporter = new XmlProgressListener(playground, players, this.gameConfig);
         final CommandDistributor playerControl = new CommandDistributor(playground, players, this.reporter,
                 this.gameConfig, reportFolder, wormTimeout);
-        for (final GameProgressListener listener : this.listeners) {
-            playerControl.addListener(listener);
-        }
-        Map<Player, Action> decisions = new HashMap<Player, Action>();
-        for (final Player p : playerControl.getPlayers()) {
-            // initialize players
-            decisions.put(p, Action.NOTHING);
-        }
+        this.listeners.forEach(listener -> playerControl.addListener(listener));
+        Map<Player, Action> decisions = playerControl.getPlayers().stream().collect(Collectors.toMap(
+                Function.identity(), player -> Action.NOTHING));
+        // FIXME ^^^ is NOTHING the correct action? wouldn't it trigger inactivity with threshold == 1?
         // start the game
-        int turnNumber = GameProperties.FIRST_TURN_NUMBER;
+        int turnCount = 0;
         do {
-            GameController.LOGGER.info("--- Starting turn no. {}.", turnNumber);
-            final int preRemoval = playerControl.getPlayers().size();
-            // remove inactive worms
-            for (final Player player : this.performInactivityDetection(playerControl.getPlayers(), turnNumber,
-                    allowedInactiveTurns)) {
-                GameController.LOGGER.info("Player {} will be removed for inactivity.", player.getName());
-                playerControl.distributeCommand(new DeactivatePlayerCommand(player));
-            }
-            // move the worms
-            for (final Player p : playerControl.getPlayers()) {
-                final Action m = decisions.get(p);
-                this.addDecision(p, m, turnNumber);
-                final PlayerPosition newPosition = this.performPlayerAction(this.getPlayerPosition(p), m);
-                this.setPlayerPosition(newPosition);
-                playerControl.distributeCommand(new PlayerActionCommand(m, newPosition));
-            }
-            // resolve worms colliding
-            for (final Player player : this.performCollisionDetection(playground, playerControl.getPlayers())) {
-                playerControl.distributeCommand(new CrashPlayerCommand(player));
-            }
-            final int postRemoval = playerControl.getPlayers().size();
-            for (final Map.Entry<Player, Integer> entry : this.performSurvivalRewarding(players,
-                    playerControl.getPlayers(), preRemoval - postRemoval, wormSurvivalBonus).entrySet()) {
-                final Player p = entry.getKey();
-                final int amount = entry.getValue();
-                this.reward(p, amount);
-                playerControl.distributeCommand(new RewardSurvivalCommand(p, amount));
-            }
-            // expire uncollected collectibles
-            final Set<Collectible> removeCollectibles = new HashSet<>();
-            for (final Collectible c : this.collectiblesByNode.values()) {
-                if (c.expires() && turnNumber >= c.expiresInTurn()) {
-                    removeCollectibles.add(c);
-                }
-            }
-            for (final Collectible c : removeCollectibles) {
-                playerControl.distributeCommand(new RemoveCollectibleCommand(c));
-                this.removeCollectible(c);
-            }
-            // add points for collected collectibles
-            for (final Map.Entry<Collectible, Player> entry : this.performCollectibleCollection(
-                    playerControl.getPlayers()).entrySet()) {
-                final Collectible c = entry.getKey();
-                final Player p = entry.getValue();
-                this.reward(p, c.getPoints());
-                playerControl.distributeCommand(new CollectCollectibleCommand(c, p));
-                this.removeCollectible(c);
-                this.setPlayerLength(p, this.getPlayerLength(p) + 1);
-            }
-            // distribute new collectibles
-            for (final Collectible c : this.performCollectibleDistribution(this.gameConfig, playground,
-                    playerControl.getPlayers(), turnNumber)) {
-                this.addCollectible(c);
-                playerControl.distributeCommand(new AddCollectibleCommand(c));
-            }
-            // make the move decision
-            decisions = playerControl.execute();
-            turnNumber++;
-            if (turnNumber == allowedTurns) {
+            final int turnNumber = turnCount + GameProperties.FIRST_TURN_NUMBER;
+            decisions = this.playTurn(playground, players, playerControl, decisions, turnNumber, allowedInactiveTurns,
+                    wormSurvivalBonus);
+            turnCount++;
+            if (turnCount == allowedTurns) {
                 GameController.LOGGER.info("Reached a pre-defined limit of {} turns. Terminating game.", allowedTurns);
                 break;
             } else if (playerControl.getPlayers().size() < 2) {
@@ -311,9 +308,8 @@ public abstract class GameController implements Game {
         playerControl.terminate(); // clean up all the sessions
         // output player status
         GameController.LOGGER.info("--- Game over.");
-        for (final Map.Entry<Player, Integer> entry : this.playerPoints.entrySet()) {
-            GameController.LOGGER.info("Player {} earned {} points.", entry.getKey().getName(), entry.getValue());
-        }
+        this.playerPoints.forEach((key, value) -> GameController.LOGGER.info("Player {} earned {} points.",
+                key.getName(), value));
         return Collections.unmodifiableMap(this.playerPoints);
     }
 
