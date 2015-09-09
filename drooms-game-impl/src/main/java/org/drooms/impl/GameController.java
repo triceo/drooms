@@ -221,7 +221,6 @@ public abstract class GameController implements Game {
         });
         final Collection<Player> survivingPlayers = playerControl.getPlayers();
         final int postRemoval = survivingPlayers.size();
-        // FIXME if postRemoval == 1, doesn't the game end now?
         this.performSurvivalRewarding(players, survivingPlayers, preRemoval - postRemoval, wormSurvivalBonus)
                 .forEach((p, amount) -> {
                     this.reward(p, amount);
@@ -240,6 +239,10 @@ public abstract class GameController implements Game {
             this.removeCollectible(c);
             this.setPlayerLength(p, this.getPlayerLength(p) + 1);
         });
+        if (postRemoval < 2) {
+            // end turn prematurely since not enough players survived
+            return Collections.emptyMap();
+        }
         // distribute new collectibles
         this.performCollectibleDistribution(this.gameConfig, playground, survivingPlayers, turnNumber).stream()
                 .forEach(c -> {
