@@ -108,6 +108,7 @@ public class DefaultGame extends GameController {
                     break;
                 }
                 // else this command makes no sense and we STAY
+                // FIXME this is a problem for inactivity detection
             case NOTHING:
                 // do not modify the worm in any way
                 return currentPos;

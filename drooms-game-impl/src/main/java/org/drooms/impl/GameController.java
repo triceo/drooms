@@ -11,7 +11,6 @@ import java.io.*;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -65,7 +64,7 @@ public abstract class GameController implements Game {
 
     private GameProperties gameConfig;
 
-    private final Set<GameProgressListener> listeners = new HashSet<>();
+    private final Collection<GameProgressListener> listeners = new HashSet<>();
 
     private void addCollectible(final Collectible c) {
         this.collectiblesByNode.put(c.getAt(), c);
@@ -209,8 +208,10 @@ public abstract class GameController implements Game {
         });
         // move the worms
         playerControl.getPlayers().forEach(p -> {
-            final Action m = previousDecisions.get(p);
-            this.addDecision(p, m, turnNumber);
+            final Action m = previousDecisions.getOrDefault(p, Action.NOTHING);
+            if (turnNumber > GameProperties.FIRST_TURN_NUMBER) {
+                this.addDecision(p, m, turnNumber - 1); // store decision from previous turn
+            }
             final PlayerPosition newPosition = this.performPlayerAction(this.getPlayerPosition(p), m);
             this.setPlayerPosition(newPosition);
             playerControl.distributeCommand(new PlayerActionCommand(m, newPosition));
@@ -246,9 +247,9 @@ public abstract class GameController implements Game {
         // distribute new collectibles
         this.performCollectibleDistribution(this.gameConfig, playground, survivingPlayers, turnNumber).stream()
                 .forEach(c -> {
-            this.addCollectible(c);
-            playerControl.distributeCommand(new AddCollectibleCommand(c));
-        });
+                    this.addCollectible(c);
+                    playerControl.distributeCommand(new AddCollectibleCommand(c));
+                });
         // make the move decision
         return playerControl.execute();
     }
@@ -290,9 +291,7 @@ public abstract class GameController implements Game {
         final CommandDistributor playerControl = new CommandDistributor(playground, players, this.reporter,
                 this.gameConfig, reportFolder, wormTimeout);
         this.listeners.forEach(listener -> playerControl.addListener(listener));
-        Map<Player, Action> decisions = playerControl.getPlayers().stream().collect(Collectors.toMap(
-                Function.identity(), player -> Action.NOTHING));
-        // FIXME ^^^ is NOTHING the correct action? wouldn't it trigger inactivity with threshold == 1?
+        Map<Player, Action> decisions = Collections.emptyMap();
         // start the game
         int turnCount = 0;
         do {
