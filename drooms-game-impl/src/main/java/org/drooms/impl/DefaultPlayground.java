@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 class DefaultPlayground implements Playground {
 
@@ -208,17 +209,13 @@ class DefaultPlayground implements Playground {
             throw new IllegalArgumentException("Unknown portal:" + portal);
         }
         final Character portalId = this.portals.get(portal);
-        for (final Map.Entry<Node, Character> portals : this.portals.entrySet()) {
-            if (portalId != portals.getValue()) {
-                continue;
-            }
-            final Node possiblePortal = portals.getKey();
-            if (portal == possiblePortal) {
-                continue;
-            }
-            return possiblePortal;
+        final List<Node> possiblePortalEnds = this.portals.keySet().stream().filter(p -> portalId.equals(this.portals.get(p)))
+                .filter(p -> !p.equals(portal)).collect(Collectors.toList());
+        if (possiblePortalEnds.size() != 1) {
+            throw new IllegalStateException("Cannot find portal. This should not be possible at this point.");
+        } else {
+            return possiblePortalEnds.get(0);
         }
-        throw new IllegalStateException("Cannot find portal. This should not be possible at this point.");
     }
 
 }

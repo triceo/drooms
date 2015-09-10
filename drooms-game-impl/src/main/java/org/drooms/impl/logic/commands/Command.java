@@ -17,7 +17,7 @@ public interface Command {
      * @param logic
      *            Player's strategy in action.
      */
-    public void perform(PlayerLogic logic);
+    void perform(PlayerLogic logic);
 
     /**
      * Report the state change to a listener.
@@ -25,6 +25,6 @@ public interface Command {
      * @param report
      *            The listener.
      */
-    public void report(GameProgressListener report);
+    void report(GameProgressListener report);
 
 }

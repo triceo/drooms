@@ -13,6 +13,6 @@ public interface PlayerRelated {
      * 
      * @return Player in question.
      */
-    public Player getPlayer();
+    Player getPlayer();
 
 }

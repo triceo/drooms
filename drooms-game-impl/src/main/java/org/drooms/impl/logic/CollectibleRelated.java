@@ -12,6 +12,6 @@ public interface CollectibleRelated {
      * 
      * @return Collectible in question.
      */
-    public Collectible getCollectible();
+    Collectible getCollectible();
 
 }

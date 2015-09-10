@@ -55,7 +55,7 @@ public class DefaultGame extends GameController {
         return Collections.unmodifiableSet(gameConfig.getCollectibleTypes().stream().filter(ct -> {
             final BigDecimal probability = ct.getProbabilityOfAppearance();
             final BigDecimal chosen = BigDecimal.valueOf(GameController.RANDOM.nextDouble());
-            return (probability.compareTo(chosen) > 0);
+            return probability.compareTo(chosen) > 0;
         }).map(ct -> {
             final double expirationAdjustmentRate = GameController.RANDOM.nextDouble() + 0.5;
             final double turnsToLast = expirationAdjustmentRate * ct.getExpiration();

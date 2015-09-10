@@ -64,7 +64,7 @@ class KnowledgeSessionValidationHelper {
      */
     public boolean hasGlobal(final String name, final Class<?> cls) {
         if (this.hasGlobal(name)) {
-            return (globals.get(name).equals(cls.getName()));
+            return globals.get(name).equals(cls.getName());
         } else {
             return false;
         }

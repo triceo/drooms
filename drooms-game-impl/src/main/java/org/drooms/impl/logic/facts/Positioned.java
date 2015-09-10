@@ -12,20 +12,20 @@ public interface Positioned {
      * 
      * @return Node in question.
      */
-    public Node getNode();
+    Node getNode();
 
     /**
      * The horizontal co-ordinate of that position.
      * 
      * @return X coordinate.
      */
-    public int getX();
+    int getX();
 
     /**
      * The vertical co-ordinate of that position.
      * 
      * @return Y coordinate.
      */
-    public int getY();
+    int getY();
 
 }

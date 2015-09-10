@@ -77,7 +77,7 @@ public class DroomsStrategyValidator implements Callable<DroomsStrategyValidator
      * @return True if clean.
      */
     public boolean isClean() {
-        return (this.isValid() && this.warnings.size() == 0);
+        return this.isValid() && this.warnings.isEmpty();
     }
 
     /**
@@ -87,7 +87,7 @@ public class DroomsStrategyValidator implements Callable<DroomsStrategyValidator
      * @return True if valid.
      */
     public boolean isValid() {
-        return (this.errors.size() == 0);
+        return this.errors.isEmpty();
     }
 
     public DroomsStrategyValidator call() {

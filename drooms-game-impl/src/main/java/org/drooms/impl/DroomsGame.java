@@ -80,7 +80,7 @@ public class DroomsGame {
             this.listeners.forEach(listener -> g.addListener(listener));
             final Map<Player, Integer> result = g.play(g.buildPlayground(name, playgroundFis), this.players, f);
             // report
-            try (final Writer w = new FileWriter(new File(f, "report.xml"))) {
+            try (final Writer w = new BufferedWriter(new FileWriter(new File(f, "report.xml")))) {
                 g.getReport().write(w);
             } catch (final IOException e) {
                 DroomsGame.LOGGER.info("Failed writing report for game: {}.", name);

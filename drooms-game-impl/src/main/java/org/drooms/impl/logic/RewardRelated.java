@@ -12,6 +12,6 @@ public interface RewardRelated {
      * 
      * @return A number greater than 0.
      */
-    public int getPoints();
+    int getPoints();
 
 }
