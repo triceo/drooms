@@ -65,7 +65,7 @@ public class Collectible {
      * @return True if the item will disappear, false if it stays indefinitely.
      */
     public boolean expires() {
-        return (this.expiresInTurn >= 0);
+        return this.expiresInTurn >= 0;
     }
 
     /**

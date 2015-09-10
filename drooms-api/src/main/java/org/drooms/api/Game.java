@@ -20,7 +20,7 @@ public interface Game {
      *            Stream in question.
      * @return Playground constructed from that stream.
      */
-    public Playground buildPlayground(final String name, final InputStream source);
+    Playground buildPlayground(final String name, final InputStream source);
 
     /**
      * Add a custom listener to the game. Will be used next time {@link #play(Playground, Collection, File)} is called.
@@ -29,7 +29,7 @@ public interface Game {
      *            Listener in question.
      * @return True if added.
      */
-    public boolean addListener(GameProgressListener listener);
+    boolean addListener(GameProgressListener listener);
 
     /**
      * Retrieve the main report of this game, detailing the progress of the
@@ -37,7 +37,7 @@ public interface Game {
      * 
      * @return The report. Null when game not played before.
      */
-    public GameProgressListener getReport();
+    GameProgressListener getReport();
 
     /**
      * Initialize the game and play it through. Will throw an exception in case of a repeated call of this method on the
@@ -52,7 +52,7 @@ public interface Game {
      *            Where to output data, if necessary.
      * @return Points gained by each player.
      */
-    public Map<Player, Integer> play(Playground playground, Collection<Player> players, File reportFolder);
+    Map<Player, Integer> play(Playground playground, Collection<Player> players, File reportFolder);
 
     /**
      * Remove a previously {@link #addListener(GameProgressListener)}ed listener. This listener will not for any
@@ -62,7 +62,7 @@ public interface Game {
      *            Listener in question.
      * @return True if removed.
      */
-    public boolean removeListener(GameProgressListener listener);
+    boolean removeListener(GameProgressListener listener);
 
     /**
      * Sets the context for this game. The context should provide properties
@@ -71,6 +71,6 @@ public interface Game {
      * @param context
      *            Where do we load the game properties from.
      */
-    public void setContext(InputStream context);
+    void setContext(InputStream context);
 
 }

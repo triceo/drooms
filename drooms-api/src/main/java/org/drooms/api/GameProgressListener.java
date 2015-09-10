@@ -9,21 +9,21 @@ import java.io.Writer;
  */
 public interface GameProgressListener {
 
-    public void collectibleAdded(Collectible c);
+    void collectibleAdded(Collectible c);
 
-    public void collectibleCollected(Collectible c, Player p, int points);
+    void collectibleCollected(Collectible c, Player p, int points);
 
-    public void collectibleRemoved(Collectible c);
+    void collectibleRemoved(Collectible c);
 
-    public void nextTurn();
+    void nextTurn();
 
-    public void playerCrashed(Player p);
+    void playerCrashed(Player p);
 
-    public void playerDeactivated(Player p);
+    void playerDeactivated(Player p);
 
-    public void playerPerformedAction(Player p, Action m, Node... nodes);
+    void playerPerformedAction(Player p, Action m, Node... nodes);
 
-    public void playerSurvived(Player p, int points);
+    void playerSurvived(Player p, int points);
 
     /**
      * Write a report of the current state.
@@ -33,6 +33,6 @@ public interface GameProgressListener {
      * @throws IOException
      *             When it cannot be written.
      */
-    public void write(Writer w) throws IOException;
+    void write(Writer w) throws IOException;
 
 }
