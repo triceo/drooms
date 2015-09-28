@@ -27,11 +27,7 @@ public class DroomsStrategyValidatorTest {
         final DroomsStrategyValidator validator = DroomsStrategyValidator.getInstance(releaseId);
         Assert.assertFalse(validator.isValid());
         final List<String> errors = validator.getErrors();
-        /*
-         * TODO fix typo once we upgrade to codebase with this commit:
-         * https://github.com/droolsjbpm/drools/commit/fa1db09a5a6c0ac076ac3f0bcef39286716d8a65
-         */
-        Assertions.assertThat(errors).containsOnly("Cannot find a defualt KieBase");
+        Assertions.assertThat(errors).containsOnly("Cannot find a default KieBase");
     }
 
     @Test
